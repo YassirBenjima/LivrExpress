@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html class="h-full" data-kt-theme="true" data-kt-theme-mode="light" dir="ltr" lang="fr">
+<head>
+  <title>Espace Staff | LivrExpress</title>
+  <meta charset="utf-8"/>
+  <meta content="follow, index" name="robots"/>
+  <meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport"/>
+  <meta content="Page de connexion Staff" name="description"/>
+  
+  <link href="{{ asset('assets/media/app/apple-touch-icon.png') }}" rel="apple-touch-icon" sizes="180x180"/>
+  <link href="{{ asset('assets/media/app/favicon-32x32.png') }}" rel="icon" sizes="32x32" type="image/png"/>
+  <link href="{{ asset('assets/media/app/favicon-16x16.png') }}" rel="icon" sizes="16x16" type="image/png"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+  
+  <link href="{{ asset('assets/vendors/apexcharts/apexcharts.css') }}" rel="stylesheet"/>
+  <link href="{{ asset('assets/vendors/keenicons/styles.bundle.css') }}" rel="stylesheet"/>
+  <link href="{{ asset('assets/css/styles.css') }}" rel="stylesheet"/>
+</head>
+<body class="antialiased flex h-full text-base text-foreground bg-background">
+  <!-- Theme Mode -->
+  <script>
+    const defaultThemeMode = 'light'; // light|dark|system
+    let themeMode;
+
+    if (document.documentElement) {
+        if (localStorage.getItem('kt-theme')) {
+            themeMode = localStorage.getItem('kt-theme');
+        } else if (
+            document.documentElement.hasAttribute('data-kt-theme-mode')
+        ) {
+            themeMode =
+                document.documentElement.getAttribute('data-kt-theme-mode');
+        } else {
+            themeMode = defaultThemeMode;
+        }
+
+        if (themeMode === 'system') {
+            themeMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+                ? 'dark'
+                : 'light';
+        }
+
+        document.documentElement.classList.add(themeMode);
+    }
+  </script>
+  <!-- End of Theme Mode -->
+
+  <!-- Page -->
+  <style>
+    .page-bg {
+        background-image: url('{{ asset('assets/media/images/custom/bg-6.jpg') }}');
+    }
+    .dark .page-bg {
+        background-image: url('{{ asset('assets/media/images/custom/bg-6.jpg') }}');
+    }
+  </style>
+  <div class="flex items-center justify-center grow bg-center bg-no-repeat page-bg">
+    <div class="kt-card max-w-[370px] w-full">
+      <form method="post" action="{{ path('app_login_staff') }}" class="kt-card-content flex flex-col gap-5 p-10" id="staff_sign_in_form">
+        {% if error %}
+            <div class="bg-light-danger border border-danger text-danger px-4 py-3 rounded relative mb-4" role="alert">
+                {{ error.messageKey|trans(error.messageData, 'security') }}
+            </div>
+        {% endif %}
+
+        <div class="text-center mb-2.5">
+          <h3 class="text-lg font-medium text-mono leading-none mb-2.5">Espace Staff 👋</h3>
+          <div class="flex items-center justify-center font-medium">
+            <span class="text-sm text-secondary-foreground me-1.5">Accès réservé aux administrateurs</span>
+          </div>
+        </div>
+        
+        <div class="flex flex-col gap-1">
+          <label class="kt-form-label font-normal text-mono" for="inputUsername">Username</label>
+          <input type="text" name="_username" id="inputUsername" class="kt-input" autocomplete="username" required autofocus placeholder="Nom d'utilisateur">
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label class="kt-form-label font-normal text-mono" for="inputEmail">Adresse email</label>
+          <input type="email" name="_email" id="inputEmail" class="kt-input" autocomplete="email" required placeholder="email@email.com">
+        </div>
+        
+        <div class="flex flex-col gap-1">
+          <div class="flex items-center justify-between gap-1">
+            <label class="kt-form-label font-normal text-mono" for="inputPassword">Mot de passe</label>
+            {# <a class="text-sm kt-link shrink-0" href="#">Mot de passe oublié ?</a> #}
+          </div>
+          <div class="kt-input" data-kt-toggle-password="true">
+            <input type="password" name="_password" id="inputPassword" autocomplete="current-password" required placeholder="Entrez votre mot de passe">
+            <button class="kt-btn kt-btn-sm kt-btn-ghost kt-btn-icon bg-transparent! -me-1.5" data-kt-toggle-password-trigger="true" type="button">
+              <span class="kt-toggle-password-active:hidden">
+                <i class="ki-filled ki-eye text-muted-foreground"></i>
+              </span>
+              <span class="hidden kt-toggle-password-active:block">
+                <i class="ki-filled ki-eye-slash text-muted-foreground"></i>
+              </span>
+            </button>
+          </div>
+        </div>
+        
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+        <label class="kt-label">
+          <input class="kt-checkbox kt-checkbox-sm" name="_remember_me" type="checkbox" value="1"/>
+          <span class="kt-checkbox-label">Se souvenir de moi</span>
+        </label>
+        
+        <button class="kt-btn kt-btn-primary flex justify-center grow" type="submit">Connexion</button>
+
+        <div class="flex items-center gap-2">
+          <span class="border-t border-border w-full"></span>
+          <span class="text-xs text-muted-foreground font-medium uppercase">Ou</span>
+          <span class="border-t border-border w-full"></span>
+        </div>
+
+        <a class="kt-btn kt-btn-outline justify-center" href="{{ path('app_login') }}">Connexion Client</a>
+      </form>
+    </div>
+  </div>
+  <!-- End of Page -->
+
+  <!-- Scripts -->
+  <script src="{{ asset('assets/js/core.bundle.js') }}"></script>
+  <script src="{{ asset('assets/vendors/ktui/ktui.min.js') }}"></script>
+  <script src="{{ asset('assets/vendors/apexcharts/apexcharts.min.js') }}"></script>
+  <!-- End of Scripts -->
+</body>
+</html>
