@@ -69,7 +69,7 @@
             <h3 class="text-lg font-medium text-mono leading-none mb-2.5">Espace des clients</h3>
             <div class="flex items-center justify-center font-medium">
               <span class="text-sm text-secondary-foreground me-1.5">Pas encore de compte ?</span>
-              <a class="text-sm link" href="{{ path('app_register') }}">S'inscrire</a>
+              <a class="text-sm kt-link auth-link-custom" href="{{ path('app_register') }}">S'inscrire</a>
             </div>
           </div>
           
@@ -81,7 +81,7 @@
           <div class="flex flex-col gap-1">
             <div class="flex items-center justify-between gap-1">
               <label class="kt-form-label font-normal text-mono" for="inputPassword">Mot de passe</label>
-              <a class="text-sm kt-link shrink-0" href="{{ path('app_forgot_password') }}">Mot de passe oublié ?</a>
+              <a class="text-sm kt-link auth-link-custom shrink-0" href="{{ path('app_forgot_password') }}">Mot de passe oublié ?</a>
             </div>
             <div class="kt-input" data-kt-toggle-password="true">
               <input type="password" name="_password" id="inputPassword" autocomplete="current-password" required placeholder="Entrez votre mot de passe">
