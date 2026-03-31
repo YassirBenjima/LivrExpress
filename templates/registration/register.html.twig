@@ -47,89 +47,110 @@
 
   <!-- Page -->
   <style>
-    .page-bg {
-        background-image: url('{{ asset('assets/media/images/custom/bg-6.jpg') }}');
+    .branded-bg {
+        background-image: url('{{ asset('assets/media/images/2600x1600/bg-2.png') }}');
     }
-    .dark .page-bg {
-        background-image: url('{{ asset('assets/media/images/custom/bg-6.jpg') }}');
+    .dark .branded-bg {
+        background-image: url('{{ asset('assets/media/images/2600x1600/bg-2-dark.png') }}');
     }
   </style>
-  <div class="flex items-center justify-center grow bg-center bg-no-repeat page-bg py-10">
-    <div class="kt-card max-w-[370px] w-full mt-10 mb-10">
-      <form method="post" action="#" class="kt-card-content flex flex-col gap-5 p-10" id="registration_form">
-        <div class="text-center mb-2.5">
-          <h3 class="text-lg font-medium text-mono leading-none mb-2.5">Devenir client 👋</h3>
-          <div class="flex items-center justify-center font-medium">
-            <span class="text-sm text-secondary-foreground me-1.5">Déjà inscrit ?</span>
-            <a class="text-sm link" href="{{ path('app_login') }}">Connexion</a>
+
+  <div class="grid lg:grid-cols-2 grow">
+    <div class="flex justify-center items-center p-8 lg:p-10 order-2 lg:order-1">
+      <div class="kt-card max-w-[370px] w-full my-10">
+        <form method="post" action="#" class="kt-card-content flex flex-col gap-5 p-10" id="registration_form">
+          <div class="text-center mb-2.5">
+            <h3 class="text-lg font-medium text-mono leading-none mb-2.5">Devenir client 👋</h3>
+            <div class="flex items-center justify-center font-medium">
+              <span class="text-sm text-secondary-foreground me-1.5">Déjà inscrit ?</span>
+              <a class="text-sm link" href="{{ path('app_login') }}">Connexion</a>
+            </div>
+          </div>
+          
+          <div class="flex flex-col gap-1">
+            <label class="kt-form-label font-normal text-mono">Nom complet *</label>
+            <input class="kt-input" placeholder="Nom complet" type="text" name="full_name" required value=""/>
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label class="kt-form-label font-normal text-mono">Nom du business *</label>
+            <input class="kt-input" placeholder="Nom du business" type="text" name="business_name" required value=""/>
+          </div>
+          
+          <div class="flex flex-col gap-1">
+            <label class="kt-form-label font-normal text-mono">Numéro de téléphone du business *</label>
+            <input class="kt-input" placeholder="Numéro de téléphone du business" type="tel" name="business_phone" required value=""/>
+          </div>
+          
+          <div class="flex flex-col gap-1">
+            <label class="kt-form-label font-normal text-mono">Adresse email *</label>
+            <input class="kt-input" placeholder="psychos2018@gmail.com" type="email" name="email" required value=""/>
+          </div>
+          
+          <div class="flex flex-col gap-1">
+            <label class="kt-form-label font-normal text-mono">Ville *</label>
+            <select class="kt-select" name="city" required>
+              <option value="" disabled selected>Choisir une ville</option>
+              {% for city in cities %}
+                <option value="{{ city.name }}">{{ city.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label class="kt-form-label font-normal text-mono">Mot de passe *</label>
+            <div class="kt-input" data-kt-toggle-password="true">
+              <input type="password" name="password" id="inputPassword" autocomplete="new-password" required placeholder="••••••••••">
+              <button class="kt-btn kt-btn-sm kt-btn-ghost kt-btn-icon bg-transparent! -me-1.5" data-kt-toggle-password-trigger="true" type="button">
+                <span class="kt-toggle-password-active:hidden">
+                  <i class="ki-filled ki-eye text-muted-foreground"></i>
+                </span>
+                <span class="hidden kt-toggle-password-active:block">
+                  <i class="ki-filled ki-eye-slash text-muted-foreground"></i>
+                </span>
+              </button>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label class="kt-form-label font-normal text-mono">Confirmation mot de passe *</label>
+            <div class="kt-input" data-kt-toggle-password="true">
+              <input type="password" name="confirm_password" autocomplete="new-password" required placeholder="Mot de passe">
+              <button class="kt-btn kt-btn-sm kt-btn-ghost kt-btn-icon bg-transparent! -me-1.5" data-kt-toggle-password-trigger="true" type="button">
+                <span class="kt-toggle-password-active:hidden">
+                  <i class="ki-filled ki-eye text-muted-foreground"></i>
+                </span>
+                <span class="hidden kt-toggle-password-active:block">
+                  <i class="ki-filled ki-eye-slash text-muted-foreground"></i>
+                </span>
+              </button>
+            </div>
+          </div>
+
+          <button class="kt-btn kt-btn-primary flex justify-center grow" type="submit">Devenir client</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="lg:rounded-xl lg:border lg:border-border lg:m-5 order-1 lg:order-2 bg-top xxl:bg-center xl:bg-cover bg-no-repeat branded-bg">
+      <div class="flex flex-col p-8 lg:p-16 gap-4">
+        <a href="/">
+          <img class="h-[28px] max-w-none" src="https://keenthemes.com/metronic/tailwind/dist/assets/media/app/mini-logo.svg"/>
+        </a>
+        <div class="flex flex-col gap-3">
+          <h3 class="text-2xl font-semibold text-mono">Join LivrExpress</h3>
+          <div class="text-base font-medium text-secondary-foreground">
+            Commencez à expédier dès aujourd'hui avec le réseau le plus dynamique. 
+            <br/>
+            Bénéficiez de tarifs compétitifs, d'un suivi en temps réel 
+            <span class="text-mono font-semibold">et d'un service client dédié</span> pour faire croître votre business.
           </div>
         </div>
-        
-        <div class="flex flex-col gap-1">
-          <label class="kt-form-label font-normal text-mono">Nom complet *</label>
-          <input class="kt-input" placeholder="Nom complet" type="text" name="full_name" required value=""/>
-        </div>
-
-        <div class="flex flex-col gap-1">
-          <label class="kt-form-label font-normal text-mono">Nom du business *</label>
-          <input class="kt-input" placeholder="Nom du business" type="text" name="business_name" required value=""/>
-        </div>
-        
-        <div class="flex flex-col gap-1">
-          <label class="kt-form-label font-normal text-mono">Numéro de téléphone du business *</label>
-          <input class="kt-input" placeholder="Numéro de téléphone du business" type="tel" name="business_phone" required value=""/>
-        </div>
-        
-        <div class="flex flex-col gap-1">
-          <label class="kt-form-label font-normal text-mono">Adresse email *</label>
-          <input class="kt-input" placeholder="psychos2018@gmail.com" type="email" name="email" required value=""/>
-        </div>
-        
-        <div class="flex flex-col gap-1">
-          <label class="kt-form-label font-normal text-mono">Ville *</label>
-          <select class="kt-select" name="city" required>
-            <option value="" disabled selected>Choisir une ville</option>
-            {% for city in cities %}
-              <option value="{{ city.name }}">{{ city.name }}</option>
-            {% endfor %}
-          </select>
-        </div>
-
-        <div class="flex flex-col gap-1">
-          <label class="kt-form-label font-normal text-mono">Mot de passe *</label>
-          <div class="kt-input" data-kt-toggle-password="true">
-            <input type="password" name="password" id="inputPassword" autocomplete="new-password" required placeholder="••••••••••">
-            <button class="kt-btn kt-btn-sm kt-btn-ghost kt-btn-icon bg-transparent! -me-1.5" data-kt-toggle-password-trigger="true" type="button">
-              <span class="kt-toggle-password-active:hidden">
-                <i class="ki-filled ki-eye text-muted-foreground"></i>
-              </span>
-              <span class="hidden kt-toggle-password-active:block">
-                <i class="ki-filled ki-eye-slash text-muted-foreground"></i>
-              </span>
-            </button>
-          </div>
-        </div>
-
-        <div class="flex flex-col gap-1">
-          <label class="kt-form-label font-normal text-mono">Confirmation mot de passe *</label>
-          <div class="kt-input" data-kt-toggle-password="true">
-            <input type="password" name="confirm_password" autocomplete="new-password" required placeholder="Mot de passe">
-            <button class="kt-btn kt-btn-sm kt-btn-ghost kt-btn-icon bg-transparent! -me-1.5" data-kt-toggle-password-trigger="true" type="button">
-              <span class="kt-toggle-password-active:hidden">
-                <i class="ki-filled ki-eye text-muted-foreground"></i>
-              </span>
-              <span class="hidden kt-toggle-password-active:block">
-                <i class="ki-filled ki-eye-slash text-muted-foreground"></i>
-              </span>
-            </button>
-          </div>
-        </div>
-
-        <button class="kt-btn kt-btn-primary flex justify-center grow" type="submit">Devenir client</button>
-      </form>
+      </div>
     </div>
   </div>
   <!-- End of Page -->
+
 
   <!-- Scripts -->
   <script src="{{ asset('assets/js/core.bundle.js') }}"></script>

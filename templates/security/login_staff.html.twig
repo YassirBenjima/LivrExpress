@@ -47,77 +47,97 @@
 
   <!-- Page -->
   <style>
-    .page-bg {
-        background-image: url('{{ asset('assets/media/images/custom/bg-6.jpg') }}');
+    .branded-bg {
+        background-image: url('{{ asset('assets/media/images/2600x1600/2.png') }}');
     }
-    .dark .page-bg {
-        background-image: url('{{ asset('assets/media/images/custom/bg-6.jpg') }}');
+    .dark .branded-bg {
+        background-image: url('{{ asset('assets/media/images/2600x1600/2-dark.png') }}');
     }
   </style>
-  <div class="flex items-center justify-center grow bg-center bg-no-repeat page-bg">
-    <div class="kt-card max-w-[370px] w-full">
-      <form method="post" action="{{ path('app_login_staff') }}" class="kt-card-content flex flex-col gap-5 p-10" id="staff_sign_in_form">
-        {% if error %}
-            <div class="bg-light-danger border border-danger text-danger px-4 py-3 rounded relative mb-4" role="alert">
-                {{ error.messageKey|trans(error.messageData, 'security') }}
+
+  <div class="grid lg:grid-cols-2 grow">
+    <div class="flex justify-center items-center p-8 lg:p-10 order-2 lg:order-1">
+      <div class="kt-card max-w-[370px] w-full">
+        <form method="post" action="{{ path('app_login_staff') }}" class="kt-card-content flex flex-col gap-5 p-10" id="staff_sign_in_form">
+          {% if error %}
+              <div class="bg-light-danger border border-danger text-danger px-4 py-3 rounded relative mb-4" role="alert">
+                  {{ error.messageKey|trans(error.messageData, 'security') }}
+              </div>
+          {% endif %}
+
+          <div class="text-center mb-2.5">
+            <h3 class="text-lg font-medium text-mono leading-none mb-2.5">Espace Staff 👋</h3>
+            <div class="flex items-center justify-center font-medium">
+              <span class="text-sm text-secondary-foreground me-1.5">Accès réservé aux administrateurs</span>
             </div>
-        {% endif %}
+          </div>
+          
+          <div class="flex flex-col gap-1">
+            <label class="kt-form-label font-normal text-mono" for="inputUsername">Username</label>
+            <input type="text" name="_username" id="inputUsername" class="kt-input" autocomplete="username" required autofocus placeholder="Nom d'utilisateur">
+          </div>
 
-        <div class="text-center mb-2.5">
-          <h3 class="text-lg font-medium text-mono leading-none mb-2.5">Espace Staff 👋</h3>
-          <div class="flex items-center justify-center font-medium">
-            <span class="text-sm text-secondary-foreground me-1.5">Accès réservé aux administrateurs</span>
+          <div class="flex flex-col gap-1">
+            <label class="kt-form-label font-normal text-mono" for="inputEmail">Adresse email</label>
+            <input type="email" name="_email" id="inputEmail" class="kt-input" autocomplete="email" required placeholder="email@email.com">
+          </div>
+          
+          <div class="flex flex-col gap-1">
+            <div class="flex items-center justify-between gap-1">
+              <label class="kt-form-label font-normal text-mono" for="inputPassword">Mot de passe</label>
+            </div>
+            <div class="kt-input" data-kt-toggle-password="true">
+              <input type="password" name="_password" id="inputPassword" autocomplete="current-password" required placeholder="Entrez votre mot de passe">
+              <button class="kt-btn kt-btn-sm kt-btn-ghost kt-btn-icon bg-transparent! -me-1.5" data-kt-toggle-password-trigger="true" type="button">
+                <span class="kt-toggle-password-active:hidden">
+                  <i class="ki-filled ki-eye text-muted-foreground"></i>
+                </span>
+                <span class="hidden kt-toggle-password-active:block">
+                  <i class="ki-filled ki-eye-slash text-muted-foreground"></i>
+                </span>
+              </button>
+            </div>
+          </div>
+          
+          <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+          <label class="kt-label">
+            <input class="kt-checkbox kt-checkbox-sm" name="_remember_me" type="checkbox" value="1"/>
+            <span class="kt-checkbox-label">Se souvenir de moi</span>
+          </label>
+          
+          <button class="kt-btn kt-btn-primary flex justify-center grow" type="submit">Connexion</button>
+
+          <div class="flex items-center gap-2">
+            <span class="border-t border-border w-full"></span>
+            <span class="text-xs text-muted-foreground font-medium uppercase">Ou</span>
+            <span class="border-t border-border w-full"></span>
+          </div>
+
+          <a class="kt-btn kt-btn-outline justify-center" href="{{ path('app_login') }}">Connexion Client</a>
+        </form>
+      </div>
+    </div>
+
+    <div class="lg:rounded-xl lg:border lg:border-border lg:m-5 order-1 lg:order-2 bg-top xxl:bg-center xl:bg-cover bg-no-repeat branded-bg">
+      <div class="flex flex-col p-8 lg:p-16 gap-4">
+        <a href="/">
+          <img class="h-[28px] max-w-none" src="https://keenthemes.com/metronic/tailwind/dist/assets/media/app/mini-logo.svg"/>
+        </a>
+        <div class="flex flex-col gap-3">
+          <h3 class="text-2xl font-semibold text-mono">Staff Control Center</h3>
+          <div class="text-base font-medium text-secondary-foreground">
+            Interface d'administration LivrExpress. 
+            <br/>
+            Gérez les livraisons, supervisez les opérations 
+            <span class="text-mono font-semibold">et assurez la qualité de service</span> au quotidien.
           </div>
         </div>
-        
-        <div class="flex flex-col gap-1">
-          <label class="kt-form-label font-normal text-mono" for="inputUsername">Username</label>
-          <input type="text" name="_username" id="inputUsername" class="kt-input" autocomplete="username" required autofocus placeholder="Nom d'utilisateur">
-        </div>
-
-        <div class="flex flex-col gap-1">
-          <label class="kt-form-label font-normal text-mono" for="inputEmail">Adresse email</label>
-          <input type="email" name="_email" id="inputEmail" class="kt-input" autocomplete="email" required placeholder="email@email.com">
-        </div>
-        
-        <div class="flex flex-col gap-1">
-          <div class="flex items-center justify-between gap-1">
-            <label class="kt-form-label font-normal text-mono" for="inputPassword">Mot de passe</label>
-            {# <a class="text-sm kt-link shrink-0" href="#">Mot de passe oublié ?</a> #}
-          </div>
-          <div class="kt-input" data-kt-toggle-password="true">
-            <input type="password" name="_password" id="inputPassword" autocomplete="current-password" required placeholder="Entrez votre mot de passe">
-            <button class="kt-btn kt-btn-sm kt-btn-ghost kt-btn-icon bg-transparent! -me-1.5" data-kt-toggle-password-trigger="true" type="button">
-              <span class="kt-toggle-password-active:hidden">
-                <i class="ki-filled ki-eye text-muted-foreground"></i>
-              </span>
-              <span class="hidden kt-toggle-password-active:block">
-                <i class="ki-filled ki-eye-slash text-muted-foreground"></i>
-              </span>
-            </button>
-          </div>
-        </div>
-        
-        <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
-
-        <label class="kt-label">
-          <input class="kt-checkbox kt-checkbox-sm" name="_remember_me" type="checkbox" value="1"/>
-          <span class="kt-checkbox-label">Se souvenir de moi</span>
-        </label>
-        
-        <button class="kt-btn kt-btn-primary flex justify-center grow" type="submit">Connexion</button>
-
-        <div class="flex items-center gap-2">
-          <span class="border-t border-border w-full"></span>
-          <span class="text-xs text-muted-foreground font-medium uppercase">Ou</span>
-          <span class="border-t border-border w-full"></span>
-        </div>
-
-        <a class="kt-btn kt-btn-outline justify-center" href="{{ path('app_login') }}">Connexion Client</a>
-      </form>
+      </div>
     </div>
   </div>
   <!-- End of Page -->
+
 
   <!-- Scripts -->
   <script src="{{ asset('assets/js/core.bundle.js') }}"></script>
