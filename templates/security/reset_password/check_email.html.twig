@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html class="h-full" data-kt-theme="true" data-kt-theme-mode="light" dir="ltr" lang="fr">
+<head>
+  <title>Vérifiez vos emails | LivrExpress</title>
+  <meta charset="utf-8"/>
+  <meta content="follow, index" name="robots"/>
+  <meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport"/>
+  <meta content="Vérification de l'email pour la réinitialisation du mot de passe" name="description"/>
+  
+  <link href="{{ asset('assets/media/app/apple-touch-icon.png') }}" rel="apple-touch-icon" sizes="180x180"/>
+  <link href="{{ asset('assets/media/app/favicon-32x32.png') }}" rel="icon" sizes="32x32" type="image/png"/>
+  <link href="{{ asset('assets/media/app/favicon-16x16.png') }}" rel="icon" sizes="16x16" type="image/png"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+  
+  <link href="{{ asset('assets/vendors/apexcharts/apexcharts.css') }}" rel="stylesheet"/>
+  <link href="{{ asset('assets/vendors/keenicons/styles.bundle.css') }}" rel="stylesheet"/>
+  <link href="{{ asset('assets/css/styles.css') }}" rel="stylesheet"/>
+</head>
+<body class="antialiased flex h-full text-base text-foreground bg-background">
+  <!-- Theme Mode -->
+  <script>
+    const defaultThemeMode = 'light';
+    let themeMode;
+
+    if (document.documentElement) {
+        if (localStorage.getItem('kt-theme')) {
+            themeMode = localStorage.getItem('kt-theme');
+        } else if (
+            document.documentElement.hasAttribute('data-kt-theme-mode')
+        ) {
+            themeMode =
+                document.documentElement.getAttribute('data-kt-theme-mode');
+        } else {
+            themeMode = defaultThemeMode;
+        }
+
+        if (themeMode === 'system') {
+            themeMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+                ? 'dark'
+                : 'light';
+        }
+
+        document.documentElement.classList.add(themeMode);
+    }
+  </script>
+  <!-- End of Theme Mode -->
+
+  <!-- Page -->
+  <style>
+    .branded-bg {
+        background-image: url('{{ asset('assets/media/images/2600x1600/1.png') }}');
+    }
+    .dark .branded-bg {
+        background-image: url('{{ asset('assets/media/images/2600x1600/1-dark.png') }}');
+    }
+  </style>
+
+  <div class="grid lg:grid-cols-2 grow">
+    <div class="flex justify-center items-center p-8 lg:p-10 order-2 lg:order-1">
+      <div class="kt-card max-w-[440px] w-full">
+        <div class="kt-card-content p-10">
+          <div class="flex justify-center py-10">
+            <img alt="image" class="dark:hidden max-h-[130px]" src="https://keenthemes.com/metronic/tailwind/dist/assets/media/illustrations/30.svg"/>
+            <img alt="image" class="light:hidden max-h-[130px]" src="https://keenthemes.com/metronic/tailwind/dist/assets/media/illustrations/30-dark.svg"/>
+          </div>
+          <h3 class="text-lg font-medium text-mono text-center mb-3">
+            Vérifiez vos emails
+          </h3>
+          <div class="text-sm text-center text-secondary-foreground mb-7.5">
+            Veuillez cliquer sur le lien envoyé à votre adresse email pour réinitialiser votre mot de passe. Merci.
+          </div>
+          <div class="flex justify-center mb-5">
+            <a class="kt-btn kt-btn-primary flex justify-center" href="{{ path('app_login') }}">
+              Retour à la connexion
+            </a>
+          </div>
+          <div class="flex items-center justify-center gap-1">
+            <span class="text-xs text-secondary-foreground">
+              Vous n'avez pas reçu l'email ?
+            </span>
+            <a class="text-xs font-medium kt-link auth-link-custom" href="{{ path('app_forgot_password') }}">
+              Renvoyer
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="lg:rounded-xl lg:border lg:border-border lg:m-5 order-1 lg:order-2 bg-top xxl:bg-center xl:bg-cover bg-no-repeat branded-bg">
+      <div class="flex flex-col p-8 lg:p-16 gap-4">
+        <a href="/">
+          <img class="h-[28px] max-w-none" src="https://keenthemes.com/metronic/tailwind/dist/assets/media/app/mini-logo.svg"/>
+        </a>
+        <div class="flex flex-col gap-3">
+          <h3 class="text-2xl font-semibold text-mono">
+            Portail d'accès sécurisé
+          </h3>
+          <div class="text-base font-medium text-secondary-foreground">
+            Une passerelle d'authentification robuste assurant 
+            <br/>
+            un accès 
+            <span class="text-mono font-semibold">sécurisé et efficace</span> 
+            à l'interface de gestion de LivrExpress.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- End of Page -->
+
+  <!-- Scripts -->
+  <script src="{{ asset('assets/js/core.bundle.js') }}"></script>
+  <script src="{{ asset('assets/vendors/ktui/ktui.min.js') }}"></script>
+  <script src="{{ asset('assets/vendors/apexcharts/apexcharts.min.js') }}"></script>
+  <!-- End of Scripts -->
+</body>
+</html>
