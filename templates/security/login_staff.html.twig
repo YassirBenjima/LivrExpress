@@ -73,13 +73,8 @@
           </div>
           
           <div class="flex flex-col gap-1">
-            <label class="kt-form-label font-normal text-mono" for="inputUsername">Username</label>
-            <input type="text" name="_username" id="inputUsername" class="kt-input" autocomplete="username" required autofocus placeholder="Nom d'utilisateur">
-          </div>
-
-          <div class="flex flex-col gap-1">
             <label class="kt-form-label font-normal text-mono" for="inputEmail">Adresse email</label>
-            <input type="email" name="_email" id="inputEmail" class="kt-input" autocomplete="email" required placeholder="email@email.com">
+            <input type="email" value="{{ last_username }}" name="_username" id="inputEmail" class="kt-input" autocomplete="email" required autofocus placeholder="email@email.com">
           </div>
           
           <div class="flex flex-col gap-1">

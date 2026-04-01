@@ -8,6 +8,8 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Notifier\Notification\Notification;
+use Symfony\Component\Notifier\NotifierInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -18,7 +20,8 @@ final class RegistrationController extends AbstractController
         Request $request,
         UserPasswordHasherInterface $userPasswordHasher,
         EntityManagerInterface $entityManager,
-        CityRepository $cityRepository
+        CityRepository $cityRepository,
+        NotifierInterface $notifier
     ): Response {
         if ($this->getUser()) {
             return $this->redirectToRoute('app_login');
@@ -38,8 +41,14 @@ final class RegistrationController extends AbstractController
                 $error = 'Les mots de passe ne correspondent pas.';
             } else {
                 $existingUser = $entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
+                $existingBusiness = $entityManager->getRepository(User::class)->findOneBy(['businessName' => $businessName]);
+                
                 if ($existingUser) {
-                    $error = 'Cet email est déjà utilisé.';
+                    $notifier->send((new Notification('Cet email est déjà utilisé.', ['browser']))->importance(Notification::IMPORTANCE_HIGH));
+                    return $this->redirectToRoute('app_register');
+                } elseif ($existingBusiness) {
+                    $notifier->send((new Notification('Ce nom de business est déjà utilisé.', ['browser']))->importance(Notification::IMPORTANCE_HIGH));
+                    return $this->redirectToRoute('app_register');
                 } else {
                     $user = new User();
                     $user->setEmail($email);
@@ -47,6 +56,7 @@ final class RegistrationController extends AbstractController
                     $user->setBusinessName($businessName);
                     $user->setBusinessPhone($businessPhone);
                     $user->setCity($city);
+                    $user->setRoles(['ROLE_CLIENT']);
                     
                     // Hash the password
                     $user->setPassword(

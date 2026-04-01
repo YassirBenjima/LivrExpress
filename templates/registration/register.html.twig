@@ -67,6 +67,12 @@
             </div>
           </div>
           
+          {% if error %}
+              <div class="bg-light-danger border border-danger text-danger px-4 py-3 rounded relative mb-4" role="alert">
+                  {{ error }}
+              </div>
+          {% endif %}
+          
           <div class="flex flex-col gap-1">
             <label class="kt-form-label font-normal text-mono">Nom complet *</label>
             <input class="kt-input" placeholder="Nom complet" type="text" name="full_name" required value=""/>
@@ -151,6 +157,37 @@
   </div>
   <!-- End of Page -->
 
+
+  <!-- Flash Messages Toast -->
+  <div class="fixed z-[100] flex flex-col gap-3" style="top: 20px; right: 20px;" id="global-toasts">
+      {% for label, messages in app.flashes %}
+          {% for message in messages %}
+              {% set importanceLevel = message.importance|default(label) %}
+              {% set isError = importanceLevel in ['danger', 'error', 'high', 'urgent', 'notification'] %}
+              {% set wrapperStyle = isError ? 'background-color: #fff5f8; border: 1px solid #f1416c; color: #f1416c;' : 'background-color: #e8fff3; border: 1px solid #50cd89; color: #50cd89;' %}
+              <div class="flex items-center gap-3 p-4 rounded-xl shadow-lg transition-opacity duration-300" style="{{ wrapperStyle }}" role="alert">
+                  <i class="ki-filled {{ isError ? 'ki-information-2' : 'ki-check-circle' }} text-xl"></i>
+                  <div class="font-medium">
+                      {{ message.message|default(message.subject|default(message)) }}
+                  </div>
+                  <button type="button" class="ms-4 opacity-80 hover:opacity-100 transition-opacity" onclick="this.closest('[role=\\'alert\\']').remove()">
+                      <i class="ki-filled ki-cross"></i>
+                  </button>
+              </div>
+          {% endfor %}
+      {% endfor %}
+  </div>
+
+  <script>
+      setTimeout(() => {
+          const toasts = document.querySelectorAll('#global-toasts > div');
+          toasts.forEach(toast => {
+              toast.style.opacity = '0';
+              setTimeout(() => toast.remove(), 300);
+          });
+      }, 5000);
+  </script>
+  <!-- End of Flash Messages Toast -->
 
   <!-- Scripts -->
   <script src="{{ asset('assets/js/core.bundle.js') }}"></script>
