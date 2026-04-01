@@ -14,7 +14,7 @@
   
   <link href="{{ asset('assets/vendors/apexcharts/apexcharts.css') }}" rel="stylesheet"/>
   <link href="{{ asset('assets/vendors/keenicons/styles.bundle.css') }}" rel="stylesheet"/>
-  <link href="{{ asset('assets/css/styles.css') }}" rel="stylesheet"/>
+  <link href="{{ asset('assets/css/styles.css?v=1.1') }}" rel="stylesheet"/>
 </head>
 <body class="antialiased flex h-full text-base text-foreground bg-background">
   <!-- Theme Mode -->
@@ -90,12 +90,12 @@
           
           <div class="flex flex-col gap-1">
             <label class="kt-form-label font-normal text-mono">Adresse email *</label>
-            <input class="kt-input" placeholder="test@gmail.com" type="email" name="email" required value=""/>
+            <input class="kt-input" placeholder="contact@votre-entreprise.com" type="email" name="email" required value=""/>
           </div>
           
           <div class="flex flex-col gap-1">
             <label class="kt-form-label font-normal text-mono">Ville *</label>
-            <select class="kt-select" name="city" required>
+            <select class="kt-select" name="city" required data-kt-select="true" data-kt-select-enable-search="true" data-kt-select-placeholder="Choisir une ville" data-kt-select-search-placeholder="Rechercher une ville...">
               <option value="" disabled selected>Choisir une ville</option>
               {% for city in cities %}
                 <option value="{{ city.name }}">{{ city.name }}</option>
@@ -121,7 +121,7 @@
           <div class="flex flex-col gap-1">
             <label class="kt-form-label font-normal text-mono">Confirmation mot de passe *</label>
             <div class="kt-input" data-kt-toggle-password="true">
-              <input type="password" name="confirm_password" autocomplete="new-password" required placeholder="Mot de passe">
+              <input type="password" name="confirm_password" autocomplete="new-password" required placeholder="••••••••••">
               <button class="kt-btn kt-btn-sm kt-btn-ghost kt-btn-icon bg-transparent! -me-1.5" data-kt-toggle-password-trigger="true" type="button">
                 <span class="kt-toggle-password-active:hidden">
                   <i class="ki-filled ki-eye text-muted-foreground"></i>

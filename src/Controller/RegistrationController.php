@@ -38,7 +38,8 @@ final class RegistrationController extends AbstractController
             $city = $request->request->get('city');
 
             if ($password !== $confirmPassword) {
-                $error = 'Les mots de passe ne correspondent pas.';
+                $notifier->send((new Notification('Les mots de passe ne correspondent pas.', ['browser']))->importance(Notification::IMPORTANCE_HIGH));
+                return $this->redirectToRoute('app_register');
             } else {
                 $existingUser = $entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
                 $existingBusiness = $entityManager->getRepository(User::class)->findOneBy(['businessName' => $businessName]);
