@@ -1,4 +1,4 @@
-{% set hasFlashes = app.flashes|length > 0 %}
+﻿{% set hasFlashes = app.flashes|length > 0 %}
 {% set authError = error is defined and error ? error : null %}
 {% set hasError = authError is not null %}
 
@@ -50,3 +50,5 @@
     </script>
     <!-- End of Flash Messages Toast -->
 {% endif %}
+
+
