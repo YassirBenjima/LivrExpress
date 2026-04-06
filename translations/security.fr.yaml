@@ -1,0 +1,2 @@
+'Invalid credentials.': "L'adresse e-mail ou le mot de passe est incorrect."
+'Invalid CSRF token.': "Votre session a expiré. Veuillez recharger la page et réessayer."

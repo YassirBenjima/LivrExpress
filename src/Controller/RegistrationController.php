@@ -38,17 +38,17 @@ final class RegistrationController extends AbstractController
             $city = $request->request->get('city');
 
             if ($password !== $confirmPassword) {
-                $notifier->send((new Notification('Les mots de passe ne correspondent pas.', ['browser']))->importance(Notification::IMPORTANCE_HIGH));
+                $notifier->send((new Notification('Les mots de passe saisis ne correspondent pas.', ['browser']))->importance(Notification::IMPORTANCE_HIGH));
                 return $this->redirectToRoute('app_register');
             } else {
                 $existingUser = $entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
                 $existingBusiness = $entityManager->getRepository(User::class)->findOneBy(['businessName' => $businessName]);
                 
                 if ($existingUser) {
-                    $notifier->send((new Notification('Cet email est déjà utilisé.', ['browser']))->importance(Notification::IMPORTANCE_HIGH));
+                    $notifier->send((new Notification('Cette adresse email est déjà associée à un compte.', ['browser']))->importance(Notification::IMPORTANCE_HIGH));
                     return $this->redirectToRoute('app_register');
                 } elseif ($existingBusiness) {
-                    $notifier->send((new Notification('Ce nom de business est déjà utilisé.', ['browser']))->importance(Notification::IMPORTANCE_HIGH));
+                    $notifier->send((new Notification('Ce nom d\'entreprise est déjà enregistré sur notre plateforme.', ['browser']))->importance(Notification::IMPORTANCE_HIGH));
                     return $this->redirectToRoute('app_register');
                 } else {
                     $user = new User();
@@ -70,7 +70,7 @@ final class RegistrationController extends AbstractController
                     $entityManager->persist($user);
                     $entityManager->flush();
 
-                    $this->addFlash('success', 'Votre compte a été créé avec succès ! Connectez-vous maintenant.');
+                    $this->addFlash('success', 'Votre compte a été créé avec succès. Vous pouvez maintenant vous connecter.');
                     return $this->redirectToRoute('app_login');
                 }
             }

@@ -1,0 +1,52 @@
+{% set hasFlashes = app.flashes|length > 0 %}
+{% set authError = error is defined and error ? error : null %}
+{% set hasError = authError is not null %}
+
+{% if hasFlashes or hasError %}
+    <!-- Flash Messages Toast -->
+    <div class="fixed z-[100] flex flex-col gap-3" style="top: 20px; right: 20px;" id="global-toasts">
+
+        {# Print regular flashes... #}
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                {% set importanceLevel = message.importance|default(label) %}
+                {% set isError = importanceLevel in ['danger', 'error', 'high', 'urgent', 'notification'] %}
+                {% set wrapperStyle = isError ? 'background-color: #fff5f8; border: 1px solid #f1416c; color: #f1416c;' : 'background-color: #e8fff3; border: 1px solid #50cd89; color: #50cd89;' %}
+                <div class="flex items-center gap-3 p-4 rounded-xl shadow-lg transition-opacity duration-300" style="{{ wrapperStyle }}" role="alert">
+                    <i class="ki-filled {{ isError ? 'ki-information-2' : 'ki-check-circle' }} text-xl"></i>
+                    <div class="font-medium">
+                        {{ message.message|default(message.subject|default(message)) }}
+                    </div>
+                    <button type="button" class="ms-4 opacity-80 hover:opacity-100 transition-opacity" onclick="this.closest('[role=\\'alert\\']').remove()">
+                        <i class="ki-filled ki-cross"></i>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endfor %}
+
+        {# Print authentication/global errors #}
+        {% if hasError %}
+            <div class="flex items-center gap-3 p-4 rounded-xl shadow-lg transition-opacity duration-300" style="background-color: #fff5f8; border: 1px solid #f1416c; color: #f1416c;" role="alert">
+                <i class="ki-filled ki-information-2 text-xl"></i>
+                <div class="font-medium">
+                    {{ authError.messageKey is defined ? authError.messageKey|trans(authError.messageData, 'security') : authError }}
+                </div>
+                <button type="button" class="ms-4 opacity-80 hover:opacity-100 transition-opacity" onclick="this.closest('[role=\\'alert\\']').remove()">
+                    <i class="ki-filled ki-cross"></i>
+                </button>
+            </div>
+        {% endif %}
+
+    </div>
+
+    <script>
+        setTimeout(() => {
+            const toasts = document.querySelectorAll('#global-toasts > div');
+            toasts.forEach(toast => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            });
+        }, 5000);
+    </script>
+    <!-- End of Flash Messages Toast -->
+{% endif %}
