@@ -59,22 +59,8 @@ class AppCustomAuthenticator extends AbstractLoginFormAuthenticator
             // return new RedirectResponse($targetPath);
         }
 
-        $roles = $token->getRoleNames();
-
-        if (in_array('ROLE_ADMIN', $roles, true)) {
-            return new RedirectResponse($this->urlGenerator->generate('app_admin_dashboard'));
-        }
-
-        if (in_array('ROLE_STAFF', $roles, true)) {
-            return new RedirectResponse($this->urlGenerator->generate('app_staff_dashboard'));
-        }
-
-        if (in_array('ROLE_CLIENT', $roles, true)) {
-            return new RedirectResponse($this->urlGenerator->generate('app_client_dashboard'));
-        }
-
         // Default redirect
-        return new RedirectResponse($this->urlGenerator->generate('app_client_dashboard'));
+        return new RedirectResponse($this->urlGenerator->generate('app_dashboard'));
     }
 
     protected function getLoginUrl(Request $request): string

@@ -1,0 +1,25 @@
+
+{% block title %}Dashboard{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <h1>Bienvenue sur le Dashboard</h1>
+    
+    {% if is_granted('ROLE_SUPER_ADMIN') %}
+        <div class="alert alert-primary">
+            <p>Vue Super Admin</p>
+            <!-- Contenu Super Admin -->
+        </div>
+    {% elseif is_granted('ROLE_SUPERVISEUR') %}
+        <div class="alert alert-secondary">
+            <p>Vue Superviseur</p>
+            <!-- Contenu Superviseur -->
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <p>Vue Client</p>
+            <!-- Contenu Client -->
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
