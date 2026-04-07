@@ -1,23 +1,30 @@
-﻿{% set hasFlashes = app.flashes|length > 0 %}
+﻿{% set flashes = app.flashes %}
+{% set hasFlashes = flashes|length > 0 %}
 {% set authError = error is defined and error ? error : null %}
 {% set hasError = authError is not null %}
+{% set isInline = flash_inline is defined and flash_inline %}
+{% set toastContainerId = isInline ? 'inline-toasts' : 'global-toasts' %}
 
 {% if hasFlashes or hasError %}
     <!-- Flash Messages Toast -->
-    <div class="fixed z-[100] flex flex-col gap-3" style="top: 20px; right: 20px;" id="global-toasts">
+    <div
+        class="{{ isInline ? 'flex flex-col gap-3 w-full max-w-md mb-3' : 'fixed z-[100] flex flex-col gap-3' }}"
+        style="{{ isInline ? '' : 'top: 20px; right: 20px;' }}"
+        id="{{ toastContainerId }}"
+    >
 
         {# Print regular flashes... #}
-        {% for label, messages in app.flashes %}
+        {% for label, messages in flashes %}
             {% for message in messages %}
                 {% set importanceLevel = message.importance|default(label) %}
                 {% set isError = importanceLevel in ['danger', 'error', 'high', 'urgent', 'notification'] %}
                 {% set wrapperStyle = isError ? 'background-color: #fff5f8; border: 1px solid #f1416c; color: #f1416c;' : 'background-color: #e8fff3; border: 1px solid #50cd89; color: #50cd89;' %}
                 <div class="flex items-center gap-3 p-4 rounded-xl shadow-lg transition-opacity duration-300" style="{{ wrapperStyle }}" role="alert">
                     <i class="ki-filled {{ isError ? 'ki-information-2' : 'ki-check-circle' }} text-xl"></i>
-                    <div class="font-medium">
+                    <div class="font-medium flex-1">
                         {{ message.message|default(message.subject|default(message)) }}
                     </div>
-                    <button type="button" class="ms-4 opacity-80 hover:opacity-100 transition-opacity" onclick="this.closest('[role=\\'alert\\']').remove()">
+                    <button type="button" class="ms-auto opacity-80 hover:opacity-100 transition-opacity" onclick="this.parentElement.remove()">
                         <i class="ki-filled ki-cross"></i>
                     </button>
                 </div>
@@ -28,10 +35,10 @@
         {% if hasError %}
             <div class="flex items-center gap-3 p-4 rounded-xl shadow-lg transition-opacity duration-300" style="background-color: #fff5f8; border: 1px solid #f1416c; color: #f1416c;" role="alert">
                 <i class="ki-filled ki-information-2 text-xl"></i>
-                <div class="font-medium">
+                <div class="font-medium flex-1">
                     {{ authError.messageKey is defined ? authError.messageKey|trans(authError.messageData, 'security') : authError }}
                 </div>
-                <button type="button" class="ms-4 opacity-80 hover:opacity-100 transition-opacity" onclick="this.closest('[role=\\'alert\\']').remove()">
+                <button type="button" class="ms-auto opacity-80 hover:opacity-100 transition-opacity" onclick="this.parentElement.remove()">
                     <i class="ki-filled ki-cross"></i>
                 </button>
             </div>
@@ -41,7 +48,7 @@
 
     <script>
         setTimeout(() => {
-            const toasts = document.querySelectorAll('#global-toasts > div');
+            const toasts = document.querySelectorAll('#{{ toastContainerId }} > div');
             toasts.forEach(toast => {
                 toast.style.opacity = '0';
                 setTimeout(() => toast.remove(), 300);

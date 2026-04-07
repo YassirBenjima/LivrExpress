@@ -16,30 +16,19 @@
         {% set colorIndex = (app.user.fullName|length) % (colors|length) %}
         {% set avatarColor = colors[colorIndex] %}
     {% endif %}
-    {% set currentTab = app.request.query.get('tab') == 'bank' ? 'bank' : 'general' %}
     <!-- Content -->
     <main class="grow pt-5 profile-content-shift" id="content" role="content">
-        <!-- Container -->
-        <div class="kt-container-fixed" id="contentContainer">
-        </div>
-        <!-- End of Container -->
-        <div class="flex items-center flex-wrap md:flex-nowrap lg:items-end justify-between border-b border-b-border gap-3 lg:gap-6 mb-5 lg:mb-10">
+
+        <div class="flex items-center flex-wrap md:flex-nowrap lg:items-end justify-between border-b border-b-border gap-3 lg:gap-6 mb-3 lg:mb-5">
             <!-- Container -->
             <div class="kt-container-fixed" id="hero_container">
                 <div class="grid">
                     <div class="kt-scrollable-x-auto">
                         <div class="kt-menu gap-3" data-kt-menu="true">
-                            <div class="kt-menu-item border-b-2 {{ currentTab == 'general' ? 'border-b-primary' : 'border-b-transparent' }}" data-kt-menu-item-overflow="true" data-kt-menu-item-placement="bottom-start" data-kt-menu-item-placement-rtl="bottom-end">
+                            <div class="kt-menu-item border-b-2 border-b-transparent kt-menu-item-active:border-b-primary kt-menu-item-here:border-b-primary here">
                                 <a class="kt-menu-link gap-1.5 pb-2 lg:pb-4 px-2" href="{{ path('app_profile') }}">
-                                    <span class="kt-menu-title text-nowrap text-sm {{ currentTab == 'general' ? 'text-primary font-medium' : 'text-secondary-foreground' }} kt-menu-link-hover:text-primary">
+                                    <span class="kt-menu-title text-nowrap text-sm text-secondary-foreground kt-menu-item-active:text-primary kt-menu-item-active:font-medium kt-menu-item-here:text-primary kt-menu-item-here:font-medium kt-menu-item-show:text-primary kt-menu-link-hover:text-primary">
                                         Général
-                                    </span>
-                                </a>
-                            </div>
-                            <div class="kt-menu-item border-b-2 {{ currentTab == 'bank' ? 'border-b-primary' : 'border-b-transparent' }}" data-kt-menu-item-overflow="true" data-kt-menu-item-placement="bottom-start" data-kt-menu-item-placement-rtl="bottom-end">
-                                <a class="kt-menu-link gap-1.5 pb-2 lg:pb-4 px-2" href="{{ path('app_profile', { tab: 'bank' }) }}">
-                                    <span class="kt-menu-title text-nowrap text-sm {{ currentTab == 'bank' ? 'text-primary font-medium' : 'text-secondary-foreground' }} kt-menu-link-hover:text-primary">
-                                        Comptes bancaires
                                     </span>
                                 </a>
                             </div>
@@ -51,22 +40,26 @@
         </div>
         <!-- Container -->
         <div class="kt-container-fixed">
+            {% include 'partials/_flash_messages.html.twig' with { flash_inline: true } %}
+            
             <div class="flex flex-wrap items-center lg:items-end justify-between gap-5 pb-7.5">
                 <div class="flex flex-col justify-center gap-2">
                     <h1 class="text-xl font-medium leading-none text-mono">
-                        Profil Utilisateur
+                        Mon Profil
                     </h1>
                     <div class="flex items-center gap-2 text-sm font-normal text-secondary-foreground">
-                        Centre de personnalisation personnelle
+                        Gérez vos informations et paramètres de compte
                     </div>
                 </div>
-                <div class="flex items-center gap-2.5">
+                <div class="flex flex-col items-end gap-2.5">
+                    <div class="flex items-center gap-2.5">
                     <button class="kt-btn kt-btn-outline" id="profile-cancel-btn" type="button">
                         Cancel
                     </button>
                     <button class="kt-btn kt-btn-primary" id="profile-save-btn" type="button">
                         Enregistrer
                     </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -78,11 +71,11 @@
                 <div class="col-span-1">
                     <div class="grid gap-5 lg:gap-7.5">
                         <!-- Personal Info Card -->
-                        <div class="kt-card min-w-full {{ currentTab == 'general' ? '' : 'hidden' }}">
+                        <div class="kt-card min-w-full">
                             <div class="kt-card-header">
                                 <h3 class="kt-card-title">Informations Personnelles</h3>
                             </div>
-                            <div class="kt-card-table kt-scrollable-x-auto pb-3 profile-personal-info-table">
+                            <div class="kt-card-table pb-3 profile-personal-info-table" style="overflow: visible;">
                                 <table class="kt-table align-middle text-sm text-muted-foreground">
                                     <tr>
                                         <td class="py-2 min-w-28 text-secondary-foreground font-normal">Photo</td>
@@ -167,7 +160,7 @@
                                             <form action="{{ path('app_profile_field_update') }}" id="profile-city-form" method="post">
                                                 <input name="_token" type="hidden" value="{{ csrf_token('profile_field') }}"/>
                                                 <input name="field" type="hidden" value="city"/>
-                                                <select class="kt-select" name="value" required data-kt-select="true" data-kt-select-enable-search="true" data-kt-select-placeholder="Choisir une ville" data-kt-select-search-placeholder="Rechercher une ville...">
+                                                <select class="kt-select" name="value" required data-kt-select="true" data-kt-select-dropdown-parent="body" data-kt-select-enable-search="true" data-kt-select-placeholder="Choisir une ville" data-kt-select-search-placeholder="Rechercher une ville...">
                                                     <option value="" disabled {{ not (app.user and app.user.city) ? 'selected' : '' }}>Choisir une ville</option>
                                                     {% for city in cities %}
                                                         <option value="{{ city.name }}" {{ app.user and app.user.city == city.name ? 'selected' : '' }}>
@@ -202,11 +195,11 @@
                             </div>
                         </div>
                         <!-- Delivery Preferences Card -->
-                        <div class="kt-card min-w-full {{ currentTab == 'general' ? '' : 'hidden' }}">
+                        <div class="kt-card min-w-full">
                             <div class="kt-card-header">
                                 <h3 class="kt-card-title">Préférences de Livraison</h3>
                             </div>
-                            <div class="kt-card-table kt-scrollable-x-auto pb-3">
+                            <div class="kt-card-table pb-3" style="overflow: visible;">
                                 <table class="kt-table align-middle text-sm text-muted-foreground">
                                     <tr>
                                         <td class="py-2 min-w-36 text-secondary-foreground font-normal">Votre message sur étiquette</td>
@@ -229,7 +222,7 @@
                                             <form action="{{ path('app_profile_field_update') }}" id="profile-package-option-form" method="post">
                                                 <input name="_token" type="hidden" value="{{ csrf_token('profile_field') }}"/>
                                                 <input name="field" type="hidden" value="package_option"/>
-                                                <select class="kt-select" name="value" required data-kt-select="true" data-kt-select-enable-search="false" data-kt-select-placeholder="Choisir une option">
+                                                <select class="kt-select" name="value" required data-kt-select="true" data-kt-select-dropdown-parent="body" data-kt-select-enable-search="true" data-kt-select-placeholder="Choisir une option colis" data-kt-select-search-placeholder="Rechercher une option...">
                                                     <option value="Ne pas ouvrir le colis" {{ not (app.user and app.user.packageOption) or app.user.packageOption == 'Ne pas ouvrir le colis' ? 'selected' : '' }}>Ne pas ouvrir le colis</option>
                                                     <option value="Ouvrir le colis" {{ app.user and app.user.packageOption == 'Ouvrir le colis' ? 'selected' : '' }}>Ouvrir le colis</option>
                                                 </select>
@@ -244,62 +237,48 @@
                                 </table>
                             </div>
                         </div>
-                        <div class="kt-card min-w-full {{ currentTab == 'bank' ? '' : 'hidden' }}">
+                        <div class="kt-card min-w-full">
                             <div class="kt-card-header">
-                                <h3 class="kt-card-title">Informations bancaires</h3>
+                                <h3 class="kt-card-title">Mot de passe</h3>
+                                <button class="kt-btn kt-btn-primary" form="profile-password-form" id="profile-password-save-btn" type="submit">Mettre a jour le mot de passe</button>
                             </div>
-                            <div class="kt-card-table kt-scrollable-x-auto pb-3">
-                                <table class="kt-table align-middle text-sm text-muted-foreground">
+                            <div class="kt-card-table pb-3">
+                                <form action="{{ path('app_profile_password_update') }}" id="profile-password-form" method="post">
+                                    <input name="_token" type="hidden" value="{{ csrf_token('profile_password') }}"/>
+                                    <table class="kt-table align-middle text-sm text-muted-foreground">
                                     <tr>
-                                        <td class="py-2 min-w-36 text-secondary-foreground font-normal">Nom du banque *</td>
+                                        <td class="py-2 min-w-36 text-secondary-foreground font-normal">Ancien mot de passe</td>
                                         <td class="py-2 text-foreground font-normal text-sm">
-                                            <form action="{{ path('app_profile_field_update') }}" id="profile-bank-name-form" method="post">
-                                                <input name="_token" type="hidden" value="{{ csrf_token('profile_field') }}"/>
-                                                <input name="field" type="hidden" value="bank_name"/>
-                                                <select class="kt-select" name="value" required data-kt-select="true" data-kt-select-enable-search="true" data-kt-select-placeholder="Choisir une banque" data-kt-select-search-placeholder="Rechercher une banque...">
-                                                    <option value="" disabled {{ not (app.user and app.user.bankName) ? 'selected' : '' }}>Choisir une banque</option>
-                                                    {% for bank in moroccanBanks %}
-                                                        <option value="{{ bank }}" {{ app.user and app.user.bankName == bank ? 'selected' : '' }}>
-                                                            {{ bank }}
-                                                        </option>
-                                                    {% endfor %}
-                                                </select>
-                                            </form>
-                                        </td>
-                                        <td class="py-2 text-center">
-                                            <button class="kt-btn kt-btn-icon kt-btn-sm kt-btn-ghost kt-btn-primary" form="profile-bank-name-form" type="submit">
-                                                <i class="ki-filled ki-check"></i>
-                                            </button>
+                                            <input class="kt-input h-8 text-sm" name="current_password" placeholder="Ancien mot de passe" required type="password"/>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td class="py-2 text-secondary-foreground font-normal">RIB (24 Numéro) *</td>
+                                        <td class="py-2 min-w-36 text-secondary-foreground font-normal">Nouveau mot de passe</td>
                                         <td class="py-2 text-foreground font-normal text-sm">
-                                            <form action="{{ path('app_profile_field_update') }}" id="profile-bank-rib-form" method="post">
-                                                <input name="_token" type="hidden" value="{{ csrf_token('profile_field') }}"/>
-                                                <input name="field" type="hidden" value="bank_rib"/>
-                                                <input class="kt-input h-8 text-sm" maxlength="24" minlength="24" name="value" pattern="\d{24}" required type="text" value="{{ app.user and app.user.bankRib ? app.user.bankRib : '' }}"/>
-                                            </form>
-                                        </td>
-                                        <td class="py-2 text-center">
-                                            <button class="kt-btn kt-btn-icon kt-btn-sm kt-btn-ghost kt-btn-primary" form="profile-bank-rib-form" type="submit">
-                                                <i class="ki-filled ki-check"></i>
-                                            </button>
+                                            <input class="kt-input h-8 text-sm" minlength="8" name="new_password" placeholder="Nouveau mot de passe" required type="password"/>
                                         </td>
                                     </tr>
-                                </table>
+                                    <tr>
+                                        <td class="py-2 min-w-36 text-secondary-foreground font-normal">Re-taper le nouveau mot de passe</td>
+                                        <td class="py-2 text-foreground font-normal text-sm">
+                                            <input class="kt-input h-8 text-sm" minlength="8" name="confirm_password" placeholder="Re-taper le nouveau mot de passe" required type="password"/>
+                                        </td>
+                                    </tr>
+                                    </table>
+                                </form>
                             </div>
                         </div>
+
                     </div>
                 </div>
-                <div class="col-span-1 {{ currentTab == 'general' ? '' : 'hidden' }}">
+                <div class="col-span-1">
                     <div class="grid gap-5 lg:gap-7.5">
                         <!-- Basic Settings Card -->
                         <div class="kt-card min-w-full">
                             <div class="kt-card-header">
                                 <h3 class="kt-card-title">Informations de l'Entreprise</h3>
                             </div>
-                            <div class="kt-card-table kt-scrollable-x-auto pb-3">
+                            <div class="kt-card-table pb-3" style="overflow: visible;">
                                 <table class="kt-table align-middle text-sm text-muted-foreground">
                                     <tr>
                                         <td class="py-2 min-w-36 text-secondary-foreground font-normal">Nom du business *</td>
@@ -337,7 +316,7 @@
                                             <form action="{{ path('app_profile_field_update') }}" id="profile-client-type-form" method="post">
                                                 <input name="_token" type="hidden" value="{{ csrf_token('profile_field') }}"/>
                                                 <input name="field" type="hidden" value="client_type"/>
-                                                <select class="kt-select" name="value" required data-kt-select="true" data-kt-select-enable-search="true" data-kt-select-placeholder="Choisir un type de client" data-kt-select-search-placeholder="Rechercher un type...">
+                                                <select class="kt-select" name="value" required data-kt-select="true" data-kt-select-dropdown-parent="body" data-kt-select-enable-search="true" data-kt-select-placeholder="Choisir un type de client" data-kt-select-search-placeholder="Rechercher un type...">
                                                     <option value="" disabled {{ not (app.user and app.user.clientType) ? 'selected' : '' }}>Choisir un type</option>
                                                     <option value="E-commerce" {{ app.user and app.user.clientType == 'E-commerce' ? 'selected' : '' }}>E-commerce</option>
                                                     <option value="Auto Entrepreneur" {{ app.user and app.user.clientType == 'Auto Entrepreneur' ? 'selected' : '' }}>Auto Entrepreneur</option>
@@ -401,6 +380,52 @@
                                 </table>
                             </div>
                         </div>
+                        <div class="kt-card min-w-full">
+                            <div class="kt-card-header">
+                                <h3 class="kt-card-title">Informations bancaires</h3>
+                            </div>
+                            <div class="kt-card-table pb-3" style="overflow: visible;">
+                                <table class="kt-table align-middle text-sm text-muted-foreground">
+                                    <tr>
+                                        <td class="py-2 min-w-36 text-secondary-foreground font-normal">Nom du banque *</td>
+                                        <td class="py-2 text-foreground font-normal text-sm">
+                                            <form action="{{ path('app_profile_field_update') }}" id="profile-bank-name-form" method="post">
+                                                <input name="_token" type="hidden" value="{{ csrf_token('profile_field') }}"/>
+                                                <input name="field" type="hidden" value="bank_name"/>
+                                                <select class="kt-select" name="value" required data-kt-select="true" data-kt-select-dropdown-parent="body" data-kt-select-enable-search="true" data-kt-select-placeholder="Choisir une banque" data-kt-select-search-placeholder="Rechercher une banque...">
+                                                    <option value="" disabled {{ not (app.user and app.user.bankName) ? 'selected' : '' }}>Choisir une banque</option>
+                                                    {% for bank in moroccanBanks %}
+                                                        <option value="{{ bank }}" {{ app.user and app.user.bankName == bank ? 'selected' : '' }}>
+                                                            {{ bank }}
+                                                        </option>
+                                                    {% endfor %}
+                                                </select>
+                                            </form>
+                                        </td>
+                                        <td class="py-2 text-center">
+                                            <button class="kt-btn kt-btn-icon kt-btn-sm kt-btn-ghost kt-btn-primary" form="profile-bank-name-form" type="submit">
+                                                <i class="ki-filled ki-check"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-2 text-secondary-foreground font-normal">RIB (24 Numéro) *</td>
+                                        <td class="py-2 text-foreground font-normal text-sm">
+                                            <form action="{{ path('app_profile_field_update') }}" id="profile-bank-rib-form" method="post">
+                                                <input name="_token" type="hidden" value="{{ csrf_token('profile_field') }}"/>
+                                                <input name="field" type="hidden" value="bank_rib"/>
+                                                <input class="kt-input h-8 text-sm bank-rib-input" inputmode="numeric" maxlength="32" minlength="24" name="value" pattern="\d{24}" required type="text" value="{{ app.user and app.user.bankRib ? app.user.bankRib : '' }}"/>
+                                            </form>
+                                        </td>
+                                        <td class="py-2 text-center">
+                                            <button class="kt-btn kt-btn-icon kt-btn-sm kt-btn-ghost kt-btn-primary" form="profile-bank-rib-form" type="submit">
+                                                <i class="ki-filled ki-check"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -417,9 +442,15 @@
         document.addEventListener('DOMContentLoaded', function () {
             const cancelButton = document.getElementById('profile-cancel-btn');
             const saveButton = document.getElementById('profile-save-btn');
-            const trackedFields = Array.from(document.querySelectorAll(
-                'input:not([type="hidden"]):not([type="file"]), select, textarea'
-            ));
+            const trackedFields = Array.from(document.querySelectorAll('form'))
+                .filter(function (form) {
+                    return form.id !== 'profile-password-form';
+                })
+                .reduce(function (fields, form) {
+                    return fields.concat(Array.from(form.querySelectorAll(
+                        'input:not([type="hidden"]):not([type="file"]), select, textarea'
+                    )));
+                }, []);
 
             const initialValues = new Map(
                 trackedFields.map(function (field) {
@@ -450,6 +481,19 @@
                 field.addEventListener('change', syncSaveButtonState);
             });
 
+            const bankRibInputs = Array.from(document.querySelectorAll('.bank-rib-input'));
+            bankRibInputs.forEach(function (input) {
+                function sanitizeRibValue() {
+                    const digitsOnly = input.value.replace(/\D+/g, '').slice(0, 24);
+                    input.value = digitsOnly;
+                }
+
+                input.addEventListener('input', sanitizeRibValue);
+                input.addEventListener('paste', function () {
+                    setTimeout(sanitizeRibValue, 0);
+                });
+            });
+
             if (cancelButton) {
                 cancelButton.addEventListener('click', function () {
                     if (!hasUnsavedChanges()) return;
@@ -466,6 +510,30 @@
 
             syncCancelButtonState();
             syncSaveButtonState();
+
+            const passwordForm = document.getElementById('profile-password-form');
+            const passwordSaveButton = document.getElementById('profile-password-save-btn');
+            if (passwordForm && passwordSaveButton) {
+                const passwordFields = ['current_password', 'new_password', 'confirm_password']
+                    .map(function (name) {
+                        return passwordForm.querySelector('[name="' + name + '"]');
+                    })
+                    .filter(Boolean);
+
+                function syncPasswordSaveState() {
+                    const allFilled = passwordFields.length === 3 && passwordFields.every(function (field) {
+                        return field.value.trim() !== '';
+                    });
+                    passwordSaveButton.disabled = !allFilled;
+                }
+
+                passwordFields.forEach(function (field) {
+                    field.addEventListener('input', syncPasswordSaveState);
+                    field.addEventListener('change', syncPasswordSaveState);
+                });
+
+                syncPasswordSaveState();
+            }
 
             if (saveButton) {
                 saveButton.addEventListener('click', async function () {

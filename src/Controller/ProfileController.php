@@ -10,6 +10,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -72,12 +73,15 @@ class ProfileController extends AbstractController
             mkdir($avatarsDir, 0775, true);
         }
 
+        $avatarChanged = false;
+
         if ($removeAvatar && $currentAvatar) {
             $oldPath = $avatarsDir . '/' . $currentAvatar;
             if (is_file($oldPath)) {
                 @unlink($oldPath);
             }
             $user->setAvatar(null);
+            $avatarChanged = true;
         }
 
         if ($avatarFile instanceof UploadedFile && $avatarFile->isValid()) {
@@ -95,9 +99,15 @@ class ProfileController extends AbstractController
             $avatarFile->move($avatarsDir, $newFilename);
 
             $user->setAvatar($newFilename);
+            $avatarChanged = true;
         }
 
         $entityManager->flush();
+        if ($avatarChanged) {
+            $this->addFlash('success', 'Photo de profil mise a jour avec succes.');
+        } else {
+            $this->addFlash('info', 'Aucune modification de la photo de profil.');
+        }
 
         return $this->redirectToRoute('app_profile');
     }
@@ -118,6 +128,9 @@ class ProfileController extends AbstractController
         if ($fullName !== '') {
             $user->setFullName($fullName);
             $entityManager->flush();
+            $this->addFlash('success', 'Nom complet mis a jour avec succes.');
+        } else {
+            $this->addFlash('error', 'Le nom complet ne peut pas etre vide.');
         }
 
         return $this->redirectToRoute('app_profile');
@@ -210,6 +223,64 @@ class ProfileController extends AbstractController
         }
 
         $entityManager->flush();
+        $this->addFlash('success', 'Informations du profil mises a jour avec succes.');
+
+        return $this->redirectToRoute('app_profile');
+    }
+
+    #[Route('/profile/password', name: 'app_profile_password_update', methods: ['POST'])]
+    public function updatePassword(
+        Request $request,
+        EntityManagerInterface $entityManager,
+        UserPasswordHasherInterface $passwordHasher
+    ): Response {
+        if (!$this->isCsrfTokenValid('profile_password', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token.');
+        }
+
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException('User not authenticated.');
+        }
+
+        $currentPassword = (string) $request->request->get('current_password', '');
+        $newPassword = (string) $request->request->get('new_password', '');
+        $confirmPassword = (string) $request->request->get('confirm_password', '');
+
+        if ($currentPassword === '' || $newPassword === '' || $confirmPassword === '') {
+            $this->addFlash('error', 'Veuillez remplir tous les champs du mot de passe.');
+
+            return $this->redirectToRoute('app_profile');
+        }
+
+        if (!$passwordHasher->isPasswordValid($user, $currentPassword)) {
+            $this->addFlash('error', 'Le mot de passe actuel est incorrect. Veuillez verifier puis reessayer.');
+
+            return $this->redirectToRoute('app_profile');
+        }
+
+        if ($newPassword !== $confirmPassword) {
+            $this->addFlash('error', 'Le nouveau mot de passe et la confirmation ne correspondent pas.');
+
+            return $this->redirectToRoute('app_profile');
+        }
+
+        if (strlen($newPassword) < 8) {
+            $this->addFlash('error', 'Le nouveau mot de passe doit contenir au moins 8 caracteres.');
+
+            return $this->redirectToRoute('app_profile');
+        }
+
+        if ($passwordHasher->isPasswordValid($user, $newPassword)) {
+            $this->addFlash('error', 'Le nouveau mot de passe doit etre different de l\'ancien.');
+
+            return $this->redirectToRoute('app_profile');
+        }
+
+        $user->setPassword($passwordHasher->hashPassword($user, $newPassword));
+        $entityManager->flush();
+
+        $this->addFlash('success', 'Mot de passe mis a jour avec succes.');
 
         return $this->redirectToRoute('app_profile');
     }
