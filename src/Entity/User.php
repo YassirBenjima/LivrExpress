@@ -46,6 +46,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255)]
     private ?string $city = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $avatar = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $address = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $clientType = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $ice = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $website = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $rc = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $labelMessage = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $packageOption = 'Ne pas ouvrir le colis';
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $bankName = null;
+
+    #[ORM\Column(length: 24, nullable: true)]
+    private ?string $bankRib = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -165,6 +195,126 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setCity(string $city): static
     {
         $this->city = $city;
+
+        return $this;
+    }
+
+    public function getAvatar(): ?string
+    {
+        return $this->avatar;
+    }
+
+    public function setAvatar(?string $avatar): static
+    {
+        $this->avatar = $avatar;
+
+        return $this;
+    }
+
+    public function getAddress(): ?string
+    {
+        return $this->address;
+    }
+
+    public function setAddress(?string $address): static
+    {
+        $this->address = $address;
+
+        return $this;
+    }
+
+    public function getClientType(): ?string
+    {
+        return $this->clientType;
+    }
+
+    public function setClientType(?string $clientType): static
+    {
+        $this->clientType = $clientType;
+
+        return $this;
+    }
+
+    public function getIce(): ?string
+    {
+        return $this->ice;
+    }
+
+    public function setIce(?string $ice): static
+    {
+        $this->ice = $ice;
+
+        return $this;
+    }
+
+    public function getWebsite(): ?string
+    {
+        return $this->website;
+    }
+
+    public function setWebsite(?string $website): static
+    {
+        $this->website = $website;
+
+        return $this;
+    }
+
+    public function getRc(): ?string
+    {
+        return $this->rc;
+    }
+
+    public function setRc(?string $rc): static
+    {
+        $this->rc = $rc;
+
+        return $this;
+    }
+
+    public function getLabelMessage(): ?string
+    {
+        return $this->labelMessage;
+    }
+
+    public function setLabelMessage(?string $labelMessage): static
+    {
+        $this->labelMessage = $labelMessage;
+
+        return $this;
+    }
+
+    public function getPackageOption(): ?string
+    {
+        return $this->packageOption;
+    }
+
+    public function setPackageOption(?string $packageOption): static
+    {
+        $this->packageOption = $packageOption;
+
+        return $this;
+    }
+
+    public function getBankName(): ?string
+    {
+        return $this->bankName;
+    }
+
+    public function setBankName(?string $bankName): static
+    {
+        $this->bankName = $bankName;
+
+        return $this;
+    }
+
+    public function getBankRib(): ?string
+    {
+        return $this->bankRib;
+    }
+
+    public function setBankRib(?string $bankRib): static
+    {
+        $this->bankRib = $bankRib;
 
         return $this;
     }

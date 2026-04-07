@@ -1,4 +1,19 @@
-﻿    <!-- Header -->
+{% if app.user %}
+    {% set initials = '' %}
+    {% set avatarColor = '#007bff' %}
+    {% set profileAvatarUrl = app.user.avatar ? asset('uploads/avatars/' ~ app.user.avatar) : null %}
+    {% if app.user.fullName %}
+        {% set names = app.user.fullName|trim|split(' ') %}
+        {% set initials = names|first|slice(0, 1)|upper %}
+        {% if names|length > 1 %}
+            {% set initials = initials ~ names|last|slice(0, 1)|upper %}
+        {% endif %}
+        {% set colors = ['#EA4335', '#4285F4', '#FBBC04', '#34A853', '#A142F4', '#F439A0', '#24C1E0', '#FF6D01', '#6D4C41', '#546E7A'] %}
+        {% set colorIndex = (app.user.fullName|length) % (colors|length) %}
+        {% set avatarColor = colors[colorIndex] %}
+    {% endif %}
+{% endif %}
+<!-- Header -->
     <header class="kt-header fixed top-0 z-10 start-0 end-0 flex items-stretch shrink-0 bg-background" data-kt-sticky="true" data-kt-sticky-class="border-b border-border" data-kt-sticky-name="header" id="header">
      <!-- Container -->
      <div class="kt-container-fixed flex justify-between items-stretch lg:gap-4" id="headerContainer">
@@ -31,16 +46,16 @@
           <div class="kt-menu-item active">
            <a class="kt-menu-link text-nowrap text-sm text-foreground font-medium kt-menu-item-hover:text-primary kt-menu-item-active:text-mono kt-menu-item-active:font-medium" href="{{ path('app_dashboard') }}">
             <span class="kt-menu-title text-nowrap">
-             Home
+             Accueil
             </span>
            </a>
           </div>
           <!--End of Megamenu Item-->
           <!--Megamenu Item-->
-          <div class="kt-menu-item" data-kt-menu-item-placement="bottom-start" data-kt-menu-item-placement-rtl="bottom-end" data-kt-menu-item-toggle="accordion|lg:dropdown" data-kt-menu-item-trigger="click|lg:hover">
+          {# <div class="kt-menu-item" data-kt-menu-item-placement="bottom-start" data-kt-menu-item-placement-rtl="bottom-end" data-kt-menu-item-toggle="accordion|lg:dropdown" data-kt-menu-item-trigger="click|lg:hover">
            <div class="kt-menu-link text-sm text-foreground kt-menu-link-hover:text-primary kt-menu-item-active:text-mono kt-menu-item-show:text-primary kt-menu-item-here:text-mono kt-menu-item-active:font-medium kt-menu-item-here:font-medium">
             <span class="kt-menu-title text-nowrap">
-             Profiles
+             Profils
             </span>
             <span class="kt-menu-arrow flex lg:hidden">
              <span class="kt-menu-item-show:hidden text-muted-foreground">
@@ -58,7 +73,7 @@
              <div class="grid lg:grid-cols-2 gap-5 lg:gap-10">
               <div class="kt-menu kt-menu-default kt-menu-fit flex-col">
                <h3 class="text-sm text-foreground font-semibold leading-none ps-2.5 mb-2 lg:mb-5">
-                Profiles
+                Profils
                </h3>
                <div class="grid lg:grid-cols-2 lg:gap-5">
                 <div class="flex flex-col gap-0.5">
@@ -69,7 +84,7 @@
                     </i>
                    </span>
                    <span class="kt-menu-title grow-0">
-                    Default
+                    Par défaut
                    </span>
                   </a>
                  </div>
@@ -80,7 +95,7 @@
                     </i>
                    </span>
                    <span class="kt-menu-title grow-0">
-                    Creator
+                    Créateur
                    </span>
                   </a>
                  </div>
@@ -91,7 +106,7 @@
                     </i>
                    </span>
                    <span class="kt-menu-title grow-0">
-                    Company
+                    Entreprise
                    </span>
                   </a>
                  </div>
@@ -113,7 +128,7 @@
                     </i>
                    </span>
                    <span class="kt-menu-title grow-0">
-                    Blogger
+                    Blogueur
                    </span>
                   </a>
                  </div>
@@ -135,7 +150,7 @@
                     </i>
                    </span>
                    <span class="kt-menu-title grow-0">
-                    Gamer
+                    Joueur
                    </span>
                   </a>
                  </div>
@@ -148,7 +163,7 @@
                     </i>
                    </span>
                    <span class="kt-menu-title grow-0">
-                    Feeds
+                    Flux
                    </span>
                   </a>
                  </div>
@@ -159,7 +174,7 @@
                     </i>
                    </span>
                    <span class="kt-menu-title grow-0">
-                    Plain
+                    Simple
                    </span>
                   </a>
                  </div>
@@ -181,11 +196,11 @@
                     </i>
                    </span>
                    <span class="kt-menu-title grow-0">
-                    Freelancer
+                    Freelance
                    </span>
                    <span class="kt-menu-badge">
                     <span class="kt-badge kt-badge-sm">
-                     Soon
+                     Bientôt
                     </span>
                    </span>
                   </a>
@@ -197,11 +212,11 @@
                     </i>
                    </span>
                    <span class="kt-menu-title grow-0">
-                    Developer
+                    Développeur
                    </span>
                    <span class="kt-menu-badge">
                     <span class="kt-badge kt-badge-sm">
-                     Soon
+                     Bientôt
                     </span>
                    </span>
                   </a>
@@ -213,11 +228,11 @@
                     </i>
                    </span>
                    <span class="kt-menu-title grow-0">
-                    Team
+                    Équipes
                    </span>
                    <span class="kt-menu-badge">
                     <span class="kt-badge kt-badge-sm">
-                     Soon
+                     Bientôt
                     </span>
                    </span>
                   </a>
@@ -229,11 +244,11 @@
                     </i>
                    </span>
                    <span class="kt-menu-title grow-0">
-                    Events
+                    Évènements
                    </span>
                    <span class="kt-menu-badge">
                     <span class="kt-badge kt-badge-sm">
-                     Soon
+                     Bientôt
                     </span>
                    </span>
                   </a>
@@ -243,7 +258,7 @@
               </div>
               <div class="kt-menu kt-menu-default kt-menu-fit flex-col">
                <h3 class="text-sm text-foreground font-semibold leading-none ps-2.5 mb-2 lg:mb-5">
-                Other Pages
+                Autres Pages
                </h3>
                <div class="grid lg:grid-cols-2 lg:gap-5">
                 <div class="flex flex-col gap-0.5">
@@ -254,7 +269,7 @@
                     </i>
                    </span>
                    <span class="kt-menu-title grow-0">
-                    Projects - 3 Columns
+                    Projets - 3 colonnes
                    </span>
                   </a>
                  </div>
@@ -265,7 +280,7 @@
                     </i>
                    </span>
                    <span class="kt-menu-title grow-0">
-                    Projects - 2 Columns
+                    Projets - 2 colonnes
                    </span>
                   </a>
                  </div>
@@ -276,7 +291,7 @@
                     </i>
                    </span>
                    <span class="kt-menu-title grow-0">
-                    Works
+                    Travaux
                    </span>
                   </a>
                  </div>
@@ -298,7 +313,7 @@
                     </i>
                    </span>
                    <span class="kt-menu-title grow-0">
-                    Network
+                    Réseau
                    </span>
                   </a>
                  </div>
@@ -309,7 +324,7 @@
                     </i>
                    </span>
                    <span class="kt-menu-title grow-0">
-                    Activity
+                    Activité
                    </span>
                   </a>
                  </div>
@@ -320,7 +335,7 @@
                     </i>
                    </span>
                    <span class="kt-menu-title grow-0">
-                    Campaigns - Card
+                    Campagnes - Carte
                    </span>
                   </a>
                  </div>
@@ -333,7 +348,7 @@
                     </i>
                    </span>
                    <span class="kt-menu-title grow-0">
-                    Campaigns - List
+                    Campagnes - Liste
                    </span>
                   </a>
                  </div>
@@ -344,7 +359,7 @@
                     </i>
                    </span>
                    <span class="kt-menu-title grow-0">
-                    Empty Page
+                    Page vide
                    </span>
                   </a>
                  </div>
@@ -359,7 +374,7 @@
                    </span>
                    <span class="kt-menu-badge">
                     <span class="kt-badge kt-badge-sm">
-                     Soon
+                     Bientôt
                     </span>
                    </span>
                   </a>
@@ -375,7 +390,7 @@
                    </span>
                    <span class="kt-menu-badge">
                     <span class="kt-badge kt-badge-sm">
-                     Soon
+                     Bientôt
                     </span>
                    </span>
                   </a>
@@ -387,11 +402,11 @@
                     </i>
                    </span>
                    <span class="kt-menu-title grow-0">
-                    Awards
+                    Récompenses
                    </span>
                    <span class="kt-menu-badge">
                     <span class="kt-badge kt-badge-sm">
-                     Soon
+                     Bientôt
                     </span>
                    </span>
                   </a>
@@ -404,24 +419,24 @@
             <div class="flex flex-wrap items-center lg:justify-between rounded-xl lg:rounded-t-none border border-border lg:border-0 lg:border-t lg:border-t-border px-4 py-4 lg:px-7.5 lg:py-5 gap-2.5 bg-muted/50">
              <div class="flex flex-col gap-1.5">
               <div class="text-base font-semibold text-mono leading-none">
-               Read to Get Started ?
+               Prêt à commencer ?
               </div>
               <div class="text-sm fomt-medium text-secondary-foreground">
-               Take your docs to the next level of Metronic
+               Amenez votre documentation au niveau supérieur avec Metronic
               </div>
              </div>
              <a class="kt-btn kt-btn-mono" href="#">
-              Read Documentation
+              Lire la documentation
              </a>
             </div>
            </div>
-          </div>
+          </div> #}
           <!--End of Megamenu Item-->
           <!--Megamenu Item-->
-          <div class="kt-menu-item" data-kt-menu-item-offset="-300px, 0" data-kt-menu-item-offset-rtl="300px, 0" data-kt-menu-item-overflow="true" data-kt-menu-item-placement="bottom-start" data-kt-menu-item-placement-rtl="bottom-end" data-kt-menu-item-toggle="accordion|lg:dropdown" data-kt-menu-item-trigger="click|lg:hover">
+          {# <div class="kt-menu-item" data-kt-menu-item-offset="-300px, 0" data-kt-menu-item-offset-rtl="300px, 0" data-kt-menu-item-overflow="true" data-kt-menu-item-placement="bottom-start" data-kt-menu-item-placement-rtl="bottom-end" data-kt-menu-item-toggle="accordion|lg:dropdown" data-kt-menu-item-trigger="click|lg:hover">
            <div class="kt-menu-link text-sm text-secondary-foreground font-medium kt-menu-link-hover:text-primary kt-menu-item-active:text-mono kt-menu-item-show:text-primary kt-menu-item-here:text-mono kt-menu-item-active:font-semibold kt-menu-item-here:font-semibold">
             <span class="kt-menu-title text-nowrap">
-             My Account
+             Mon Compte
             </span>
             <span class="kt-menu-arrow flex lg:hidden">
              <span class="kt-menu-item-show:hidden text-muted-foreground">
@@ -437,7 +452,7 @@
            <div class="kt-menu-dropdown flex-col lg:flex-row gap-0 w-full lg:max-w-[1240px]">
             <div class="lg:w-[250px] mt-2 lg:mt-0 lg:border-e lg:border-e-border rounded-xl lg:rounded-l-xl lg:rounded-r-none shrink-0 px-3 py-4 lg:p-7.5 bg-muted/25">
              <h3 class="text-sm text-foreground font-semibold leading-none ps-2.5 mb-2 lg:mb-5">
-              General Pages
+              Pages Générales
              </h3>
              <div class="kt-menu kt-menu-default kt-menu-fit flex-col">
               <div class="kt-menu-item">
@@ -447,7 +462,7 @@
                  </i>
                 </span>
                 <span class="kt-menu-title grow-0">
-                 Integrations
+                 Intégrations
                 </span>
                </a>
               </div>
@@ -469,7 +484,7 @@
                  </i>
                 </span>
                 <span class="kt-menu-title grow-0">
-                 API Keys
+                 Clés API
                 </span>
                </a>
               </div>
@@ -480,7 +495,7 @@
                  </i>
                 </span>
                 <span class="kt-menu-title grow-0">
-                 Appearance
+                 Apparence
                 </span>
                </a>
               </div>
@@ -491,7 +506,7 @@
                  </i>
                 </span>
                 <span class="kt-menu-title grow-0">
-                 Invite a Friend
+                 Inviter un ami
                 </span>
                </a>
               </div>
@@ -502,7 +517,7 @@
                  </i>
                 </span>
                 <span class="kt-menu-title grow-0">
-                 Activity
+                 Activité
                 </span>
                </a>
               </div>
@@ -517,7 +532,7 @@
                 </span>
                 <span class="kt-menu-badge">
                  <span class="kt-badge kt-badge-sm">
-                  Soon
+                  Bientôt
                  </span>
                 </span>
                </a>
@@ -533,7 +548,7 @@
                 </span>
                 <span class="kt-menu-badge">
                  <span class="kt-badge kt-badge-sm">
-                  Soon
+                  Bientôt
                  </span>
                 </span>
                </a>
@@ -544,27 +559,27 @@
              <div class="grid lg:grid-cols-5 gap-5">
               <div class="flex flex-col">
                <h3 class="text-sm text-foreground font-semibold leading-none ps-2.5 mb-2 lg:mb-5">
-                Account Home
+                Accueil du compte
                </h3>
                <div class="kt-menu kt-menu-default kt-menu-fit flex-col">
                 <div class="kt-menu-item">
                  <a class="kt-menu-link" href="account/home/get-started.html" tabindex="0">
                   <span class="kt-menu-title grow-0">
-                   Get Started
+                   Commencer
                   </span>
                  </a>
                 </div>
                 <div class="kt-menu-item">
                  <a class="kt-menu-link" href="account/home/user-profile.html" tabindex="0">
                   <span class="kt-menu-title grow-0">
-                   User Profile
+                   Profil utilisateur
                   </span>
                  </a>
                 </div>
                 <div class="kt-menu-item">
                  <a class="kt-menu-link" href="account/home/company-profile.html" tabindex="0">
                   <span class="kt-menu-title grow-0">
-                   Company Profile
+                   Profil de l'entreprise
                   </span>
                  </a>
                 </div>
@@ -600,13 +615,13 @@
               </div>
               <div class="flex flex-col">
                <h3 class="text-sm text-foreground font-semibold leading-none ps-2.5 mb-2 lg:mb-5">
-                Billing
+                Facturation
                </h3>
                <div class="kt-menu kt-menu-default kt-menu-fit flex-col">
                 <div class="kt-menu-item">
                  <a class="kt-menu-link" href="account/billing/basic.html" tabindex="0">
                   <span class="kt-menu-title grow-0">
-                   Basic Billing
+                   Facturation de base
                   </span>
                  </a>
                 </div>
@@ -627,7 +642,7 @@
                 <div class="kt-menu-item">
                  <a class="kt-menu-link" href="account/billing/history.html" tabindex="0">
                   <span class="kt-menu-title grow-0">
-                   Billing History
+                   Historique de facturation
                   </span>
                  </a>
                 </div>
@@ -638,7 +653,7 @@
                   </span>
                   <span class="kt-menu-badge">
                    <span class="kt-badge kt-badge-sm">
-                    Soon
+                    Bientôt
                    </span>
                   </span>
                  </a>
@@ -650,7 +665,7 @@
                   </span>
                   <span class="kt-menu-badge">
                    <span class="kt-badge kt-badge-sm">
-                    Soon
+                    Bientôt
                    </span>
                   </span>
                  </a>
@@ -662,7 +677,7 @@
                   </span>
                   <span class="kt-menu-badge">
                    <span class="kt-badge kt-badge-sm">
-                    Soon
+                    Bientôt
                    </span>
                   </span>
                  </a>
@@ -671,20 +686,20 @@
               </div>
               <div class="flex flex-col">
                <h3 class="text-sm text-foreground font-semibold leading-none ps-2.5 mb-2 lg:mb-5">
-                Security
+                Sécurité
                </h3>
                <div class="kt-menu kt-menu-default kt-menu-fit flex-col">
                 <div class="kt-menu-item">
                  <a class="kt-menu-link" href="account/security/get-started.html" tabindex="0">
                   <span class="kt-menu-title grow-0">
-                   Get Started
+                   Commencer
                   </span>
                  </a>
                 </div>
                 <div class="kt-menu-item">
                  <a class="kt-menu-link" href="account/security/overview.html" tabindex="0">
                   <span class="kt-menu-title grow-0">
-                   Security Overview
+                   Aperçu de la sécurité
                   </span>
                  </a>
                 </div>
@@ -698,7 +713,7 @@
                 <div class="kt-menu-item">
                  <a class="kt-menu-link" href="account/security/privacy-settings.html" tabindex="0">
                   <span class="kt-menu-title grow-0">
-                   Privacy Settings
+                   Paramètres de confidentialité
                   </span>
                  </a>
                 </div>
@@ -726,7 +741,7 @@
                 <div class="kt-menu-item">
                  <a class="kt-menu-link" href="account/security/security-log.html" tabindex="0">
                   <span class="kt-menu-title grow-0">
-                   Security Log
+                   Journal de sécurité
                   </span>
                  </a>
                 </div>
@@ -734,7 +749,7 @@
               </div>
               <div class="flex flex-col">
                <h3 class="text-sm text-foreground font-semibold leading-none ps-2.5 mb-2 lg:mb-5">
-                Members &amp; Roles
+                Membres &amp; Rôles
                </h3>
                <div class="kt-menu kt-menu-default kt-menu-fit flex-col">
                 <div class="kt-menu-item">
@@ -817,7 +832,7 @@
                 <div class="kt-menu-item">
                  <a class="kt-menu-link" href="account/integrations.html" tabindex="0">
                   <span class="kt-menu-title grow-0">
-                   Integrations
+                   Intégrations
                   </span>
                  </a>
                 </div>
@@ -831,28 +846,28 @@
                 <div class="kt-menu-item">
                  <a class="kt-menu-link" href="account/api-keys.html" tabindex="0">
                   <span class="kt-menu-title grow-0">
-                   API Keys
+                   Clés API
                   </span>
                  </a>
                 </div>
                 <div class="kt-menu-item">
                  <a class="kt-menu-link" href="account/appearance.html" tabindex="0">
                   <span class="kt-menu-title grow-0">
-                   Appearance
+                   Apparence
                   </span>
                  </a>
                 </div>
                 <div class="kt-menu-item">
                  <a class="kt-menu-link" href="account/invite-a-friend.html" tabindex="0">
                   <span class="kt-menu-title grow-0">
-                   Invite a Friend
+                   Inviter un ami
                   </span>
                  </a>
                 </div>
                 <div class="kt-menu-item">
                  <a class="kt-menu-link" href="account/activity.html" tabindex="0">
                   <span class="kt-menu-title grow-0">
-                   Activity
+                   Activité
                   </span>
                  </a>
                 </div>
@@ -861,13 +876,13 @@
              </div>
             </div>
            </div>
-          </div>
+          </div> #}
           <!--End of Megamenu Item-->
           <!--Megamenu Item-->
-          <div class="kt-menu-item" data-kt-menu-item-offset="-300px, 0" data-kt-menu-item-offset-rtl="300px, 0" data-kt-menu-item-overflow="true" data-kt-menu-item-placement="bottom-start" data-kt-menu-item-placement-rtl="bottom-end" data-kt-menu-item-toggle="accordion|lg:dropdown" data-kt-menu-item-trigger="click|lg:hover">
+          {# <div class="kt-menu-item" data-kt-menu-item-offset="-300px, 0" data-kt-menu-item-offset-rtl="300px, 0" data-kt-menu-item-overflow="true" data-kt-menu-item-placement="bottom-start" data-kt-menu-item-placement-rtl="bottom-end" data-kt-menu-item-toggle="accordion|lg:dropdown" data-kt-menu-item-trigger="click|lg:hover">
            <div class="kt-menu-link text-sm text-secondary-foreground font-medium kt-menu-link-hover:text-primary kt-menu-item-active:text-mono kt-menu-item-show:text-primary kt-menu-item-here:text-mono kt-menu-item-active:font-semibold kt-menu-item-here:font-semibold">
             <span class="kt-menu-title text-nowrap">
-             Network
+             Réseau
             </span>
             <span class="kt-menu-arrow flex lg:hidden">
              <span class="kt-menu-item-show:hidden text-muted-foreground">
@@ -884,7 +899,7 @@
             <div class="flex flex-col lg:flex-row">
              <div class="flex flex-col gap-5 lg:w-[250px] mt-2 lg:mt-0 lg:border-r lg:border-r-border rounded-xl lg:rounded-none lg:rounded-tl-xl shrink-0 px-3 py-4 lg:p-7.5 bg-muted/25">
               <h3 class="text-sm text-foreground font-semibold leading-none ps-2.5 h-3.5">
-               General Pages
+               Pages Générales
               </h3>
               <div class="kt-menu kt-menu-default kt-menu-fit flex-col">
                <div class="kt-menu-item">
@@ -894,7 +909,7 @@
                   </i>
                  </span>
                  <span class="kt-menu-title grow-0">
-                  Get Started
+                  Commencer
                  </span>
                 </a>
                </div>
@@ -909,7 +924,7 @@
                  </span>
                  <span class="kt-menu-badge">
                   <span class="kt-badge kt-badge-sm">
-                   Soon
+                   Bientôt
                   </span>
                  </span>
                 </a>
@@ -925,7 +940,7 @@
                  </span>
                  <span class="kt-menu-badge">
                   <span class="kt-badge kt-badge-sm">
-                   Soon
+                   Bientôt
                   </span>
                  </span>
                 </a>
@@ -941,7 +956,7 @@
                  </span>
                  <span class="kt-menu-badge">
                   <span class="kt-badge kt-badge-sm">
-                   Soon
+                   Bientôt
                   </span>
                  </span>
                 </a>
@@ -997,7 +1012,7 @@
                    </span>
                    <span class="kt-menu-badge">
                     <span class="kt-badge kt-badge-sm">
-                     Soon
+                     Bientôt
                     </span>
                    </span>
                   </a>
@@ -1043,7 +1058,7 @@
                  <div class="kt-menu-item">
                   <a class="kt-menu-link" href="network/user-table/store-clients.html" tabindex="0">
                    <span class="kt-menu-title grow-0">
-                    Store Clients
+                    Clients Boutique
                    </span>
                   </a>
                  </div>
@@ -1062,24 +1077,24 @@
             <div class="flex flex-wrap items-center lg:justify-between rounded-xl lg:rounded-t-none border border-border lg:border-0 lg:border-t lg:border-t-border px-4 py-4 lg:px-7.5 lg:py-5 gap-2.5 bg-muted/50">
              <div class="flex flex-col gap-1.5">
               <div class="text-base font-semibold text-mono leading-none">
-               Read to Get Started ?
+               Prêt à commencer ?
               </div>
               <div class="text-sm fomt-medium text-secondary-foreground">
-               Take your docs to the next level of Metronic
+               Amenez votre documentation au niveau supérieur avec Metronic
               </div>
              </div>
              <a class="kt-btn kt-btn-mono" href="#">
-              Read Documentation
+              Lire la documentation
              </a>
             </div>
            </div>
-          </div>
+          </div> #}
           <!--End of Megamenu Item-->
           <!--Megamenu Item-->
-          <div class="kt-menu-item" data-kt-menu-item-offset="-300px, 0" data-kt-menu-item-offset-rtl="300px, 0" data-kt-menu-item-overflow="true" data-kt-menu-item-placement="bottom-start" data-kt-menu-item-placement-rtl="bottom-end" data-kt-menu-item-toggle="accordion|lg:dropdown" data-kt-menu-item-trigger="click|lg:hover">
+          {# <div class="kt-menu-item" data-kt-menu-item-offset="-300px, 0" data-kt-menu-item-offset-rtl="300px, 0" data-kt-menu-item-overflow="true" data-kt-menu-item-placement="bottom-start" data-kt-menu-item-placement-rtl="bottom-end" data-kt-menu-item-toggle="accordion|lg:dropdown" data-kt-menu-item-trigger="click|lg:hover">
            <div class="kt-menu-link text-sm text-secondary-foreground font-medium kt-menu-link-hover:text-primary kt-menu-item-active:text-mono kt-menu-item-show:text-primary kt-menu-item-here:text-mono kt-menu-item-active:font-semibold kt-menu-item-here:font-semibold">
             <span class="kt-menu-title text-nowrap">
-             Store
+             Boutique
             </span>
             <span class="kt-menu-arrow flex lg:hidden">
              <span class="kt-menu-item-show:hidden text-muted-foreground">
@@ -1096,7 +1111,7 @@
             <div class="pt-4 pb-2 lg:p-7.5">
              <div class="kt-menu kt-menu-default kt-menu-fit flex-col">
               <h3 class="text-sm text-foreground font-semibold leading-none ps-2.5 mb-2 lg:mb-5">
-               Store - Client
+               Boutique - Client
               </h3>
               <div class="grid lg:grid-cols-2 lg:gap-5">
                <div class="flex flex-col gap-0.5">
@@ -1118,7 +1133,7 @@
                    </i>
                   </span>
                   <span class="kt-menu-title grow-0">
-                   Search Results - Grid
+                   Résultats de recherche - Grille
                   </span>
                  </a>
                 </div>
@@ -1129,7 +1144,7 @@
                    </i>
                   </span>
                   <span class="kt-menu-title grow-0">
-                   Search Results - List
+                   Résultats de recherche - Liste
                   </span>
                  </a>
                 </div>
@@ -1140,7 +1155,7 @@
                    </i>
                   </span>
                   <span class="kt-menu-title grow-0">
-                   Product Details
+                   Détails du produit
                   </span>
                  </a>
                 </div>
@@ -1151,7 +1166,7 @@
                    </i>
                   </span>
                   <span class="kt-menu-title grow-0">
-                   Shopping Cart
+                   Panier
                   </span>
                  </a>
                 </div>
@@ -1219,7 +1234,7 @@
                    </i>
                   </span>
                   <span class="kt-menu-title grow-0">
-                   My Orders
+                   Mes commandes
                   </span>
                  </a>
                 </div>
@@ -1230,7 +1245,7 @@
                    </i>
                   </span>
                   <span class="kt-menu-title grow-0">
-                   Order Receipt
+                   Reçu de commande
                   </span>
                  </a>
                 </div>
@@ -1241,24 +1256,24 @@
             <div class="flex flex-wrap items-center lg:justify-between rounded-xl lg:rounded-t-none border border-border lg:border-0 lg:border-t lg:border-t-border px-4 py-4 lg:px-7.5 lg:py-5 gap-2.5 bg-muted/50">
              <div class="flex flex-col gap-1.5">
               <div class="text-base font-semibold text-mono leading-none">
-               Read to Get Started ?
+               Prêt à commencer ?
               </div>
               <div class="text-sm fomt-medium text-secondary-foreground">
-               Take your docs to the next level of Metronic
+               Amenez votre documentation au niveau supérieur avec Metronic
               </div>
              </div>
              <a class="kt-btn kt-btn-mono" href="#">
-              Read Documentation
+              Lire la documentation
              </a>
             </div>
            </div>
-          </div>
+          </div> #}
           <!--End of Megamenu Item-->
           <!--Megamenu Item-->
-          <div class="kt-menu-item" data-kt-menu-item-offset="-300px, 0" data-kt-menu-item-offset-rtl="300px, 0" data-kt-menu-item-overflow="true" data-kt-menu-item-placement="bottom-start" data-kt-menu-item-placement-rtl="bottom-end" data-kt-menu-item-toggle="accordion|lg:dropdown" data-kt-menu-item-trigger="click|lg:hover">
+          {# <div class="kt-menu-item" data-kt-menu-item-offset="-300px, 0" data-kt-menu-item-offset-rtl="300px, 0" data-kt-menu-item-overflow="true" data-kt-menu-item-placement="bottom-start" data-kt-menu-item-placement-rtl="bottom-end" data-kt-menu-item-toggle="accordion|lg:dropdown" data-kt-menu-item-trigger="click|lg:hover">
            <div class="kt-menu-link text-sm text-secondary-foreground font-medium kt-menu-link-hover:text-primary kt-menu-item-active:text-mono kt-menu-item-show:text-primary kt-menu-item-here:text-mono kt-menu-item-active:font-semibold kt-menu-item-here:font-semibold">
             <span class="kt-menu-title text-nowrap">
-             Authentication
+             Authentification
             </span>
             <span class="kt-menu-arrow flex lg:hidden">
              <span class="kt-menu-item-show:hidden text-muted-foreground">
@@ -1447,7 +1462,7 @@
                   </i>
                  </span>
                  <span class="kt-menu-title grow-0">
-                  Account Deactivated
+                  Compte désactivé
                  </span>
                 </a>
                </div>
@@ -1479,24 +1494,24 @@
             <div class="flex flex-wrap items-center lg:justify-between rounded-xl lg:rounded-t-none border border-border lg:border-0 lg:border-t lg:border-t-border px-4 py-4 lg:px-7.5 lg:py-5 gap-2.5 bg-muted/50">
              <div class="flex flex-col gap-1.5">
               <div class="text-base font-semibold text-mono leading-none">
-               Read to Get Started ?
+               Prêt à commencer ?
               </div>
               <div class="text-sm fomt-medium text-secondary-foreground">
-               Take your docs to the next level of Metronic
+               Amenez votre documentation au niveau supérieur avec Metronic
               </div>
              </div>
              <a class="kt-btn kt-btn-mono" href="#">
-              Read Documentation
+              Lire la documentation
              </a>
             </div>
            </div>
-          </div>
+          </div> #}
           <!--End of Megamenu Item-->
           <!--Megamenu Item-->
-          <div class="kt-menu-item" data-kt-menu-item-offset="0,0|lg:-20px, 0" data-kt-menu-item-offset-rtl="0,0|lg:20px, 0" data-kt-menu-item-overflow="true" data-kt-menu-item-placement="bottom-start" data-kt-menu-item-placement-rtl="bottom-end" data-kt-menu-item-toggle="dropdown" data-kt-menu-item-trigger="click|lg:hover">
+          {# <div class="kt-menu-item" data-kt-menu-item-offset="0,0|lg:-20px, 0" data-kt-menu-item-offset-rtl="0,0|lg:20px, 0" data-kt-menu-item-overflow="true" data-kt-menu-item-placement="bottom-start" data-kt-menu-item-placement-rtl="bottom-end" data-kt-menu-item-toggle="dropdown" data-kt-menu-item-trigger="click|lg:hover">
            <div class="kt-menu-link text-sm text-secondary-foreground font-medium kt-menu-link-hover:text-primary kt-menu-item-active:text-mono kt-menu-item-show:text-primary kt-menu-item-here:text-mono kt-menu-item-active:font-semibold kt-menu-item-here:font-semibold">
             <span class="kt-menu-title text-nowrap">
-             Help
+             Aide
             </span>
             <span class="kt-menu-arrow flex lg:hidden">
              <span class="kt-menu-item-show:hidden text-muted-foreground">
@@ -1528,7 +1543,7 @@
                </i>
               </span>
               <span class="kt-menu-title">
-               Support Forum
+               Forum d'assistance
               </span>
               <span class="kt-menu-arrow">
                <i class="ki-filled ki-right text-xs rtl:transform rtl:rotate-180">
@@ -1543,7 +1558,7 @@
                  </i>
                 </span>
                 <span class="kt-menu-title grow-0">
-                 All Questions
+                 Toutes les questions
                 </span>
                </a>
               </div>
@@ -1554,7 +1569,7 @@
                  </i>
                 </span>
                 <span class="kt-menu-title grow-0">
-                 Popular Questions
+                 Questions populaires
                 </span>
                </a>
               </div>
@@ -1565,7 +1580,7 @@
                  </i>
                 </span>
                 <span class="kt-menu-title grow-0">
-                 Ask Question
+                 Poser une question
                 </span>
                </a>
               </div>
@@ -1578,7 +1593,7 @@
                </i>
               </span>
               <span class="kt-menu-title">
-               Licenses &amp; FAQ
+               Licences &amp; FAQ
               </span>
               <span class="kt-menu-badge" data-kt-tooltip="#menu_tooltip_3">
                <i class="ki-filled ki-information-2 text-muted-foreground text-base">
@@ -1614,7 +1629,7 @@
              </a>
             </div>
            </div>
-          </div>
+          </div> #}
           <!--End of Megamenu Item-->
          </div>
          <!--End of Megamenu-->
@@ -1626,14 +1641,14 @@
       <!--End of Megamenu Contaoner-->
       <!-- Topbar -->
       <div class="flex items-center gap-2.5">
-       <!-- Search -->
-       <button class="group kt-btn kt-btn-ghost kt-btn-icon size-9 rounded-full hover:bg-primary/10 hover:[&amp;_i]:text-primary" data-kt-modal-toggle="#search_modal">
+       <!-- Rechercher -->
+       <button class="group kt-btn kt-btn-ghost kt-btn-icon size-9 rounded-full hover:bg-primary/10 hover:[&_i]:text-primary" data-kt-modal-toggle="#search_modal">
         <i class="ki-filled ki-magnifier text-lg group-hover:text-primary">
         </i>
        </button>
-       <!-- End of Search -->
+       <!-- End of Rechercher -->
        <!-- Notifications -->
-       <button class="kt-btn kt-btn-ghost kt-btn-icon size-9 rounded-full hover:bg-primary/10 hover:[&amp;_i]:text-primary" data-kt-drawer-toggle="#notifications_drawer">
+       <button class="kt-btn kt-btn-ghost kt-btn-icon size-9 rounded-full hover:bg-primary/10 hover:[&_i]:text-primary" data-kt-drawer-toggle="#notifications_drawer">
         <i class="ki-filled ki-notification-status text-lg">
         </i>
        </button>
@@ -1649,10 +1664,10 @@
         <div class="kt-tabs kt-tabs-line justify-between px-5 mb-2" data-kt-tabs="true" id="notifications_tabs">
          <div class="flex items-center gap-5">
           <button class="kt-tab-toggle py-3 active" data-kt-tab-toggle="#notifications_tab_all">
-           All
+           Tout
           </button>
           <button class="kt-tab-toggle py-3 relative" data-kt-tab-toggle="#notifications_tab_inbox">
-           Inbox
+           Boîte de réception
            <span class="rounded-full bg-green-500 size-[5px] absolute top-2 rtl:start-0 end-0 transform translate-y-1/2 translate-x-full">
            </span>
           </button>
@@ -1677,7 +1692,7 @@
                </i>
               </span>
               <span class="kt-menu-title">
-               View
+               Voir
               </span>
              </a>
             </div>
@@ -1688,7 +1703,7 @@
                </i>
               </span>
               <span class="kt-menu-title">
-               Export
+               Exporter
               </span>
               <span class="kt-menu-arrow">
                <i class="ki-filled ki-right text-xs rtl:transform rtl:rotate-180">
@@ -1738,7 +1753,7 @@
                </i>
               </span>
               <span class="kt-menu-title">
-               Edit
+               Modifier
               </span>
              </a>
             </div>
@@ -1749,7 +1764,7 @@
                </i>
               </span>
               <span class="kt-menu-title">
-               Delete
+               Supprimer
               </span>
              </a>
             </div>
@@ -1803,7 +1818,7 @@
                </span>
               </div>
               <div class="kt-input">
-               <input placeholder="Reply" type="text" value=""/>
+               <input placeholder="Répondre" type="text" value=""/>
                <button class="kt-btn kt-btn-ghost kt-btn-icon size-6 -me-1.5">
                 <i class="ki-filled ki-picture">
                 </i>
@@ -1894,10 +1909,10 @@
              </div>
              <div class="flex flex-wrap gap-2.5">
               <button class="kt-btn kt-btn-outline kt-btn-sm" data-kt-dismiss="#notification_request_3">
-               Decline
+               Refuser
               </button>
               <button class="kt-btn kt-btn-mono kt-btn-sm" data-kt-dismiss="#notification_request_3">
-               Accept
+               Accepter
               </button>
              </div>
             </div>
@@ -1937,7 +1952,7 @@
                Launch_nov24.pptx
               </a>
               <span class="font-medium text-muted-foreground text-xs">
-               Edited 39 mins ago
+               Modifié il y a 39 mins
               </span>
              </div>
             </div>
@@ -1968,7 +1983,7 @@
               </a>
              </div>
              <span class="flex items-center text-xs font-medium text-muted-foreground">
-              1 hour ago
+              il y a 1 heure
               <span class="rounded-full size-1 bg-mono/30 mx-1.5">
               </span>
               Roadmap
@@ -2012,7 +2027,7 @@
                Launcher-UIkit.fig
               </a>
               <span class="font-medium text-muted-foreground text-xs">
-               Edited 2 mins ago
+               Modifié il y a 2 mins
               </span>
              </div>
             </div>
@@ -2023,10 +2038,10 @@
          </div>
          <div class="grid grid-cols-2 p-5 gap-2.5" id="notifications_all_footer">
           <button class="kt-btn kt-btn-outline justify-center">
-           Archive all
+           Tout archiver
           </button>
           <button class="kt-btn kt-btn-outline justify-center">
-           Mark all as read
+           Tout marquer comme lu
           </button>
          </div>
         </div>
@@ -2079,10 +2094,10 @@
              </div>
              <div class="flex flex-wrap gap-2.5">
               <button class="kt-btn kt-btn-outline kt-btn-sm" data-kt-dismiss="#notification_request_13">
-               Decline
+               Refuser
               </button>
               <button class="kt-btn kt-btn-mono kt-btn-sm" data-kt-dismiss="#notification_request_13">
-               Accept
+               Accepter
               </button>
              </div>
             </div>
@@ -2259,10 +2274,10 @@
              </div>
              <div class="flex flex-wrap gap-2.5">
               <button class="kt-btn kt-btn-outline kt-btn-sm" data-kt-dismiss="#notification_request_3">
-               Decline
+               Refuser
               </button>
               <button class="kt-btn kt-btn-mono kt-btn-sm" data-kt-dismiss="#notification_request_3">
-               Accept
+               Accepter
               </button>
              </div>
             </div>
@@ -2307,10 +2322,10 @@
          </div>
          <div class="grid grid-cols-2 p-5 gap-2.5" id="notifications_inbox_footer">
           <button class="kt-btn kt-btn-outline justify-center">
-           Archive all
+           Tout archiver
           </button>
           <button class="kt-btn kt-btn-outline justify-center">
-           Mark all as read
+           Tout marquer comme lu
           </button>
          </div>
         </div>
@@ -2388,10 +2403,10 @@
              </div>
              <div class="flex flex-wrap gap-2.5">
               <button class="kt-btn kt-btn-outline kt-btn-sm" data-kt-dismiss="#notification_request_10">
-               Decline
+               Refuser
               </button>
               <button class="kt-btn kt-btn-mono kt-btn-sm" data-kt-dismiss="#notification_request_10">
-               Accept
+               Accepter
               </button>
              </div>
             </div>
@@ -2554,7 +2569,7 @@
                </span>
               </div>
               <div class="kt-input">
-               <input placeholder="Reply" type="text" value=""/>
+               <input placeholder="Répondre" type="text" value=""/>
                <button class="kt-btn kt-btn-ghost kt-btn-icon size-6 -me-1.5">
                 <i class="ki-filled ki-picture">
                 </i>
@@ -2602,10 +2617,10 @@
              </div>
              <div class="flex flex-wrap gap-2.5">
               <button class="kt-btn kt-btn-outline kt-btn-sm" data-kt-dismiss="#notification_request_3">
-               Decline
+               Refuser
               </button>
               <button class="kt-btn kt-btn-mono kt-btn-sm" data-kt-dismiss="#notification_request_3">
-               Accept
+               Accepter
               </button>
              </div>
             </div>
@@ -2616,10 +2631,10 @@
          </div>
          <div class="grid grid-cols-2 p-5 gap-2.5" id="notifications_team_footer">
           <button class="kt-btn kt-btn-outline justify-center">
-           Archive all
+           Tout archiver
           </button>
           <button class="kt-btn kt-btn-outline justify-center">
-           Mark all as read
+           Tout marquer comme lu
           </button>
          </div>
         </div>
@@ -2714,7 +2729,7 @@
                </span>
               </div>
               <span class="flex items-center text-xs font-medium text-muted-foreground">
-               1 day ago
+               il y a 1 jour
                <span class="rounded-full size-1 bg-mono/30 mx-1.5">
                </span>
                Designer
@@ -2728,15 +2743,15 @@
                User-feedback.jira
               </a>
               <span class="font-medium text-muted-foreground text-xs">
-               Edited 1 hour ago
+               Modifié il y a 1 heure
               </span>
              </div>
              <div class="flex flex-wrap gap-2.5">
               <button class="kt-btn kt-btn-outline kt-btn-sm" data-kt-dismiss="#notification_request_17">
-               Decline
+               Refuser
               </button>
               <button class="kt-btn kt-btn-mono kt-btn-sm" data-kt-dismiss="#notification_request_17">
-               Accept
+               Accepter
               </button>
              </div>
             </div>
@@ -2805,7 +2820,7 @@
               </a>
              </div>
              <span class="flex items-center text-xs font-medium text-muted-foreground">
-              1 day ago
+              il y a 1 jour
               <span class="rounded-full size-1 bg-mono/30 mx-1.5">
               </span>
               Nexus
@@ -2891,10 +2906,10 @@
              </div>
              <div class="flex flex-wrap gap-2.5">
               <button class="kt-btn kt-btn-outline kt-btn-sm" data-kt-dismiss="#notification_request_3">
-               Decline
+               Refuser
               </button>
               <button class="kt-btn kt-btn-mono kt-btn-sm" data-kt-dismiss="#notification_request_3">
-               Accept
+               Accepter
               </button>
              </div>
             </div>
@@ -2905,10 +2920,10 @@
          </div>
          <div class="grid grid-cols-2 p-5 gap-2.5" id="notifications_following_footer">
           <button class="kt-btn kt-btn-outline justify-center">
-           Archive all
+           Tout archiver
           </button>
           <button class="kt-btn kt-btn-outline justify-center">
-           Mark all as read
+           Tout marquer comme lu
           </button>
          </div>
         </div>
@@ -2916,7 +2931,7 @@
        <!--End of Notifications Drawer-->
        <!-- End of Notifications -->
        <!-- Chat -->
-       <button class="kt-btn kt-btn-ghost kt-btn-icon size-9 rounded-full hover:bg-primary/10 hover:[&amp;_i]:text-primary" data-kt-drawer-toggle="#chat_drawer">
+       <button class="kt-btn kt-btn-ghost kt-btn-icon size-9 rounded-full hover:bg-primary/10 hover:[&_i]:text-primary" data-kt-drawer-toggle="#chat_drawer">
         <i class="ki-filled ki-messages text-lg">
         </i>
        </button>
@@ -2940,10 +2955,10 @@
             </div>
             <div class="flex flex-col">
              <a class="text-sm font-semibold text-mono hover:text-primary" href="#">
-              HR Team
+              Équipe RH
              </a>
              <span class="text-xs font-medium italic text-muted-foreground">
-              Jessy is typing..
+              Jessy est en train d'écrire...
              </span>
             </div>
            </div>
@@ -3004,7 +3019,7 @@
                     </i>
                    </span>
                    <span class="kt-menu-title">
-                    Find Members
+                    Trouver des membres
                    </span>
                   </a>
                  </div>
@@ -3015,7 +3030,7 @@
                     </i>
                    </span>
                    <span class="kt-menu-title">
-                    Meetings
+                    Réunions
                    </span>
                   </a>
                  </div>
@@ -3026,7 +3041,7 @@
                     </i>
                    </span>
                    <span class="kt-menu-title">
-                    Group Settings
+                    Paramètres du groupe
                    </span>
                   </a>
                  </div>
@@ -3039,7 +3054,7 @@
                   </i>
                  </span>
                  <span class="kt-menu-title">
-                  Settings
+                  Paramètres
                  </span>
                 </a>
                </div>
@@ -3056,7 +3071,7 @@
            <img alt="" class="rounded-full size-9" src="{{ asset('assets/') }}media/avatars/300-5.png"/>
            <div class="flex flex-col gap-1.5">
             <div class="kt-card shadow-none flex flex-col bg-accent/60 gap-2.5 p-3 rounded-bs-none text-2sm">
-             Next week we are closing the project. Do You have questions?
+             La semaine prochaine, nous clôturons le projet. Avez-vous des questions ?
             </div>
             <span class="text-xs font-medium text-muted-foreground">
              14:04
@@ -3067,7 +3082,7 @@
            <div class="flex flex-col gap-1.5">
             <div class="kt-card shadow-none flex bg-primary flex-col gap-2.5 p-3 rounded-be-none">
              <p class="text-2sm font-medium text-primary-foreground">
-              This is excellent news!
+              C'est une excellente nouvelle !
              </p>
             </div>
             <div class="flex items-center justify-end gap-2 relative">
@@ -3095,7 +3110,7 @@
            <img alt="" class="rounded-full size-9" src="{{ asset('assets/') }}media/avatars/300-4.png"/>
            <div class="flex flex-col gap-1.5">
             <div class="kt-card shadow-none flex flex-col bg-accent/60 gap-2.5 p-3 rounded-bs-none text-2sm">
-             I have checked the features, can not wait to demo them!
+             J'ai vérifié les fonctionnalités, j'ai hâte de les présenter !
             </div>
             <span class="text-xs font-medium text-muted-foreground">
              14:26
@@ -3106,7 +3121,7 @@
            <img alt="" class="rounded-full size-9" src="{{ asset('assets/') }}media/avatars/300-1.png"/>
            <div class="flex flex-col gap-1.5">
             <div class="kt-card shadow-none flex flex-col bg-accent/60 gap-2.5 p-3 rounded-bs-none text-2sm">
-             I have looked over the rollout plan, and everything seems spot on.
+             J'ai examiné le plan de déploiement, et tout semble parfait.
             </div>
             <span class="text-xs font-medium text-muted-foreground">
              15:09
@@ -3117,7 +3132,7 @@
            <div class="flex flex-col gap-1.5">
             <div class="kt-card shadow-none flex bg-primary flex-col gap-2.5 p-3 rounded-be-none">
              <p class="text-2sm font-medium text-primary-foreground">
-              Haven't seen the build yet, I'll look now.
+              Je n'ai pas encore vu la version, je regarde tout de suite.
              </p>
             </div>
             <div class="flex items-center justify-end gap-2 relative">
@@ -3145,7 +3160,7 @@
            <div class="flex flex-col gap-1.5">
             <div class="kt-card shadow-none flex bg-primary flex-col gap-2.5 p-3 rounded-be-none">
              <p class="text-2sm font-medium text-primary-foreground">
-              Checking the build now
+              Vérification de la version en cours
              </p>
             </div>
             <div class="flex items-center justify-end gap-2 relative">
@@ -3173,7 +3188,7 @@
            <img alt="" class="rounded-full size-9" src="{{ asset('assets/') }}media/avatars/300-4.png"/>
            <div class="flex flex-col gap-1.5">
             <div class="kt-card shadow-none flex flex-col bg-accent/60 gap-2.5 p-3 rounded-bs-none text-2sm">
-             Tomorrow, I will send the link for the meeting
+             Demain, j'enverrai le lien pour la réunion
             </div>
             <span class="text-xs font-medium text-muted-foreground">
              17:40
@@ -3202,36 +3217,36 @@
               Jane Perez
              </a>
              <span class="text-secondary-foreground">
-              wants to join chat
+              veut rejoindre la discussion
              </span>
             </div>
             <span class="flex items-center text-xs font-medium text-muted-foreground">
-             1 day ago
+             il y a 1 jour
              <span class="rounded-full size-1 bg-mono/30 mx-1.5">
              </span>
-             Design Team
+             Équipe Design
             </span>
            </div>
            <div class="flex gap-2.5">
             <button class="kt-btn kt-btn-sm kt-btn-outline kt-btn-sm" data-kt-dismiss="#join_request">
-             Decline
+             Refuser
             </button>
             <button class="kt-btn kt-btn-sm kt-btn-mono kt-btn-sm">
-             Accept
+             Accepter
             </button>
            </div>
           </div>
          </div>
          <div class="relative grow mx-5">
           <img alt="" class="rounded-full size-[30px] absolute start-0 top-2/4 -translate-y-2/4 ms-2.5" src="{{ asset('assets/') }}media/avatars/300-2.png">
-           <input class="kt-input h-auto py-4 ps-12 bg-transparent" placeholder="Write a message..." type="text" value=""/>
+           <input class="kt-input h-auto py-4 ps-12 bg-transparent" placeholder="Écrire un message..." type="text" value=""/>
            <div class="flex items-center gap-2.5 absolute end-3 top-1/2 -translate-y-1/2">
             <button class="kt-btn kt-btn-sm kt-btn-icon kt-btn-ghost">
              <i class="ki-filled ki-exit-up">
              </i>
             </button>
             <a class="kt-btn kt-btn-mono kt-btn-sm" href="#">
-             Send
+             Envoi
             </a>
            </div>
           </img>
@@ -3241,19 +3256,19 @@
        </div>
        <!--End of Chat Drawer-->
        <!-- End of Chat -->
-       <!-- Apps -->
+       <!-- Applications -->
        <div data-kt-dropdown="true" data-kt-dropdown-offset="10px, 10px" data-kt-dropdown-offset-rtl="-10px, 10px" data-kt-dropdown-placement="bottom-end" data-kt-dropdown-placement-rtl="bottom-start">
-        <button class="kt-btn kt-btn-ghost kt-btn-icon size-9 rounded-full hover:bg-primary/10 hover:[&amp;_i]:text-primary kt-dropdown-open:bg-primary/10 kt-dropdown-open:[&amp;_i]:text-primary" data-kt-dropdown-toggle="true">
+        <button class="kt-btn kt-btn-ghost kt-btn-icon size-9 rounded-full hover:bg-primary/10 hover:[&_i]:text-primary kt-dropdown-open:bg-primary/10 kt-dropdown-open:[&_i]:text-primary" data-kt-dropdown-toggle="true">
          <i class="ki-filled ki-element-11 text-lg">
          </i>
         </button>
         <div class="kt-dropdown-menu p-0 w-screen max-w-[320px]" data-kt-dropdown-menu="true">
          <div class="flex items-center justify-between gap-2.5 text-xs text-secondary-foreground font-medium px-5 py-3 border-b border-b-border">
           <span>
-           Apps
+           Applications
           </span>
           <span>
-           Enabled
+           Activé
           </span>
          </div>
          <div class="flex flex-col kt-scrollable-y-auto max-h-[400px] divide-y divide-border">
@@ -3268,7 +3283,7 @@
               Jira
              </a>
              <span class="text-xs font-medium text-secondary-foreground">
-              Project management
+              Gestion de projet
              </span>
             </div>
            </div>
@@ -3305,7 +3320,7 @@
               Evernote
              </a>
              <span class="text-xs font-medium text-secondary-foreground">
-              Notes management app
+              Application de gestion de notes
              </span>
             </div>
            </div>
@@ -3323,7 +3338,7 @@
               Gitlab
              </a>
              <span class="text-xs font-medium text-secondary-foreground">
-              DevOps platform
+              Plateforme DevOps
              </span>
             </div>
            </div>
@@ -3352,32 +3367,48 @@
          </div>
          <div class="grid p-5 border-t border-t-border">
           <a class="kt-btn kt-btn-outline justify-center" href="account/integrations.html">
-           Go to Apps
+           Go to Applications
           </a>
          </div>
         </div>
        </div>
-       <!-- End of Apps -->
+       <!-- End of Applications -->
        <!-- User -->
        <div class="shrink-0" data-kt-dropdown="true" data-kt-dropdown-offset="10px, 10px" data-kt-dropdown-offset-rtl="-20px, 10px" data-kt-dropdown-placement="bottom-end" data-kt-dropdown-placement-rtl="bottom-start" data-kt-dropdown-trigger="click">
         <div class="cursor-pointer shrink-0" data-kt-dropdown-toggle="true">
-         <img alt="" class="size-9 rounded-full border-2 border-green-500 shrink-0" src="{{ asset('assets/') }}media/avatars/300-2.png"/>
+          {% if profileAvatarUrl %}
+           <img alt="" class="size-9 rounded-full border-2 border-green-500 shrink-0 object-cover" src="{{ profileAvatarUrl }}"/>
+          {% elseif initials is defined and initials is not empty %}
+           <div class="hover:z-5 relative inline-flex items-center justify-center shrink-0 rounded-full ring-1 font-semibold leading-none text-white uppercase size-9 ring-background shadow-sm" style="background-color: {{ avatarColor }};">
+            {{ initials }}
+           </div>
+          {% else %}
+           <img alt="" class="size-9 rounded-full border-2 border-green-500 shrink-0" src="{{ asset('assets/media/avatars/300-2.png') }}"/>
+          {% endif %}
         </div>
-        <div class="kt-dropdown-menu w-[250px]" data-kt-dropdown-menu="true">
+        <div class="kt-dropdown-menu w-[300px]" data-kt-dropdown-menu="true">
          <div class="flex items-center justify-between px-2.5 py-1.5 gap-1.5">
           <div class="flex items-center gap-2">
-           <img alt="" class="size-9 shrink-0 rounded-full border-2 border-green-500" src="{{ asset('assets/') }}media/avatars/300-2.png"/>
+            {% if profileAvatarUrl %}
+             <img alt="" class="size-9 shrink-0 rounded-full border-2 border-green-500 object-cover" src="{{ profileAvatarUrl }}"/>
+            {% elseif initials is defined and initials is not empty %}
+             <div class="hover:z-5 relative inline-flex items-center justify-center shrink-0 rounded-full ring-1 font-semibold leading-none text-white size-9 ring-background shadow-sm" style="background-color: {{ avatarColor }};">
+              {{ initials }}
+             </div>
+            {% else %}
+             <img alt="" class="size-9 shrink-0 rounded-full border-2 border-green-500" src="{{ asset('assets/media/avatars/300-2.png') }}"/>
+            {% endif %}
            <div class="flex flex-col gap-1.5">
             <span class="text-sm text-foreground font-semibold leading-none">
-             Cody Fisher
+             {{ app.user ? app.user.fullName : 'Invité' }}
             </span>
-            <a class="text-xs text-secondary-foreground hover:text-primary font-medium leading-none" href="account/home/get-started.html">
-             c.fisher@gmail.com
+            <a class="text-xs text-secondary-foreground hover:text-primary font-medium leading-none" href="#">
+             {{ app.user ? app.user.email : 'guest@example.com' }}
             </a>
            </div>
           </div>
           <span class="kt-badge kt-badge-sm kt-badge-primary kt-badge-outline">
-           Pro
+            {{ app.user ? app.user.roles[0]|replace({'ROLE_': '', '_': ' '})|title : 'Invité' }}
           </span>
          </div>
          <ul class="kt-dropdown-menu-sub">
@@ -3385,25 +3416,25 @@
            <div class="kt-dropdown-menu-separator">
            </div>
           </li>
-          <li>
+          {# <li>
            <a class="kt-dropdown-menu-link" href="public-profile/profiles/default.html">
             <i class="ki-filled ki-badge">
             </i>
-            Public Profile
+            Profil public
            </a>
-          </li>
+          </li> #}
           <li>
-           <a class="kt-dropdown-menu-link" href="account/home/user-profile.html">
+           <a class="kt-dropdown-menu-link" href="{{ path('app_profile') }}">
             <i class="ki-filled ki-profile-circle">
             </i>
-            My Profile
+            Mon Profil
            </a>
           </li>
-          <li data-kt-dropdown="true" data-kt-dropdown-placement="right-start" data-kt-dropdown-trigger="hover">
+          {# <li data-kt-dropdown="true" data-kt-dropdown-placement="right-start" data-kt-dropdown-trigger="hover">
            <button class="kt-dropdown-menu-toggle" data-kt-dropdown-toggle="true">
             <i class="ki-filled ki-setting-2">
             </i>
-            My Account
+            Mon Compte
             <span class="kt-dropdown-menu-indicator">
              <i class="ki-filled ki-right text-xs">
              </i>
@@ -3415,14 +3446,14 @@
               <a class="kt-dropdown-menu-link" href="account/home/get-started.html">
                <i class="ki-filled ki-coffee">
                </i>
-               Get Started
+               Commencer
               </a>
              </li>
              <li>
-              <a class="kt-dropdown-menu-link" href="account/home/user-profile.html">
+              <a class="kt-dropdown-menu-link" href="{{ path('app_profile') }}">
                <i class="ki-filled ki-some-files">
                </i>
-               My Profile
+               Mon Profil
               </a>
              </li>
              <li>
@@ -3430,13 +3461,13 @@
                <span class="flex items-center gap-2">
                 <i class="ki-filled ki-icon">
                 </i>
-                Billing
+                Facturation
                </span>
                <span class="ms-auto inline-flex items-center" data-kt-tooltip="true" data-kt-tooltip-placement="top">
                 <i class="ki-filled ki-information-2 text-base text-muted-foreground">
                 </i>
                 <span class="kt-tooltip" data-kt-tooltip-content="true">
-                 Payment and subscription info
+                 Informations de paiement et d'abonnement
                 </span>
                </span>
               </a>
@@ -3445,21 +3476,21 @@
               <a class="kt-dropdown-menu-link" href="account/security/overview.html">
                <i class="ki-filled ki-medal-star">
                </i>
-               Security
+               Sécurité
               </a>
              </li>
              <li>
               <a class="kt-dropdown-menu-link" href="account/members/teams.html">
                <i class="ki-filled ki-setting">
                </i>
-               Members &amp; Roles
+               Membres &amp; Rôles
               </a>
              </li>
              <li>
               <a class="kt-dropdown-menu-link" href="account/integrations.html">
                <i class="ki-filled ki-switch">
                </i>
-               Integrations
+               Intégrations
               </a>
              </li>
              <li>
@@ -3478,34 +3509,34 @@
              </li>
             </ul>
            </div>
-          </li>
-          <li>
+          </li> #}
+          {# <li>
            <a class="kt-dropdown-menu-link" href="https://devs.keenthemes.com/">
             <i class="ki-filled ki-message-programming">
             </i>
             Dev Forum
            </a>
-          </li>
+          </li> #}
           <li data-kt-dropdown="true" data-kt-dropdown-placement="right-start" data-kt-dropdown-trigger="hover">
            <button class="kt-dropdown-menu-toggle py-1" data-kt-dropdown-toggle="true">
             <span class="flex items-center gap-2">
              <i class="ki-filled ki-icon">
              </i>
-             Language
+             Langue
             </span>
             <span class="ms-auto kt-badge kt-badge-stroke shrink-0">
-             English
-             <img alt="" class="inline-block size-3.5 rounded-full" src="{{ asset('assets/') }}media/flags/united-states.svg"/>
+             Français
+             <img alt="" class="inline-block size-3.5 rounded-full" src="{{ asset('assets/media/flags/france.svg') }}"/>
             </span>
            </button>
            <div class="kt-dropdown-menu w-[180px]" data-kt-dropdown-menu="true">
             <ul class="kt-dropdown-menu-sub">
              <li class="active">
-              <a class="kt-dropdown-menu-link" href="indexe3ae.html?dir=ltr">
+              <a class="kt-dropdown-menu-link" href="#">
                <span class="flex items-center gap-2">
-                <img alt="" class="inline-block size-4 rounded-full" src="{{ asset('assets/') }}media/flags/united-states.svg"/>
+                <img alt="" class="inline-block size-4 rounded-full" src="{{ asset('assets/media/flags/france.svg') }}"/>
                 <span class="kt-menu-title">
-                 English
+                 Français
                 </span>
                </span>
                <i class="ki-solid ki-check-circle ms-auto text-green-500 text-base">
@@ -3513,41 +3544,21 @@
               </a>
              </li>
              <li class="">
-              <a class="kt-dropdown-menu-link" href="index347d.html?dir=rtl">
+              <a class="kt-dropdown-menu-link" href="#">
                <span class="flex items-center gap-2">
-                <img alt="" class="inline-block size-4 rounded-full" src="{{ asset('assets/') }}media/flags/saudi-arabia.svg"/>
+                <img alt="" class="inline-block size-4 rounded-full" src="{{ asset('assets/media/flags/united-states.svg') }}"/>
                 <span class="kt-menu-title">
-                 Arabic(Saudi)
+                 Anglais
                 </span>
                </span>
               </a>
              </li>
              <li class="">
-              <a class="kt-dropdown-menu-link" href="indexe3ae.html?dir=ltr">
+              <a class="kt-dropdown-menu-link" href="#">
                <span class="flex items-center gap-2">
-                <img alt="" class="inline-block size-4 rounded-full" src="{{ asset('assets/') }}media/flags/spain.svg"/>
+                <img alt="" class="inline-block size-4 rounded-full" src="{{ asset('assets/media/flags/saudi-arabia.svg') }}"/>
                 <span class="kt-menu-title">
-                 Spanish
-                </span>
-               </span>
-              </a>
-             </li>
-             <li class="">
-              <a class="kt-dropdown-menu-link" href="indexe3ae.html?dir=ltr">
-               <span class="flex items-center gap-2">
-                <img alt="" class="inline-block size-4 rounded-full" src="{{ asset('assets/') }}media/flags/germany.svg"/>
-                <span class="kt-menu-title">
-                 German
-                </span>
-               </span>
-              </a>
-             </li>
-             <li class="">
-              <a class="kt-dropdown-menu-link" href="indexe3ae.html?dir=ltr">
-               <span class="flex items-center gap-2">
-                <img alt="" class="inline-block size-4 rounded-full" src="{{ asset('assets/') }}media/flags/japan.svg"/>
-                <span class="kt-menu-title">
-                 Japanese
+                 Arabe
                 </span>
                </span>
               </a>
@@ -3566,13 +3577,13 @@
             <i class="ki-filled ki-moon text-base text-muted-foreground">
             </i>
             <span class="font-medium text-2sm">
-             Dark Mode
+             Mode sombre
             </span>
            </span>
            <input class="kt-switch" data-kt-theme-switch-state="dark" data-kt-theme-switch-toggle="true" name="check" type="checkbox" value="1"/>
           </div>
-          <a class="kt-btn kt-btn-outline justify-center w-full" href="authentication/classic/sign-in.html">
-           Log out
+          <a class="kt-btn kt-btn-outline justify-center w-full" href="{{ path('app_logout') }}">
+           Se déconnecter
           </a>
          </div>
         </div>
@@ -3584,3 +3595,4 @@
      <!-- End of Container -->
     </header>
     <!-- End of Header -->
+
