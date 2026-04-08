@@ -76,6 +76,21 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 24, nullable: true)]
     private ?string $bankRib = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $returnReception = 'En Agence';
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $returnAgency = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $returnPhone = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $returnCity = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $returnNeighborhood = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -315,6 +330,66 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setBankRib(?string $bankRib): static
     {
         $this->bankRib = $bankRib;
+
+        return $this;
+    }
+
+    public function getReturnReception(): ?string
+    {
+        return $this->returnReception;
+    }
+
+    public function setReturnReception(?string $returnReception): static
+    {
+        $this->returnReception = $returnReception;
+
+        return $this;
+    }
+
+    public function getReturnAgency(): ?string
+    {
+        return $this->returnAgency;
+    }
+
+    public function setReturnAgency(?string $returnAgency): static
+    {
+        $this->returnAgency = $returnAgency;
+
+        return $this;
+    }
+
+    public function getReturnPhone(): ?string
+    {
+        return $this->returnPhone;
+    }
+
+    public function setReturnPhone(?string $returnPhone): static
+    {
+        $this->returnPhone = $returnPhone;
+
+        return $this;
+    }
+
+    public function getReturnCity(): ?string
+    {
+        return $this->returnCity;
+    }
+
+    public function setReturnCity(?string $returnCity): static
+    {
+        $this->returnCity = $returnCity;
+
+        return $this;
+    }
+
+    public function getReturnNeighborhood(): ?string
+    {
+        return $this->returnNeighborhood;
+    }
+
+    public function setReturnNeighborhood(?string $returnNeighborhood): static
+    {
+        $this->returnNeighborhood = $returnNeighborhood;
 
         return $this;
     }

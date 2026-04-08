@@ -206,6 +206,28 @@ class ProfileController extends AbstractController
                 }
                 $user->setBankRib($rib !== '' ? $rib : null);
                 break;
+            case 'return_reception':
+                $user->setReturnReception($value !== '' ? $value : null);
+                if ($value === 'En Agence') {
+                    $user->setReturnPhone(null);
+                    $user->setReturnCity(null);
+                    $user->setReturnNeighborhood(null);
+                } elseif ($value === 'En ramassage') {
+                    $user->setReturnAgency(null);
+                }
+                break;
+            case 'return_agency':
+                $user->setReturnAgency($value !== '' ? $value : null);
+                break;
+            case 'return_phone':
+                $user->setReturnPhone($value !== '' ? $value : null);
+                break;
+            case 'return_city':
+                $user->setReturnCity($value !== '' ? $value : null);
+                break;
+            case 'return_neighborhood':
+                $user->setReturnNeighborhood($value !== '' ? $value : null);
+                break;
             case 'email':
                 if ($value !== '' && $value !== $user->getEmail()) {
                     $existingUser = $entityManager->getRepository(User::class)->findOneBy(['email' => $value]);

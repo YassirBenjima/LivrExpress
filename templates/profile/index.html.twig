@@ -75,11 +75,11 @@
                             <div class="kt-card-header">
                                 <h3 class="kt-card-title">Informations Personnelles</h3>
                             </div>
-                            <div class="kt-card-table pb-3 profile-personal-info-table" style="overflow: visible;">
+                            <div class="kt-card-table pb-3" style="overflow: visible;">
                                 <table class="kt-table align-middle text-sm text-muted-foreground">
                                     <tr>
-                                        <td class="py-2 min-w-28 text-secondary-foreground font-normal">Photo</td>
-                                        <td class="py-2 text-secondary-foreground font-normal min-w-60 text-sm">Image JPEG, PNG 150x150px</td>
+                                        <td class="py-2 min-w-36 text-secondary-foreground font-normal">Photo</td>
+                                        <td class="py-2 text-secondary-foreground font-normal text-sm">Image JPEG, PNG 150x150px</td>
                                         <td class="py-2 text-center">
                                             <form action="{{ path('app_profile_avatar_update') }}" class="flex justify-center items-center" enctype="multipart/form-data" method="post">
                                                 <input name="_token" type="hidden" value="{{ csrf_token('profile_avatar') }}"/>
@@ -115,7 +115,7 @@
                                             <form action="{{ path('app_profile_field_update') }}" id="profile-full-name-form" method="post">
                                                 <input name="_token" type="hidden" value="{{ csrf_token('profile_field') }}"/>
                                                 <input name="field" type="hidden" value="full_name"/>
-                                                <input class="kt-input h-8 text-sm" maxlength="255" name="value" required type="text" value="{{ app.user ? app.user.fullName : '' }}"/>
+                                                <input class="kt-input h-8 text-sm" maxlength="255" name="value" required type="text" value="{{ app.user ? app.user.fullName : '' }}" data-db-value="{{ app.user.fullName ?? '' }}"/>
                                             </form>
                                         </td>
                                         <td class="py-2 text-center">
@@ -130,7 +130,7 @@
                                             <form action="{{ path('app_profile_field_update') }}" id="profile-personal-phone-form" method="post">
                                                 <input name="_token" type="hidden" value="{{ csrf_token('profile_field') }}"/>
                                                 <input name="field" type="hidden" value="personal_phone"/>
-                                                <input class="kt-input h-8 text-sm" maxlength="255" name="value" required type="text" value="{{ app.user ? app.user.businessPhone : '' }}"/>
+                                                <input class="kt-input h-8 text-sm" maxlength="255" name="value" required type="text" value="{{ app.user ? app.user.businessPhone : '' }}" data-db-value="{{ app.user.businessPhone ?? '' }}"/>
                                             </form>
                                         </td>
                                         <td class="py-2 text-center">
@@ -145,7 +145,7 @@
                                             <form action="{{ path('app_profile_field_update') }}" id="profile-email-form" method="post">
                                                 <input name="_token" type="hidden" value="{{ csrf_token('profile_field') }}"/>
                                                 <input name="field" type="hidden" value="email"/>
-                                                <input class="kt-input h-8 text-sm" maxlength="180" name="value" required type="email" value="{{ app.user ? app.user.email : '' }}"/>
+                                                <input class="kt-input h-8 text-sm" maxlength="180" name="value" required type="email" value="{{ app.user ? app.user.email : '' }}" data-db-value="{{ app.user.email ?? '' }}"/>
                                             </form>
                                         </td>
                                         <td class="py-2 text-center">
@@ -160,7 +160,7 @@
                                             <form action="{{ path('app_profile_field_update') }}" id="profile-city-form" method="post">
                                                 <input name="_token" type="hidden" value="{{ csrf_token('profile_field') }}"/>
                                                 <input name="field" type="hidden" value="city"/>
-                                                <select class="kt-select" name="value" required data-kt-select="true" data-kt-select-dropdown-parent="body" data-kt-select-enable-search="true" data-kt-select-placeholder="Choisir une ville" data-kt-select-search-placeholder="Rechercher une ville...">
+                                                <select class="kt-select" name="value" required data-kt-select="true" data-kt-select-dropdown-parent="body" data-kt-select-enable-search="true" data-kt-select-placeholder="Choisir une ville" data-kt-select-search-placeholder="Rechercher une ville..." data-db-value="{{ app.user.city ?? '' }}">
                                                     <option value="" disabled {{ not (app.user and app.user.city) ? 'selected' : '' }}>Choisir une ville</option>
                                                     {% for city in cities %}
                                                         <option value="{{ city.name }}" {{ app.user and app.user.city == city.name ? 'selected' : '' }}>
@@ -182,7 +182,7 @@
                                             <form action="{{ path('app_profile_field_update') }}" id="profile-address-form" method="post">
                                                 <input name="_token" type="hidden" value="{{ csrf_token('profile_field') }}"/>
                                                 <input name="field" type="hidden" value="address"/>
-                                                <input class="kt-input h-8 text-sm" maxlength="255" name="value" placeholder="Aucune adresse definie" type="text" value="{{ app.user and app.user.address ? app.user.address : '' }}"/>
+                                                <input class="kt-input h-8 text-sm" maxlength="255" name="value" placeholder="Aucune adresse definie" type="text" value="{{ app.user and app.user.address ? app.user.address : '' }}" data-db-value="{{ app.user.address ?? '' }}"/>
                                             </form>
                                         </td>
                                         <td class="py-2 text-center">
@@ -207,7 +207,7 @@
                                             <form action="{{ path('app_profile_field_update') }}" id="profile-label-message-form" method="post">
                                                 <input name="_token" type="hidden" value="{{ csrf_token('profile_field') }}"/>
                                                 <input name="field" type="hidden" value="label_message"/>
-                                                <input class="kt-input h-8 text-sm" maxlength="255" name="value" placeholder="Ajouter un message" type="text" value="{{ app.user and app.user.labelMessage ? app.user.labelMessage : '' }}"/>
+                                                <input class="kt-input h-8 text-sm" maxlength="255" name="value" placeholder="Ajouter un message" type="text" value="{{ app.user and app.user.labelMessage ? app.user.labelMessage : '' }}" data-db-value="{{ app.user.labelMessage ?? '' }}"/>
                                             </form>
                                         </td>
                                         <td class="py-2 text-center">
@@ -222,7 +222,7 @@
                                             <form action="{{ path('app_profile_field_update') }}" id="profile-package-option-form" method="post">
                                                 <input name="_token" type="hidden" value="{{ csrf_token('profile_field') }}"/>
                                                 <input name="field" type="hidden" value="package_option"/>
-                                                <select class="kt-select" name="value" required data-kt-select="true" data-kt-select-dropdown-parent="body" data-kt-select-enable-search="true" data-kt-select-placeholder="Choisir une option colis" data-kt-select-search-placeholder="Rechercher une option...">
+                                                <select class="kt-select" name="value" required data-kt-select="true" data-kt-select-dropdown-parent="body" data-kt-select-enable-search="true" data-kt-select-placeholder="Choisir une option colis" data-kt-select-search-placeholder="Rechercher une option..." data-db-value="{{ app.user.packageOption ?? '' }}">
                                                     <option value="Ne pas ouvrir le colis" {{ not (app.user and app.user.packageOption) or app.user.packageOption == 'Ne pas ouvrir le colis' ? 'selected' : '' }}>Ne pas ouvrir le colis</option>
                                                     <option value="Ouvrir le colis" {{ app.user and app.user.packageOption == 'Ouvrir le colis' ? 'selected' : '' }}>Ouvrir le colis</option>
                                                 </select>
@@ -237,6 +237,7 @@
                                 </table>
                             </div>
                         </div>
+
                         <div class="kt-card min-w-full">
                             <div class="kt-card-header">
                                 <h3 class="kt-card-title">Mot de passe</h3>
@@ -286,7 +287,7 @@
                                             <form action="{{ path('app_profile_field_update') }}" id="profile-business-name-form" method="post">
                                                 <input name="_token" type="hidden" value="{{ csrf_token('profile_field') }}"/>
                                                 <input name="field" type="hidden" value="business_name"/>
-                                                <input class="kt-input h-8 text-sm" maxlength="255" name="value" required type="text" value="{{ app.user ? app.user.businessName : '' }}"/>
+                                                <input class="kt-input h-8 text-sm" maxlength="255" name="value" required type="text" value="{{ app.user ? app.user.businessName : '' }}" data-db-value="{{ app.user.businessName ?? '' }}"/>
                                             </form>
                                         </td>
                                         <td class="py-2 text-center">
@@ -301,7 +302,7 @@
                                             <form action="{{ path('app_profile_field_update') }}" id="profile-business-phone-form" method="post">
                                                 <input name="_token" type="hidden" value="{{ csrf_token('profile_field') }}"/>
                                                 <input name="field" type="hidden" value="business_phone"/>
-                                                <input class="kt-input h-8 text-sm" maxlength="255" name="value" required type="text" value="{{ app.user ? app.user.businessPhone : '' }}"/>
+                                                <input class="kt-input h-8 text-sm" maxlength="255" name="value" required type="text" value="{{ app.user ? app.user.businessPhone : '' }}" data-db-value="{{ app.user.businessPhone ?? '' }}"/>
                                             </form>
                                         </td>
                                         <td class="py-2 text-center">
@@ -316,7 +317,7 @@
                                             <form action="{{ path('app_profile_field_update') }}" id="profile-client-type-form" method="post">
                                                 <input name="_token" type="hidden" value="{{ csrf_token('profile_field') }}"/>
                                                 <input name="field" type="hidden" value="client_type"/>
-                                                <select class="kt-select" name="value" required data-kt-select="true" data-kt-select-dropdown-parent="body" data-kt-select-enable-search="true" data-kt-select-placeholder="Choisir un type de client" data-kt-select-search-placeholder="Rechercher un type...">
+                                                <select class="kt-select" name="value" required data-kt-select="true" data-kt-select-dropdown-parent="body" data-kt-select-enable-search="true" data-kt-select-placeholder="Choisir un type de client" data-kt-select-search-placeholder="Rechercher un type..." data-db-value="{{ app.user.clientType ?? '' }}">
                                                     <option value="" disabled {{ not (app.user and app.user.clientType) ? 'selected' : '' }}>Choisir un type</option>
                                                     <option value="E-commerce" {{ app.user and app.user.clientType == 'E-commerce' ? 'selected' : '' }}>E-commerce</option>
                                                     <option value="Auto Entrepreneur" {{ app.user and app.user.clientType == 'Auto Entrepreneur' ? 'selected' : '' }}>Auto Entrepreneur</option>
@@ -338,7 +339,7 @@
                                             <form action="{{ path('app_profile_field_update') }}" id="profile-ice-form" method="post">
                                                 <input name="_token" type="hidden" value="{{ csrf_token('profile_field') }}"/>
                                                 <input name="field" type="hidden" value="ice"/>
-                                                <input class="kt-input h-8 text-sm" maxlength="255" name="value" placeholder="Non renseigné" type="text" value="{{ app.user and app.user.ice ? app.user.ice : '' }}"/>
+                                                <input class="kt-input h-8 text-sm" maxlength="255" name="value" placeholder="Non renseigné" type="text" value="{{ app.user and app.user.ice ? app.user.ice : '' }}" data-db-value="{{ app.user.ice ?? '' }}"/>
                                             </form>
                                         </td>
                                         <td class="py-2 text-center">
@@ -353,7 +354,7 @@
                                             <form action="{{ path('app_profile_field_update') }}" id="profile-rc-form" method="post">
                                                 <input name="_token" type="hidden" value="{{ csrf_token('profile_field') }}"/>
                                                 <input name="field" type="hidden" value="rc"/>
-                                                <input class="kt-input h-8 text-sm" maxlength="255" name="value" placeholder="Non renseigné" type="text" value="{{ app.user and app.user.rc ? app.user.rc : '' }}"/>
+                                                <input class="kt-input h-8 text-sm" maxlength="255" name="value" placeholder="Non renseigné" type="text" value="{{ app.user and app.user.rc ? app.user.rc : '' }}" data-db-value="{{ app.user.rc ?? '' }}"/>
                                             </form>
                                         </td>
                                         <td class="py-2 text-center">
@@ -368,7 +369,7 @@
                                             <form action="{{ path('app_profile_field_update') }}" id="profile-website-form" method="post">
                                                 <input name="_token" type="hidden" value="{{ csrf_token('profile_field') }}"/>
                                                 <input name="field" type="hidden" value="website"/>
-                                                <input class="kt-input h-8 text-sm" maxlength="255" name="value" placeholder="Non renseigné" type="text" value="{{ app.user and app.user.website ? app.user.website : '' }}"/>
+                                                <input class="kt-input h-8 text-sm" maxlength="255" name="value" placeholder="Non renseigné" type="text" value="{{ app.user and app.user.website ? app.user.website : '' }}" data-db-value="{{ app.user.website ?? '' }}"/>
                                             </form>
                                         </td>
                                         <td class="py-2 text-center">
@@ -392,7 +393,7 @@
                                             <form action="{{ path('app_profile_field_update') }}" id="profile-bank-name-form" method="post">
                                                 <input name="_token" type="hidden" value="{{ csrf_token('profile_field') }}"/>
                                                 <input name="field" type="hidden" value="bank_name"/>
-                                                <select class="kt-select" name="value" required data-kt-select="true" data-kt-select-dropdown-parent="body" data-kt-select-enable-search="true" data-kt-select-placeholder="Choisir une banque" data-kt-select-search-placeholder="Rechercher une banque...">
+                                                <select class="kt-select" name="value" required data-kt-select="true" data-kt-select-dropdown-parent="body" data-kt-select-enable-search="true" data-kt-select-placeholder="Choisir une banque" data-kt-select-search-placeholder="Rechercher une banque..." data-db-value="{{ app.user.bankName ?? '' }}">
                                                     <option value="" disabled {{ not (app.user and app.user.bankName) ? 'selected' : '' }}>Choisir une banque</option>
                                                     {% for bank in moroccanBanks %}
                                                         <option value="{{ bank }}" {{ app.user and app.user.bankName == bank ? 'selected' : '' }}>
@@ -414,11 +415,115 @@
                                             <form action="{{ path('app_profile_field_update') }}" id="profile-bank-rib-form" method="post">
                                                 <input name="_token" type="hidden" value="{{ csrf_token('profile_field') }}"/>
                                                 <input name="field" type="hidden" value="bank_rib"/>
-                                                <input class="kt-input h-8 text-sm bank-rib-input" inputmode="numeric" maxlength="32" minlength="24" name="value" pattern="\d{24}" required type="text" value="{{ app.user and app.user.bankRib ? app.user.bankRib : '' }}"/>
+                                                <input class="kt-input h-8 text-sm bank-rib-input" inputmode="numeric" maxlength="32" minlength="24" name="value" pattern="\d{24}" required type="text" value="{{ app.user and app.user.bankRib ? app.user.bankRib : '' }}" data-db-value="{{ app.user.bankRib ?? '' }}"/>
                                             </form>
                                         </td>
                                         <td class="py-2 text-center">
                                             <button class="kt-btn kt-btn-icon kt-btn-sm kt-btn-ghost kt-btn-primary" form="profile-bank-rib-form" type="submit">
+                                                <i class="ki-filled ki-check"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Return Address Card -->
+                        <div class="kt-card min-w-full">
+                            <div class="kt-card-header">
+                                <h3 class="kt-card-title">Adresse de retour</h3>
+                            </div>
+                            <div class="kt-card-table pb-3" style="overflow: visible;">
+                                <table class="kt-table align-middle text-sm text-muted-foreground">
+                                    <tr>
+                                        <td class="py-2 min-w-36 text-secondary-foreground font-normal">Réception colis retournés</td>
+                                        <td class="py-2 text-foreground font-normal text-sm">
+                                            <form action="{{ path('app_profile_field_update') }}" id="profile-return-reception-form" method="post">
+                                                <input name="_token" type="hidden" value="{{ csrf_token('profile_field') }}"/>
+                                                <input name="field" type="hidden" value="return_reception"/>
+                                                <select class="kt-select" name="value" id="return-reception-select" required data-kt-select="true" data-kt-select-dropdown-parent="body" data-kt-select-minimum-results-for-search="Infinity" data-kt-select-placeholder="Choisir un mode de réception" data-db-value="{{ app.user.returnReception ?? 'En Agence' }}">
+                                                    <option value="En ramassage" {{ app.user.returnReception is defined and app.user.returnReception == 'En ramassage' ? 'selected' : '' }}>En ramassage</option>
+                                                    <option value="En Agence" {{ (app.user.returnReception is defined and app.user.returnReception == 'En Agence') or not (app.user.returnReception is defined and app.user.returnReception) ? 'selected' : '' }}>En Agence</option>
+                                                </select>
+                                            </form>
+                                        </td>
+                                        <td class="py-2 text-center">
+                                            <button class="kt-btn kt-btn-icon kt-btn-sm kt-btn-ghost kt-btn-primary" form="profile-return-reception-form" type="submit">
+                                                <i class="ki-filled ki-check"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    
+                                    <!-- Agency Dropdown (Visible only if En Agence) -->
+                                    <tr id="agency-row" style="display: none;">
+                                        <td class="py-2 text-secondary-foreground font-normal">Agence</td>
+                                        <td class="py-2 text-foreground font-normal text-sm">
+                                            <form action="{{ path('app_profile_field_update') }}" id="profile-return-agency-form" method="post">
+                                                <input name="_token" type="hidden" value="{{ csrf_token('profile_field') }}"/>
+                                                <input name="field" type="hidden" value="return_agency"/>
+                                                <select class="kt-select" name="value" required data-kt-select="true" data-kt-select-dropdown-parent="body" data-kt-select-enable-search="true" data-kt-select-placeholder="Toutes nos agences" data-db-value="{{ app.user.returnAgency ?? '' }}">
+                                                    <option value="" disabled {{ not (app.user.returnAgency is defined and app.user.returnAgency) ? 'selected' : '' }}>Toutes nos agences</option>
+                                                    <option value="Agence Principale" {{ app.user.returnAgency is defined and app.user.returnAgency == 'Agence Principale' ? 'selected' : '' }}>Agence Principale</option>
+                                                    <option value="Agence Secondaire" {{ app.user.returnAgency is defined and app.user.returnAgency == 'Agence Secondaire' ? 'selected' : '' }}>Agence Secondaire</option>
+                                                </select>
+                                            </form>
+                                        </td>
+                                        <td class="py-2 text-center">
+                                            <button class="kt-btn kt-btn-icon kt-btn-sm kt-btn-ghost kt-btn-primary" form="profile-return-agency-form" type="submit">
+                                                <i class="ki-filled ki-check"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Ramassage Fields (Visible only if En ramassage) -->
+                                    <tr class="ramassage-row">
+                                        <td class="py-2 text-secondary-foreground font-normal">Téléphone</td>
+                                        <td class="py-2 text-foreground font-normal text-sm">
+                                            <form action="{{ path('app_profile_field_update') }}" id="profile-return-phone-form" method="post">
+                                                <input name="_token" type="hidden" value="{{ csrf_token('profile_field') }}"/>
+                                                <input name="field" type="hidden" value="return_phone"/>
+                                                <input class="kt-input h-8 text-sm" maxlength="255" name="value" placeholder="{{ app.user.businessPhone ?? 'Notre téléphone' }}" type="text" value="{{ app.user.returnPhone is defined and app.user.returnPhone ? app.user.returnPhone : (app.user.businessPhone ?? '') }}" data-db-value="{{ app.user.returnPhone ?? '' }}"/>
+                                            </form>
+                                        </td>
+                                        <td class="py-2 text-center">
+                                            <button class="kt-btn kt-btn-icon kt-btn-sm kt-btn-ghost kt-btn-primary" form="profile-return-phone-form" type="submit">
+                                                <i class="ki-filled ki-check"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr class="ramassage-row">
+                                        <td class="py-2 text-secondary-foreground font-normal">Ville</td>
+                                        <td class="py-2 text-foreground font-normal text-sm">
+                                            <form action="{{ path('app_profile_field_update') }}" id="profile-return-city-form" method="post">
+                                                <input name="_token" type="hidden" value="{{ csrf_token('profile_field') }}"/>
+                                                <input name="field" type="hidden" value="return_city"/>
+                                                <select class="kt-select" name="value" required data-kt-select="true" data-kt-select-dropdown-parent="body" data-kt-select-enable-search="true" data-kt-select-placeholder="Choisir une ville" data-kt-select-search-placeholder="Rechercher une ville..." data-db-value="{{ app.user.returnCity ?? '' }}">
+                                                    <option value="" disabled {{ not (app.user.returnCity is defined and app.user.returnCity) and not app.user.city ? 'selected' : '' }}>Choisir une ville</option>
+                                                    {% for city in cities %}
+                                                        <option value="{{ city.name }}" {{ (app.user.returnCity is defined and app.user.returnCity == city.name) or (not (app.user.returnCity is defined and app.user.returnCity) and app.user and app.user.city == city.name) ? 'selected' : '' }}>
+                                                            {{ city.name }}
+                                                        </option>
+                                                    {% endfor %}
+                                                </select>
+                                            </form>
+                                        </td>
+                                        <td class="py-2 text-center">
+                                            <button class="kt-btn kt-btn-icon kt-btn-sm kt-btn-ghost kt-btn-primary" form="profile-return-city-form" type="submit">
+                                                <i class="ki-filled ki-check"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr class="ramassage-row">
+                                        <td class="py-2 text-secondary-foreground font-normal">Quartier</td>
+                                        <td class="py-2 text-foreground font-normal text-sm">
+                                            <form action="{{ path('app_profile_field_update') }}" id="profile-return-neighborhood-form" method="post">
+                                                <input name="_token" type="hidden" value="{{ csrf_token('profile_field') }}"/>
+                                                <input name="field" type="hidden" value="return_neighborhood"/>
+                                                <input class="kt-input h-8 text-sm" maxlength="255" name="value" placeholder="Quartier" type="text" value="{{ app.user.returnNeighborhood is defined and app.user.returnNeighborhood ? app.user.returnNeighborhood : '' }}" data-db-value="{{ app.user.returnNeighborhood ?? '' }}"/>
+                                            </form>
+                                        </td>
+                                        <td class="py-2 text-center">
+                                            <button class="kt-btn kt-btn-icon kt-btn-sm kt-btn-ghost kt-btn-primary" form="profile-return-neighborhood-form" type="submit">
                                                 <i class="ki-filled ki-check"></i>
                                             </button>
                                         </td>
@@ -438,165 +543,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const cancelButton = document.getElementById('profile-cancel-btn');
-            const saveButton = document.getElementById('profile-save-btn');
-            const trackedFields = Array.from(document.querySelectorAll('form'))
-                .filter(function (form) {
-                    return form.id !== 'profile-password-form';
-                })
-                .reduce(function (fields, form) {
-                    return fields.concat(Array.from(form.querySelectorAll(
-                        'input:not([type="hidden"]):not([type="file"]), select, textarea'
-                    )));
-                }, []);
-
-            const initialValues = new Map(
-                trackedFields.map(function (field) {
-                    return [field, field.value];
-                })
-            );
-
-            function hasUnsavedChanges() {
-                return trackedFields.some(function (field) {
-                    return field.value !== initialValues.get(field);
-                });
-            }
-
-            function syncCancelButtonState() {
-                if (!cancelButton) return;
-                cancelButton.disabled = !hasUnsavedChanges();
-            }
-
-            function syncSaveButtonState() {
-                if (!saveButton) return;
-                saveButton.disabled = !hasUnsavedChanges();
-            }
-
-            trackedFields.forEach(function (field) {
-                field.addEventListener('input', syncCancelButtonState);
-                field.addEventListener('change', syncCancelButtonState);
-                field.addEventListener('input', syncSaveButtonState);
-                field.addEventListener('change', syncSaveButtonState);
-            });
-
-            const bankRibInputs = Array.from(document.querySelectorAll('.bank-rib-input'));
-            bankRibInputs.forEach(function (input) {
-                function sanitizeRibValue() {
-                    const digitsOnly = input.value.replace(/\D+/g, '').slice(0, 24);
-                    input.value = digitsOnly;
-                }
-
-                input.addEventListener('input', sanitizeRibValue);
-                input.addEventListener('paste', function () {
-                    setTimeout(sanitizeRibValue, 0);
-                });
-            });
-
-            if (cancelButton) {
-                cancelButton.addEventListener('click', function () {
-                    if (!hasUnsavedChanges()) return;
-
-                    trackedFields.forEach(function (field) {
-                        field.value = initialValues.get(field) ?? '';
-                        field.dispatchEvent(new Event('change', { bubbles: true }));
-                    });
-
-                    syncCancelButtonState();
-                    syncSaveButtonState();
-                });
-            }
-
-            syncCancelButtonState();
-            syncSaveButtonState();
-
-            const passwordForm = document.getElementById('profile-password-form');
-            const passwordSaveButton = document.getElementById('profile-password-save-btn');
-            if (passwordForm && passwordSaveButton) {
-                const passwordFields = ['current_password', 'new_password', 'confirm_password']
-                    .map(function (name) {
-                        return passwordForm.querySelector('[name="' + name + '"]');
-                    })
-                    .filter(Boolean);
-
-                function syncPasswordSaveState() {
-                    const allFilled = passwordFields.length === 3 && passwordFields.every(function (field) {
-                        return field.value.trim() !== '';
-                    });
-                    passwordSaveButton.disabled = !allFilled;
-                }
-
-                passwordFields.forEach(function (field) {
-                    field.addEventListener('input', syncPasswordSaveState);
-                    field.addEventListener('change', syncPasswordSaveState);
-                });
-
-                syncPasswordSaveState();
-            }
-
-            if (saveButton) {
-                saveButton.addEventListener('click', async function () {
-                    if (!hasUnsavedChanges()) return;
-
-                    saveButton.disabled = true;
-
-                    const modifiedForms = [];
-                    trackedFields.forEach(function (field) {
-                        if (field.value === initialValues.get(field)) return;
-                        const form = field.closest('form');
-                        if (form && !modifiedForms.includes(form)) {
-                            modifiedForms.push(form);
-                        }
-                    });
-
-                    try {
-                        for (const form of modifiedForms) {
-                            const formData = new FormData(form);
-                            const response = await fetch(form.action, {
-                                method: 'POST',
-                                body: formData,
-                                headers: {
-                                    'X-Requested-With': 'XMLHttpRequest'
-                                }
-                            });
-
-                            if (!response.ok) {
-                                throw new Error('Save failed');
-                            }
-                        }
-
-                        window.location.reload();
-                    } catch (e) {
-                        syncSaveButtonState();
-                    }
-                });
-            }
-
-            const avatarForm = document.querySelector('form[action$="{{ path('app_profile_avatar_update') }}"]');
-            if (!avatarForm) return;
-
-            const avatarInput = avatarForm.querySelector('input[name="avatar"]');
-            const removeInput = avatarForm.querySelector('input[name="avatar_remove"]');
-            const removeButton = avatarForm.querySelector('[data-kt-image-input-remove="true"]');
-
-            if (avatarInput) {
-                avatarInput.addEventListener('change', function () {
-                    if (avatarInput.files && avatarInput.files.length > 0) {
-                        if (removeInput) removeInput.value = '0';
-                        avatarForm.submit();
-                    }
-                });
-            }
-
-            if (removeButton && removeInput) {
-                removeButton.addEventListener('click', function () {
-                    removeInput.value = '1';
-                    setTimeout(function () {
-                        avatarForm.submit();
-                    }, 0);
-                });
-            }
-        });
-    </script>
+    <script src="{{ asset('assets/js/profile.js') }}"></script>
 {% endblock %}
