@@ -19,6 +19,11 @@ final class Version20260408090332 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
+        if ($schema->hasTable('user') && $schema->getTable('user')->hasColumn('return_reception')) {
+            // Database already contains these fields, skip duplicate ALTER.
+            return;
+        }
+
         $this->addSql(
             "ALTER TABLE user
                 ADD return_reception VARCHAR(255) DEFAULT NULL,

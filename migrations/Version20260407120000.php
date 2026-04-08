@@ -16,11 +16,15 @@ final class Version20260407120000 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        $this->addSql('ALTER TABLE `user` ADD address VARCHAR(255) DEFAULT NULL');
+        if (!$schema->getTable('user')->hasColumn('address')) {
+            $this->addSql('ALTER TABLE `user` ADD address VARCHAR(255) DEFAULT NULL');
+        }
     }
 
     public function down(Schema $schema): void
     {
-        $this->addSql('ALTER TABLE `user` DROP address');
+        if ($schema->getTable('user')->hasColumn('address')) {
+            $this->addSql('ALTER TABLE `user` DROP address');
+        }
     }
 }

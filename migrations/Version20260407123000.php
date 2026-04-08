@@ -16,11 +16,35 @@ final class Version20260407123000 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        $this->addSql('ALTER TABLE `user` ADD client_type VARCHAR(255) DEFAULT NULL, ADD ice VARCHAR(255) DEFAULT NULL, ADD website VARCHAR(255) DEFAULT NULL, ADD rc VARCHAR(255) DEFAULT NULL');
+        $user = $schema->getTable('user');
+        if (!$user->hasColumn('client_type')) {
+            $this->addSql('ALTER TABLE `user` ADD client_type VARCHAR(255) DEFAULT NULL');
+        }
+        if (!$user->hasColumn('ice')) {
+            $this->addSql('ALTER TABLE `user` ADD ice VARCHAR(255) DEFAULT NULL');
+        }
+        if (!$user->hasColumn('website')) {
+            $this->addSql('ALTER TABLE `user` ADD website VARCHAR(255) DEFAULT NULL');
+        }
+        if (!$user->hasColumn('rc')) {
+            $this->addSql('ALTER TABLE `user` ADD rc VARCHAR(255) DEFAULT NULL');
+        }
     }
 
     public function down(Schema $schema): void
     {
-        $this->addSql('ALTER TABLE `user` DROP client_type, DROP ice, DROP website, DROP rc');
+        $user = $schema->getTable('user');
+        if ($user->hasColumn('client_type')) {
+            $this->addSql('ALTER TABLE `user` DROP client_type');
+        }
+        if ($user->hasColumn('ice')) {
+            $this->addSql('ALTER TABLE `user` DROP ice');
+        }
+        if ($user->hasColumn('website')) {
+            $this->addSql('ALTER TABLE `user` DROP website');
+        }
+        if ($user->hasColumn('rc')) {
+            $this->addSql('ALTER TABLE `user` DROP rc');
+        }
     }
 }

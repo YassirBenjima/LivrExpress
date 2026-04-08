@@ -1,0 +1,16 @@
+{% extends 'base_dashboard.html.twig' %}
+
+{% block title %}Colis pour ramassage - LivrExpress{% endblock %}
+
+{% block body %}
+    <main class="grow pt-5" id="content" role="content">
+        <div class="kt-container-fixed">
+            <h1 class="text-xl font-medium leading-none text-mono pb-6">Colis pour ramassage</h1>
+            <div class="kt-card">
+                <div class="kt-card-content p-6">
+                    <p class="text-sm text-secondary-foreground">Total colis: {{ colis_list|length }}</p>
+                </div>
+            </div>
+        </div>
+    </main>
+{% endblock %}

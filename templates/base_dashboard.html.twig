@@ -3,6 +3,7 @@
 <head>
     <title>{% block title %}LivrExpress - Dashboard{% endblock %}</title>
     {% include 'partials/_dashboard_head.html.twig' %}
+    <link href="{{ asset('dashboard-custom.css?v=1') }}" rel="stylesheet"/>
     {% block stylesheets %}{% endblock %}
 </head>
 <body class="antialiased flex h-full text-base text-foreground bg-background demo1 kt-sidebar-fixed kt-header-fixed">
@@ -34,11 +35,11 @@
     </script>
     <!-- End of Theme Mode -->
     <!-- Main -->
-    <div class="flex grow" id="page">
+    <div class="gap-2" id="page">
         {% include 'partials/_dashboard_sidebar.html.twig' %}
         
         <!-- Wrapper -->
-        <div class="kt-wrapper flex grow flex-col" id="wrapper">
+        <div class="kt-wrapper flex grow flex-col ms-2" id="wrapper">
             {% include 'partials/_dashboard_header.html.twig' %}
             
             <!-- Content -->
@@ -46,7 +47,7 @@
             <!-- End of Content -->
             
             {% include 'partials/_dashboard_footer.html.twig' %}
-        </div>
+        </div>  
         <!-- End of Wrapper -->
     </div>
     <!-- End of Main -->

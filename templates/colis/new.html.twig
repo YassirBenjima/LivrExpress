@@ -1,0 +1,444 @@
+{% extends 'base_dashboard.html.twig' %}
+
+{% block title %}Ajouter un colis - LivrExpress{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link href="{{ asset('colis-new.css?v=3') }}" rel="stylesheet"/>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('colis-new.js?v=5') }}"></script>
+{% endblock %}
+
+{% block body %}
+<!-- Content -->
+<main class="grow pt-5 profile-content-shift" id="content" role="content">
+    <!-- Container -->
+    <div class="kt-container-fixed">        
+        <div class="flex flex-wrap items-center lg:items-end justify-between gap-5 pb-7.5">
+            <div class="flex flex-col justify-center gap-2">
+                <h1 class="text-xl font-medium leading-none text-mono">
+                    Ajouter un colis
+                </h1>
+                <div class="flex items-center gap-2 text-sm font-normal text-secondary-foreground">
+                    Ajoutez tous vos colis en un clic
+                </div>
+            </div>
+            <div class="flex flex-col items-end gap-2.5">
+                <div class="flex items-center gap-2.5">
+                <a class="kt-btn kt-btn-outline" href="{{ path('app_colis_index') }}">
+                    Retour a la liste
+                </a>
+                <button class="kt-btn kt-btn-primary" form="colis-new-form" id="colis-save-btn" type="submit">
+                    Ajouter le colis
+                </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- End of Container -->
+    <!-- Container -->
+    <div class="kt-container-fixed">
+        <!-- begin: grid -->
+        <div class="grid grid-cols-1 gap-5 lg:gap-7.5">
+            <div class="col-span-1">
+                <div class="kt-card">
+                    <div class="kt-card-content px-10 py-7.5 lg:pe-12.5">
+                        <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 md:gap-10 p-2.5">
+                            <div class="flex flex-col items-start gap-3 w-full lg:max-w-[60%]">
+                                <h2 class="text-xl font-semibold text-mono">
+                                    Informations
+                                </h2>
+                                <div class="grid grid-cols-1 gap-2 w-full">
+                                    <div class="flex items-start gap-1.5 lg:pe-7.5">
+                                        <i class="ki-filled ki-check-circle text-base text-green-500"></i>
+                                        <span class="text-sm text-mono">
+                                            Pour assurer une livraison rapide de vos commandes, veuillez inclure l'adresse complète ou le quartier du client à l'intérieur du colis.
+                                        </span>
+                                    </div>
+                                    <div class="flex items-start gap-1.5 lg:pe-7.5">
+                                        <i class="ki-filled ki-check-circle text-base text-green-500"></i>
+                                        <span class="text-sm text-mono">
+                                            Pour les colis d'un poids supérieur à 5 kg ou d'une longueur excédant 30 cm, des frais supplémentaires seront ajoutés.
+                                        </span>
+                                    </div>
+                                    <div class="flex items-start gap-1.5 lg:pe-7.5">
+                                        <i class="ki-filled ki-check-circle text-base text-green-500"></i>
+                                        <span class="text-sm text-mono">
+                                            Pour les colis stockés, vous pouvez ajouter des cartons, sachets ou papier bulle pour une meilleure protection. 
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="shrink-0 self-center lg:self-auto flex items-center justify-center">
+                                <i class="colis-info-icon ki-filled ki-information dark:hidden text-primary" style="font-size: 80px; line-height: 1;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-span-1">
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-5 lg:gap-7.5"> 
+                    <div class="col-span-1">
+                    <!-- Delivery Preferences Card -->
+                    <div class="kt-card min-w-full">
+                        <div class="kt-card-header">
+                            <h3 class="kt-card-title">Informations du colis</h3>
+                        </div>
+                        <div class="kt-card-table pb-3" style="overflow: visible;">
+                            {{ form_start(form, { attr: { id: 'colis-new-form' } }) }}
+                            {{ form_errors(form) }}
+                            <table class="kt-table align-middle text-sm text-muted-foreground">
+                                <tr>
+                                    <td class="py-2 min-w-36 text-secondary-foreground font-normal">{{ form_label(form.orderNumber) }}</td>
+                                    <td class="py-2 text-foreground font-normal text-sm">
+                                        {{ form_widget(form.orderNumber, { attr: {
+                                            class: 'kt-input h-8 text-sm',
+                                            placeholder: '№ Commande',
+                                            inputmode: 'numeric',
+                                            pattern: '[0-9]*',
+                                            oninput: "this.value=this.value.replace(/[^0-9]/g,'')"
+                                        } }) }}
+                                    </td>
+                                    <td class="py-2 text-center">
+                                        {{ form_errors(form.orderNumber) }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2 text-secondary-foreground font-normal">{{ form_label(form.type) }}</td>
+                                    <td class="py-2 text-foreground font-normal text-sm">
+                                        <select
+                                            class="kt-select"
+                                            name="{{ form.type.vars.full_name }}"
+                                            required
+                                            data-kt-select="true"
+                                            data-kt-select-dropdown-parent="body"
+                                            data-kt-select-enable-search="true"
+                                            data-kt-select-placeholder="Choisir un type"
+                                            data-kt-select-search-placeholder="Rechercher un type..."
+                                        >
+                                            <option value="" disabled {{ form.type.vars.value ? '' : 'selected' }}>Choisir un type</option>
+                                            {% for choice in form.type.vars.choices %}
+                                                <option value="{{ choice.value }}" {{ form.type.vars.value == choice.value ? 'selected' : '' }}>
+                                                    {{ choice.label }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </td>
+                                    <td class="py-2 text-center">
+                                        {{ form_errors(form.type) }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2 text-secondary-foreground font-normal">{{ form_label(form.recipient) }}</td>
+                                    <td class="py-2 text-foreground font-normal text-sm">
+                                        {{ form_widget(form.recipient, { attr: { class: 'kt-input h-8 text-sm', placeholder: 'Destinataire' } }) }}
+                                    </td>
+                                    <td class="py-2 text-center">
+                                        {{ form_errors(form.recipient) }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2 text-secondary-foreground font-normal">{{ form_label(form.city) }}</td>
+                                    <td class="py-2 text-foreground font-normal text-sm">
+                                        <select
+                                            class="kt-select"
+                                            name="{{ form.city.vars.full_name }}"
+                                            required
+                                            data-kt-select="true"
+                                            data-kt-select-dropdown-parent="body"
+                                            data-kt-select-enable-search="true"
+                                            data-kt-select-placeholder="Choisir une ville"
+                                            data-kt-select-search-placeholder="Rechercher une ville..."
+                                        >
+                                            <option value="" disabled {{ form.city.vars.value ? '' : 'selected' }}>Choisir une ville</option>
+                                            {% for choice in form.city.vars.choices %}
+                                                <option value="{{ choice.value }}" {{ form.city.vars.value == choice.value ? 'selected' : '' }}>
+                                                    {{ choice.label }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </td>
+                                    <td class="py-2 text-center">
+                                        {{ form_errors(form.city) }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2 text-secondary-foreground font-normal">{{ form_label(form.address) }}</td>
+                                    <td class="py-2 text-foreground font-normal text-sm">
+                                        {{ form_widget(form.address, { attr: { class: 'kt-input h-8 text-sm', placeholder: 'Adresse' } }) }}
+                                    </td>
+                                    <td class="py-2 text-center">
+                                        {{ form_errors(form.address) }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2 text-secondary-foreground font-normal">{{ form_label(form.price) }}</td>
+                                    <td class="py-2 text-foreground font-normal text-sm">
+                                        {{ form_widget(form.price, { attr: { class: 'kt-input h-8 text-sm', placeholder: 'Prix' } }) }}
+                                    </td>
+                                    <td class="py-2 text-center">
+                                        {{ form_errors(form.price) }}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    </div>
+
+                    <div class="col-span-1">
+                    <div class="kt-card min-w-full">
+                        <div class="kt-card-header">
+                            <h3 class="kt-card-title">Informations complementaires</h3>
+                            <div class="flex items-center gap-2">
+                                <label class="kt-label">
+                                    Colis a remplacer
+                                    <input class="kt-switch kt-switch-sm" id="replace-package-toggle" type="checkbox" value="1">
+                                </label>
+                            </div>
+                        </div>
+                        <div class="kt-card-table pb-3" style="overflow: visible;">
+                            <table class="kt-table align-middle text-sm text-muted-foreground colis-form-table">
+                                <tr id="old-colis-row">
+                                    <td class="py-2 text-secondary-foreground font-normal">Colis a remplacer</td>
+                                    <td class="py-2 text-foreground font-normal text-sm" id="old-colis-cell">
+                                        <select
+                                            class="kt-select"
+                                            id="old-colis-select"
+                                            name="{{ form.oldColis.vars.full_name }}"
+                                            disabled
+                                            data-kt-select="true"
+                                            data-kt-select-dropdown-parent="body"
+                                            data-kt-select-enable-search="true"
+                                            data-kt-select-placeholder="Choisir un ancien colis"
+                                            data-kt-select-search-placeholder="Rechercher un colis..."
+                                        >
+                                            <option value="" disabled selected>Choisir un ancien colis</option>
+                                            {% for choice in form.oldColis.vars.choices %}
+                                                <option value="{{ choice.value }}">{{ choice.label }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </td>
+                                    <td class="py-2 text-center">
+                                        {{ form_errors(form.oldColis) }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2 text-secondary-foreground font-normal">{{ form_label(form.packageOption) }}</td>
+                                    <td class="py-2 text-foreground font-normal text-sm">
+                                        {{ form_widget(form.packageOption, { attr: {
+                                            class: 'kt-select',
+                                            'data-kt-select': 'true',
+                                            'data-kt-select-dropdown-parent': 'body',
+                                            'data-kt-select-enable-search': 'true',
+                                            'data-kt-select-placeholder': 'Choisir une option colis',
+                                            'data-kt-select-search-placeholder': 'Rechercher une option...'
+                                        } }) }}
+                                    </td>
+                                    <td class="py-2 text-center">
+                                        {{ form_errors(form.packageOption) }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2 text-secondary-foreground font-normal">{{ form_label(form.phoneNumber) }}</td>
+                                    <td class="py-2 text-foreground font-normal text-sm">
+                                        {{ form_widget(form.phoneNumber, { attr: { class: 'kt-input h-8 text-sm', placeholder: 'Numero de telephone' } }) }}
+                                    </td>
+                                    <td class="py-2 text-center">
+                                        {{ form_errors(form.phoneNumber) }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2 text-secondary-foreground font-normal">{{ form_label(form.neighborhood) }}</td>
+                                    <td class="py-2 text-foreground font-normal text-sm">
+                                        {{ form_widget(form.neighborhood, { attr: { class: 'kt-input h-8 text-sm', placeholder: 'Quartier' } }) }}
+                                    </td>
+                                    <td class="py-2 text-center">
+                                        {{ form_errors(form.neighborhood) }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2 text-secondary-foreground font-normal">{{ form_label(form.productNature) }}</td>
+                                    <td class="py-2 text-foreground font-normal text-sm">
+                                        {{ form_widget(form.productNature, { attr: { class: 'kt-input h-8 text-sm', placeholder: 'Nature de produit' } }) }}
+                                    </td>
+                                    <td class="py-2 text-center">
+                                        {{ form_errors(form.productNature) }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2 text-secondary-foreground font-normal">{{ form_label(form.comment) }}</td>
+                                    <td class="py-2 text-foreground font-normal text-sm">
+                                        {{ form_widget(form.comment, { attr: { class: 'kt-input h-8 text-sm', placeholder: 'Commentaire' } }) }}
+                                    </td>
+                                    <td class="py-2 text-center">
+                                        {{ form_errors(form.comment) }}
+                                    </td>
+                                </tr>
+                            </table>
+                            {% do form.type.setRendered() %}
+                            {% do form.city.setRendered() %}
+                            {% do form.packageOption.setRendered() %}
+                            {% do form.replacePackage.setRendered() %}
+                            {% do form.oldColis.setRendered() %}
+                            {{ form_end(form) }}
+                        </div>
+                    </div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="col-span-1">
+                <div class="kt-card">
+                    <div class="kt-card-header">
+                        <h3 class="kt-card-title">
+                            Options de colis
+                        </h3>
+                        <div class="kt-menu" data-kt-menu="true">
+                            <div class="kt-menu-item kt-menu-item-dropdown" data-kt-menu-item-offset="0, 10px" data-kt-menu-item-placement="bottom-end" data-kt-menu-item-placement-rtl="bottom-start" data-kt-menu-item-toggle="dropdown" data-kt-menu-item-trigger="click">
+                                <button class="kt-menu-toggle kt-btn kt-btn-icon kt-btn-ghost">
+                                    <i class="ki-filled ki-information-2"></i>
+                                </button>
+                                <div class="kt-menu-dropdown kt-menu-default w-full max-w-[175px]" data-kt-menu-dismiss="true">
+                                    <div class="kt-menu-item">
+                                        <a class="kt-menu-link" href="/metronic/tailwind/demo1/account/home/settings-plain">
+                                            <span class="kt-menu-icon">
+                                                <i class="ki-filled ki-add-files"></i>
+                                            </span>
+                                            <span class="kt-menu-title">
+                                                Add
+                                            </span>
+                                        </a>
+                                    </div>
+                                    <div class="kt-menu-item">
+                                        <a class="kt-menu-link" href="/metronic/tailwind/demo1/account/members/import-members">
+                                            <span class="kt-menu-icon">
+                                                <i class="ki-filled ki-file-down"></i>
+                                            </span>
+                                            <span class="kt-menu-title">
+                                                Import
+                                            </span>
+                                        </a>
+                                    </div>
+                                    <div class="kt-menu-item kt-menu-item-dropdown" data-kt-menu-item-offset="-15px, 0" data-kt-menu-item-placement="right-start" data-kt-menu-item-toggle="dropdown" data-kt-menu-item-trigger="click|lg:hover">
+                                        <div class="kt-menu-link">
+                                            <span class="kt-menu-icon">
+                                                <i class="ki-filled ki-file-up"></i>
+                                            </span>
+                                            <span class="kt-menu-title">
+                                                Export
+                                            </span>
+                                            <span class="kt-menu-arrow">
+                                                <i class="ki-filled ki-right text-xs rtl:transform rtl:rotate-180"></i>
+                                            </span>
+                                        </div>
+                                        <div class="kt-menu-dropdown kt-menu-default w-full max-w-[125px]">
+                                            <div class="kt-menu-item">
+                                                <a class="kt-menu-link" href="/metronic/tailwind/demo1/account/home/settings-sidebar">
+                                                    <span class="kt-menu-title">
+                                                        PDF
+                                                    </span>
+                                                </a>
+                                            </div>
+                                            <div class="kt-menu-item">
+                                                <a class="kt-menu-link" href="/metronic/tailwind/demo1/account/home/settings-sidebar">
+                                                    <span class="kt-menu-title">
+                                                        CVS
+                                                    </span>
+                                                </a>
+                                            </div>
+                                            <div class="kt-menu-item">
+                                                <a class="kt-menu-link" href="/metronic/tailwind/demo1/account/home/settings-sidebar">
+                                                    <span class="kt-menu-title">
+                                                        Excel
+                                                    </span>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="kt-menu-item">
+                                        <a class="kt-menu-link" href="/metronic/tailwind/demo1/account/security/privacy-settings">
+                                            <span class="kt-menu-icon">
+                                                <i class="ki-filled ki-setting-3"></i>
+                                            </span>
+                                            <span class="kt-menu-title">
+                                                Settings
+                                            </span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="kt-card-content pb-7.5 px-4 sm:px-6">
+                        <div class="grid gap-2.5">
+                            <div class="flex items-start sm:items-center justify-between group border border-border rounded-xl gap-3 px-3.5 py-2.5">
+                                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                                    <div class="relative size-[50px] shrink-0">
+                                        <svg class="w-full h-full stroke-primary/10 fill-primary/5" fill="none" height="48" viewBox="0 0 44 48" width="44" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M16 2.4641C19.7128 0.320509 24.2872 0.320508 28 2.4641L37.6506 8.0359C41.3634 10.1795 43.6506 14.141 43.6506 18.4282V29.5718C43.6506 33.859 41.3634 37.8205 37.6506 39.9641L28 45.5359C24.2872 47.6795 19.7128 47.6795 16 45.5359L6.34937 39.9641C2.63655 37.8205 0.349365 33.859 0.349365 29.5718V18.4282C0.349365 14.141 2.63655 10.1795 6.34937 8.0359L16 2.4641Z" fill=""></path>
+                                            <path d="M16.25 2.89711C19.8081 0.842838 24.1919 0.842837 27.75 2.89711L37.4006 8.46891C40.9587 10.5232 43.1506 14.3196 43.1506 18.4282V29.5718C43.1506 33.6804 40.9587 37.4768 37.4006 39.5311L27.75 45.1029C24.1919 47.1572 19.8081 47.1572 16.25 45.1029L6.59937 39.5311C3.04125 37.4768 0.849365 33.6803 0.849365 29.5718V18.4282C0.849365 14.3196 3.04125 10.5232 6.59937 8.46891L16.25 2.89711Z" stroke=""></path>
+                                        </svg>
+                                        <div class="absolute leading-none start-2/4 top-2/4 -translate-y-2/4 -translate-x-2/4 rtl:translate-x-2/4">
+                                            <i class="ki-filled ki-shield-cross text-xl ps-px text-primary"></i>
+                                        </div>
+                                    </div>
+                                    <span class="text-mono text-sm font-medium break-words leading-5">
+                                        Colis fragile
+                                    </span>
+                                </div>
+                                <button class="kt-btn kt-btn-sm kt-btn-icon kt-btn-primary kt-btn-outline rounded-full shrink-0 self-start sm:self-center" type="button" data-badge-check="true" aria-pressed="false">
+                                    <i class="ki-filled ki-check"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-start sm:items-center justify-between group border border-border rounded-xl gap-3 px-3.5 py-2.5">
+                                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                                    <div class="relative size-[50px] shrink-0">
+                                        <svg class="w-full h-full stroke-yellow-200 dark:stroke-yellow-950 fill-yellow-100 dark:fill-yellow-950/30" fill="none" height="48" viewBox="0 0 44 48" width="44" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M16 2.4641C19.7128 0.320509 24.2872 0.320508 28 2.4641L37.6506 8.0359C41.3634 10.1795 43.6506 14.141 43.6506 18.4282V29.5718C43.6506 33.859 41.3634 37.8205 37.6506 39.9641L28 45.5359C24.2872 47.6795 19.7128 47.6795 16 45.5359L6.34937 39.9641C2.63655 37.8205 0.349365 33.859 0.349365 29.5718V18.4282C0.349365 14.141 2.63655 10.1795 6.34937 8.0359L16 2.4641Z" fill=""></path>
+                                            <path d="M16.25 2.89711C19.8081 0.842838 24.1919 0.842837 27.75 2.89711L37.4006 8.46891C40.9587 10.5232 43.1506 14.3196 43.1506 18.4282V29.5718C43.1506 33.6804 40.9587 37.4768 37.4006 39.5311L27.75 45.1029C24.1919 47.1572 19.8081 47.1572 16.25 45.1029L6.59937 39.5311C3.04125 37.4768 0.849365 33.6803 0.849365 29.5718V18.4282C0.849365 14.3196 3.04125 10.5232 6.59937 8.46891L16.25 2.89711Z" stroke=""></path>
+                                        </svg>
+                                        <div class="absolute leading-none start-2/4 top-2/4 -translate-y-2/4 -translate-x-2/4 rtl:translate-x-2/4">
+                                            <i class="ki-filled ki-shield-tick text-xl ps-px text-yellow-600"></i>
+                                        </div>
+                                    </div>
+                                    <span class="text-mono text-sm font-medium break-words leading-5">
+                                        Je souhaite definir tous mes colis comme fragiles
+                                    </span>
+                                </div>
+                                <button class="kt-btn kt-btn-sm kt-btn-icon kt-btn-primary kt-btn-outline rounded-full shrink-0 self-start sm:self-center" type="button" data-badge-check="true" aria-pressed="false">
+                                    <i class="ki-filled ki-check"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-start sm:items-center justify-between group border border-border rounded-xl gap-3 px-3.5 py-2.5">
+                                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                                    <div class="relative size-[50px] shrink-0">
+                                        <svg class="w-full h-full stroke-green-200 dark:stroke-green-950 fill-green-100 dark:fill-green-950/30" fill="none" height="48" viewBox="0 0 44 48" width="44" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M16 2.4641C19.7128 0.320509 24.2872 0.320508 28 2.4641L37.6506 8.0359C41.3634 10.1795 43.6506 14.141 43.6506 18.4282V29.5718C43.6506 33.859 41.3634 37.8205 37.6506 39.9641L28 45.5359C24.2872 47.6795 19.7128 47.6795 16 45.5359L6.34937 39.9641C2.63655 37.8205 0.349365 33.859 0.349365 29.5718V18.4282C0.349365 14.141 2.63655 10.1795 6.34937 8.0359L16 2.4641Z" fill=""></path>
+                                            <path d="M16.25 2.89711C19.8081 0.842838 24.1919 0.842837 27.75 2.89711L37.4006 8.46891C40.9587 10.5232 43.1506 14.3196 43.1506 18.4282V29.5718C43.1506 33.6804 40.9587 37.4768 37.4006 39.5311L27.75 45.1029C24.1919 47.1572 19.8081 47.1572 16.25 45.1029L6.59937 39.5311C3.04125 37.4768 0.849365 33.6803 0.849365 29.5718V18.4282C0.849365 14.3196 3.04125 10.5232 6.59937 8.46891L16.25 2.89711Z" stroke=""></path>
+                                        </svg>
+                                        <div class="absolute leading-none start-2/4 top-2/4 -translate-y-2/4 -translate-x-2/4 rtl:translate-x-2/4">
+                                            <i class="ki-filled ki-archive text-xl ps-px text-green-600"></i>
+                                        </div>
+                                    </div>
+                                    <span class="text-mono text-sm font-medium break-words leading-5">
+                                        Je veux utiliser un carton
+                                    </span>
+                                </div>
+                                <button class="kt-btn kt-btn-sm kt-btn-icon kt-btn-primary kt-btn-outline rounded-full shrink-0 self-start sm:self-center" type="button" data-badge-check="true" aria-pressed="false">
+                                    <i class="ki-filled ki-check"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- end: grid -->
+    </div>
+    <!-- End of Container -->
+</main>
+<!-- End of Content -->
+{% endblock %}
