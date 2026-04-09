@@ -33,7 +33,6 @@ class ColisType extends AbstractType
             ])
             ->add('recipient', TextType::class, [
                 'label' => 'Destinataire',
-                'mapped' => false,
                 'required' => false,
             ])
             ->add('city', ChoiceType::class, [
@@ -55,7 +54,6 @@ class ColisType extends AbstractType
                     'Ouvrir le colis' => 'Ouvrir le colis',
                 ],
                 'data' => $options['default_package_option'],
-                'mapped' => false,
                 'required' => true,
             ])
             ->add('phoneNumber', TextType::class, [
@@ -73,7 +71,6 @@ class ColisType extends AbstractType
             ])
             ->add('replacePackage', CheckboxType::class, [
                 'label' => "Colis a remplacer (Le colis sera remplace avec l'ancien a la livraison.)",
-                'mapped' => false,
                 'required' => false,
             ])
             ->add('oldColis', ChoiceType::class, [
@@ -83,7 +80,17 @@ class ColisType extends AbstractType
                 'placeholder_attr' => [
                     'disabled' => 'disabled',
                 ],
-                'mapped' => false,
+                'required' => false,
+                'property_path' => 'oldOrderNumber',
+            ])
+            ->add('cartonOption', ChoiceType::class, [
+                'label' => 'Option carton',
+                'choices' => [
+                    'None' => 'none',
+                    'Petit carton (S)' => 's',
+                    'Carton moyen (M)' => 'm',
+                    'Grand carton (L)' => 'l',
+                ],
                 'required' => false,
             ]);
     }

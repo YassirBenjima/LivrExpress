@@ -17,6 +17,7 @@
 <main class="grow pt-5 profile-content-shift" id="content" role="content">
     <!-- Container -->
     <div class="kt-container-fixed">        
+        {% include 'partials/_flash_messages.html.twig' with { flash_inline: true } %}
         <div class="flex flex-wrap items-center lg:items-end justify-between gap-5 pb-7.5">
             <div class="flex flex-col justify-center gap-2">
                 <h1 class="text-xl font-medium leading-none text-mono">
@@ -195,8 +196,12 @@
                             <div class="flex items-center gap-2">
                                 <label class="kt-label">
                                     Colis a remplacer
-                                    <input class="kt-switch kt-switch-sm" id="replace-package-toggle" type="checkbox" value="1">
+                                    {{ form_widget(form.replacePackage, { attr: { class: 'kt-switch kt-switch-sm', id: 'replace-package-toggle' } }) }}
                                 </label>
+                            </div>
+                            <div class="hidden">
+                                {{ form_widget(form.cartonOption, { attr: { id: 'carton-option-input', class: 'hidden' } }) }}
+                                {{ form_widget(form.oldColis, { attr: { id: 'old-colis-input-hidden', class: 'hidden' } }) }}
                             </div>
                         </div>
                         <div class="kt-card-table pb-3" style="overflow: visible;">
@@ -207,8 +212,9 @@
                                         <select
                                             class="kt-select"
                                             id="old-colis-select"
-                                            name="{{ form.oldColis.vars.full_name }}"
+                                            name="old-colis-ui"
                                             disabled
+                                            data-old-colis-ui="true"
                                             data-kt-select="true"
                                             data-kt-select-dropdown-parent="body"
                                             data-kt-select-enable-search="true"
@@ -281,8 +287,6 @@
                             {% do form.type.setRendered() %}
                             {% do form.city.setRendered() %}
                             {% do form.packageOption.setRendered() %}
-                            {% do form.replacePackage.setRendered() %}
-                            {% do form.oldColis.setRendered() %}
                             {{ form_end(form) }}
                         </div>
                     </div>
@@ -427,7 +431,77 @@
                                         Je veux utiliser un carton
                                     </span>
                                 </div>
-                                <button class="kt-btn kt-btn-sm kt-btn-icon kt-btn-primary kt-btn-outline rounded-full shrink-0 self-start sm:self-center" type="button" data-badge-check="true" aria-pressed="false">
+                                <button class="kt-btn kt-btn-sm kt-btn-icon kt-btn-primary kt-btn-outline rounded-full shrink-0 self-start sm:self-center" type="button" data-badge-check="true" data-carton-toggle="true" aria-pressed="false">
+                                    <i class="ki-filled ki-check"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-span-1" id="carton-options-card" style="display: none;">
+                <div class="kt-card">
+                    <div class="kt-card-header">
+                        <h3 class="kt-card-title">Options carton</h3>
+                    </div>
+                    <div class="kt-card-content pb-7.5 px-4 sm:px-6">
+                        <div class="grid gap-2.5">
+                            <div class="flex items-start sm:items-center justify-between group border border-border rounded-xl gap-3 px-3.5 py-2.5">
+                                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                                    <div class="size-[50px] shrink-0 rounded-xl bg-muted/60 flex items-center justify-center">
+                                        <i class="ki-filled ki-information-2 text-xl text-muted-foreground"></i>
+                                    </div>
+                                    <div class="flex flex-col min-w-0">
+                                        <span class="text-mono text-sm font-medium">None</span>
+                                        <span class="text-xs text-secondary-foreground">Je n'ai pas besoin de cartons</span>
+                                    </div>
+                                </div>
+                                <button class="kt-btn kt-btn-sm kt-btn-icon kt-btn-primary kt-btn-outline rounded-full shrink-0 self-start sm:self-center" type="button" data-badge-check="true" data-carton-choice="none" aria-pressed="false">
+                                    <i class="ki-filled ki-check"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-start sm:items-center justify-between group border border-border rounded-xl gap-3 px-3.5 py-2.5">
+                                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                                    <div class="size-[50px] shrink-0 rounded-xl bg-muted/60 flex items-center justify-center">
+                                        <i class="ki-filled ki-information-2 text-xl text-muted-foreground"></i>
+                                    </div>
+                                    <div class="flex flex-col min-w-0">
+                                        <span class="text-mono text-sm font-medium">Petit carton (S)</span>
+                                        <span class="text-xs text-secondary-foreground">Avec frais: 1.5 DH</span>
+                                        <span class="text-xs text-secondary-foreground">Carton box de petite taille.</span>
+                                    </div>
+                                </div>
+                                <button class="kt-btn kt-btn-sm kt-btn-icon kt-btn-primary kt-btn-outline rounded-full shrink-0 self-start sm:self-center" type="button" data-badge-check="true" data-carton-choice="s" aria-pressed="false">
+                                    <i class="ki-filled ki-check"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-start sm:items-center justify-between group border border-border rounded-xl gap-3 px-3.5 py-2.5">
+                                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                                    <div class="size-[50px] shrink-0 rounded-xl bg-muted/60 flex items-center justify-center">
+                                        <i class="ki-filled ki-information-2 text-xl text-muted-foreground"></i>
+                                    </div>
+                                    <div class="flex flex-col min-w-0">
+                                        <span class="text-mono text-sm font-medium">Carton moyen (M)</span>
+                                        <span class="text-xs text-secondary-foreground">Avec frais: 2.5 DH</span>
+                                        <span class="text-xs text-secondary-foreground">Carton box de moyenne taille.</span>
+                                    </div>
+                                </div>
+                                <button class="kt-btn kt-btn-sm kt-btn-icon kt-btn-primary kt-btn-outline rounded-full shrink-0 self-start sm:self-center" type="button" data-badge-check="true" data-carton-choice="m" aria-pressed="false">
+                                    <i class="ki-filled ki-check"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-start sm:items-center justify-between group border border-border rounded-xl gap-3 px-3.5 py-2.5">
+                                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                                    <div class="size-[50px] shrink-0 rounded-xl bg-muted/60 flex items-center justify-center">
+                                        <i class="ki-filled ki-information-2 text-xl text-muted-foreground"></i>
+                                    </div>
+                                    <div class="flex flex-col min-w-0">
+                                        <span class="text-mono text-sm font-medium">Grand carton (L)</span>
+                                        <span class="text-xs text-secondary-foreground">Avec frais: 3 DH</span>
+                                        <span class="text-xs text-secondary-foreground">Carton box de grande taille.</span>
+                                    </div>
+                                </div>
+                                <button class="kt-btn kt-btn-sm kt-btn-icon kt-btn-primary kt-btn-outline rounded-full shrink-0 self-start sm:self-center" type="button" data-badge-check="true" data-carton-choice="l" aria-pressed="false">
                                     <i class="ki-filled ki-check"></i>
                                 </button>
                             </div>

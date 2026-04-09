@@ -19,7 +19,7 @@
      <div class="flex flex-wrap items-center lg:items-end justify-between gap-5 pb-7.5">
       <div class="flex flex-col justify-center gap-2">
        <h1 class="text-xl font-medium leading-none text-mono">
-        Liste des Colis
+        Liste des colis
        </h1>
        <div class="flex items-center flex-wrap gap-1.5 font-medium">
         <span class="text-base text-secondary-foreground">
@@ -38,7 +38,7 @@
       </div>
       <div class="flex items-center gap-2.5">
        <a class="kt-btn kt-btn-outline" href="#">
-        Import CSV
+        Importer un fichier CSV
        </a>
        <a class="kt-btn kt-btn-primary" href="{{ path('app_colis_new') }}">
         Ajouter un colis
@@ -55,44 +55,45 @@
         <h3 class="kt-card-title text-sm">
          Affichage de {{ totalColis }} colis
         </h3>
-        <div class="flex flex-wrap gap-2 lg:gap-5">
+        <form class="flex flex-wrap gap-2 lg:gap-5" method="get" action="{{ path('app_colis_index') }}">
          <div class="flex">
           <label class="kt-input">
            <i class="ki-filled ki-magnifier">
            </i>
-           <input data-kt-datatable-search="#team_crew_table" placeholder="Search users" type="text" value=""/>
+           <input data-kt-datatable-search="#team_crew_table" name="q" placeholder="Rechercher un colis" type="text" value="{{ search_query|default('') }}"/>
           </label>
          </div>
          <div class="flex flex-wrap gap-2.5">
-          <select class="kt-select w-36" data-kt-select="true" data-kt-select-placeholder="Select a status">
-           <option value="1">
-            Active
+          <select class="kt-select w-36" data-kt-select="true" data-kt-select-placeholder="État" name="etat">
+           <option value="">
+            Tous les états
            </option>
-           <option value="2">
-            Disabled
-           </option>
-           <option value="2">
-            Pending
-           </option>
+           {% for etat in etats_possibles %}
+            <option value="{{ etat }}" {{ selected_etat|default('') == etat ? 'selected' : '' }}>
+             {{ etat }}
+            </option>
+           {% endfor %}
           </select>
-          <select class="kt-select w-36" data-kt-select="true" data-kt-select-placeholder="Select a sort">
-           <option value="1">
-            Latest
+          <select class="kt-select w-36" data-kt-select="true" data-kt-select-placeholder="Statut" name="statut">
+           <option value="">
+            Tous les statuts
            </option>
-           <option value="2">
-            Older
-           </option>
-           <option value="3">
-            Oldest
-           </option>
+           {% for statut in statuts_possibles %}
+            <option value="{{ statut }}" {{ selected_statut|default('') == statut ? 'selected' : '' }}>
+             {{ statut }}
+            </option>
+           {% endfor %}
           </select>
-          <button class="kt-btn kt-btn-outline kt-btn-primary">
+          <button class="kt-btn kt-btn-outline kt-btn-primary" type="submit">
            <i class="ki-filled ki-setting-4">
            </i>
-           Filters
+           Filtrer
           </button>
+          <a class="kt-btn kt-btn-outline" href="{{ path('app_colis_index') }}">
+           Réinitialiser
+          </a>
          </div>
-        </div>
+        </form>
        </div>
        <div class="kt-card-content">
         <div data-kt-datatable="true" data-kt-datatable-state-save="false" id="team_crew_table">
@@ -103,7 +104,7 @@
              <th class="min-w-[150px]">
               <span class="kt-table-col">
                <span class="kt-table-col-label">
-                Code Suivi
+                Code de suivi
                </span>
                <span class="kt-table-col-sort">
                </span>
@@ -130,7 +131,7 @@
              <th class="min-w-[150px]">
               <span class="kt-table-col">
                <span class="kt-table-col-label">
-                Destinataire
+                Adresse de livraison
                </span>
                <span class="kt-table-col-sort">
                </span>
@@ -199,6 +200,15 @@
                </span>
               </span>
              </th>
+             <th class="min-w-[180px]">
+              <span class="kt-table-col">
+               <span class="kt-table-col-label">
+                Commentaires
+               </span>
+               <span class="kt-table-col-sort">
+               </span>
+              </span>
+             </th>
              <th class="w-[90px] text-center">
               <span class="kt-table-col">
                <span class="kt-table-col-label">
@@ -206,24 +216,47 @@
                </span>
               </span>
              </th>
-             <th class="min-w-[180px]">
-              <span class="kt-table-col">
-               <span class="kt-table-col-label">
-                Comments
-               </span>
-               <span class="kt-table-col-sort">
-               </span>
-              </span>
-             </th>
-             <th class="w-[60px]">
-             </th>
             </tr>
            </thead>
            <tbody>
             {% for colis in colis_list %}
              <tr>
+              {% set etatLabel = (colis.etat ?: 'Créé')
+                |replace({
+                  'Cree': 'Créé',
+                  'En preparation': 'En préparation',
+                  'Expedie': 'Expédié',
+                  'Livre': 'Livré',
+                  'Retour': 'Retourné'
+                }) %}
+              {% set etatBadgeClass = 'kt-badge-warning' %}
+              {% if etatLabel == 'Retourné' %}
+               {% set etatBadgeClass = 'kt-badge-destructive' %}
+              {% elseif etatLabel == 'En préparation' %}
+               {% set etatBadgeClass = 'kt-badge-info' %}
+              {% elseif etatLabel == 'Expédié' %}
+               {% set etatBadgeClass = 'kt-badge-primary' %}
+              {% elseif etatLabel == 'Livré' %}
+               {% set etatBadgeClass = 'kt-badge-success' %}
+              {% endif %}
+              {% set statutLabel = (colis.statut ?: 'En attente')
+                |replace({
+                  'Reporte': 'Reporté',
+                  'Echec': 'Échec',
+                  'Termine': 'Terminé'
+                }) %}
+              {% set statutBadgeClass = 'kt-badge-warning' %}
+              {% if statutLabel == 'Terminé' %}
+               {% set statutBadgeClass = 'kt-badge-success' %}
+              {% elseif statutLabel == 'En cours' %}
+               {% set statutBadgeClass = 'kt-badge-primary' %}
+              {% elseif statutLabel == 'Reporté' %}
+               {% set statutBadgeClass = 'kt-badge-info' %}
+              {% elseif statutLabel == 'Échec' %}
+               {% set statutBadgeClass = 'kt-badge-destructive' %}
+              {% endif %}
               <td class="text-foreground font-medium">
-               {{ colis.orderNumber }}
+               {{ colis.trackingCode }}
               </td>
               <td class="text-foreground font-normal">
                {{ colis.productNature }}
@@ -235,14 +268,18 @@
                {{ colis.address }}
               </td>
               <td>
-               <span class="kt-badge kt-badge-outline rounded-[30px]">
+               <span class="kt-badge {{ etatBadgeClass }} kt-badge-outline rounded-[30px]">
                 <span class="kt-badge-dot size-1.5">
                 </span>
-                Cree
+                {{ etatLabel }}
                </span>
               </td>
-              <td class="text-foreground font-normal">
-               En attente
+              <td>
+               <span class="kt-badge {{ statutBadgeClass }} kt-badge-outline rounded-[30px]">
+                <span class="kt-badge-dot size-1.5">
+                </span>
+                {{ statutLabel }}
+               </span>
               </td>
               <td class="text-foreground font-normal">
                -
@@ -258,6 +295,9 @@
               </td>
               <td class="text-foreground font-normal">
                Non
+              </td>
+              <td class="text-foreground font-normal">
+               {{ colis.comment ?: '-' }}
               </td>
               <td class="text-center">
                <div class="kt-menu flex-inline" data-kt-menu="true">
@@ -306,9 +346,6 @@
                 </div>
                </div>
               </td>
-              <td class="text-foreground font-normal">
-               {{ colis.comment ?: '-' }}
-              </td>
              </tr>
             {% endfor %}
            </tbody>
@@ -316,10 +353,10 @@
          </div>
          <div class="kt-card-footer justify-center md:justify-between flex-col md:flex-row gap-5 text-secondary-foreground text-sm font-medium">
           <div class="flex items-center gap-2 order-2 md:order-1">
-           Show
+           Afficher
            <select class="kt-select w-16" data-kt-datatable-size="true" data-kt-select="" name="perpage">
            </select>
-           per page
+           par page
           </div>
           <div class="flex items-center gap-4 order-1 md:order-2">
            <span data-kt-datatable-info="true">
