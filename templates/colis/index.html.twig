@@ -9,6 +9,7 @@
     {% set prixNet = colis.price|replace({',': '.', ' ': '', 'DH': '', 'MAD': ''}) %}
     {% set totalMontant = totalMontant + (prixNet + 0) %}
 {% endfor %}
+{% include 'partials/_flash_messages.html.twig' %}
 <main class="grow pt-5 dashboard-content-shift" id="content" role="content">
     <!-- Container -->
     <div class="kt-container-fixed" id="contentContainer">
