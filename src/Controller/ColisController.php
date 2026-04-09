@@ -31,6 +31,11 @@ final class ColisController extends AbstractController
             $etat = self::normalizeEtat((string) ($colis->getEtat() ?? Colis::ETAT_CREE));
             $statut = self::normalizeStatut((string) ($colis->getStatut() ?? Colis::STATUT_EN_ATTENTE));
 
+            // "Liste des colis" should only display packages requested for pickup.
+            if ($statut === Colis::STATUT_EN_ATTENTE) {
+                return false;
+            }
+
             if ($selectedEtat !== '' && $etat !== $selectedEtat) {
                 return false;
             }
@@ -59,8 +64,14 @@ final class ColisController extends AbstractController
 
         return $this->render('colis/index.html.twig', [
             'colis_list' => $colisList,
-            'etats_possibles' => Colis::getEtatsPossibles(),
-            'statuts_possibles' => Colis::getStatutsPossibles(),
+            'etats_possibles' => array_values(array_filter(
+                Colis::getEtatsPossibles(),
+                static fn (string $etat): bool => $etat !== Colis::ETAT_CREE
+            )),
+            'statuts_possibles' => array_values(array_filter(
+                Colis::getStatutsPossibles(),
+                static fn (string $statut): bool => $statut !== Colis::STATUT_EN_ATTENTE
+            )),
             'search_query' => $search,
             'selected_etat' => $selectedEtat,
             'selected_statut' => $selectedStatut,
@@ -118,7 +129,7 @@ final class ColisController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $submittedData = $request->request->all((string) $form->getName());
-            $submittedCartonOption = $submittedData['cartonOption'] ?? null;
+            $submittedCartonOption = $form->get('cartonOption')->getData();
             $submittedOldColis = $submittedData['oldColis'] ?? null;
             $allowedCartonOptions = ['none', 's', 'm', 'l'];
             if (!\is_string($submittedCartonOption) || !\in_array($submittedCartonOption, $allowedCartonOptions, true)) {
@@ -149,20 +160,224 @@ final class ColisController extends AbstractController
 
             $this->addFlash('success', 'Colis ajoute avec succes.');
 
-            return $this->redirectToRoute('app_colis_index');
+            return $this->redirectToRoute('app_colis_pickup');
         }
 
         return $this->render('colis/new.html.twig', [
             'form' => $form->createView(),
+            'is_edit_mode' => false,
         ]);
     }
 
     #[Route('/pickup', name: 'app_colis_pickup', methods: ['GET'])]
-    public function pickup(ColisRepository $colisRepository): Response
+    public function pickup(Request $request, ColisRepository $colisRepository): Response
     {
+        $search = trim((string) $request->query->get('q', ''));
+        $selectedEtat = self::normalizeEtat(trim((string) $request->query->get('etat', '')));
+        $selectedStatut = self::normalizeStatut(trim((string) $request->query->get('statut', '')));
+
+        $colisList = $colisRepository->findBy([], ['id' => 'DESC']);
+        $colisList = array_values(array_filter($colisList, static function (Colis $colis) use ($search, $selectedEtat, $selectedStatut): bool {
+            $etat = self::normalizeEtat((string) ($colis->getEtat() ?? Colis::ETAT_CREE));
+            $statut = self::normalizeStatut((string) ($colis->getStatut() ?? Colis::STATUT_EN_ATTENTE));
+
+            // "Colis pour ramassage": only waiting packages.
+            if ($statut !== Colis::STATUT_EN_ATTENTE) {
+                return false;
+            }
+
+            if ($selectedEtat !== '' && $etat !== $selectedEtat) {
+                return false;
+            }
+
+            if ($selectedStatut !== '' && $statut !== $selectedStatut) {
+                return false;
+            }
+
+            if ($search === '') {
+                return true;
+            }
+
+            $haystack = mb_strtolower(implode(' ', [
+                (string) $colis->getTrackingCode(),
+                (string) $colis->getOrderNumber(),
+                (string) $colis->getProductNature(),
+                (string) $colis->getCity(),
+                (string) $colis->getAddress(),
+                (string) $colis->getRecipient(),
+                $etat,
+                $statut,
+            ]));
+
+            return str_contains($haystack, mb_strtolower($search));
+        }));
+
+        $pickupEtats = [];
+        $pickupStatuts = [];
+        foreach ($colisList as $colis) {
+            $etat = self::normalizeEtat((string) ($colis->getEtat() ?? Colis::ETAT_CREE));
+            $statut = self::normalizeStatut((string) ($colis->getStatut() ?? Colis::STATUT_EN_ATTENTE));
+            $pickupEtats[$etat] = $etat;
+            $pickupStatuts[$statut] = $statut;
+        }
+
         return $this->render('colis/pickup.html.twig', [
-            'colis_list' => $colisRepository->findBy([], ['id' => 'DESC']),
+            'colis_list' => $colisList,
+            'etats_possibles' => array_values($pickupEtats),
+            'statuts_possibles' => array_values($pickupStatuts),
+            'search_query' => $search,
+            'selected_etat' => $selectedEtat,
+            'selected_statut' => $selectedStatut,
         ]);
+    }
+
+    #[Route('/{id}/request-pickup', name: 'app_colis_request_pickup', methods: ['POST'])]
+    public function requestPickup(Request $request, Colis $colis, EntityManagerInterface $entityManager): Response
+    {
+        if (!$this->isCsrfTokenValid('request_pickup_'.$colis->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Jeton CSRF invalide.');
+
+            return $this->redirectToRoute('app_colis_pickup');
+        }
+
+        $colis->setStatut(Colis::STATUT_EN_COURS);
+        $colis->setEtat(Colis::ETAT_EN_PREPARATION);
+        $entityManager->flush();
+
+        $this->addFlash('success', 'Demande de ramassage envoyee. Le colis est passe dans la liste des colis.');
+
+        return $this->redirectToRoute('app_colis_pickup');
+    }
+
+    #[Route('/request-pickup/bulk', name: 'app_colis_request_pickup_bulk', methods: ['POST'])]
+    public function requestPickupBulk(Request $request, ColisRepository $colisRepository, EntityManagerInterface $entityManager): Response
+    {
+        if (!$this->isCsrfTokenValid('request_pickup_bulk', (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Jeton CSRF invalide.');
+
+            return $this->redirectToRoute('app_colis_pickup');
+        }
+
+        $ids = $request->request->all('colis_ids');
+        if (!\is_array($ids) || $ids === []) {
+            $this->addFlash('error', 'Aucun colis selectionne.');
+
+            return $this->redirectToRoute('app_colis_pickup');
+        }
+
+        $updated = 0;
+        foreach ($ids as $id) {
+            if (!\is_scalar($id)) {
+                continue;
+            }
+
+            $colis = $colisRepository->find((int) $id);
+            if (!$colis) {
+                continue;
+            }
+
+            if ($colis->getStatut() !== Colis::STATUT_EN_ATTENTE) {
+                continue;
+            }
+
+            $colis->setStatut(Colis::STATUT_EN_COURS);
+            $colis->setEtat(Colis::ETAT_EN_PREPARATION);
+            ++$updated;
+        }
+
+        if ($updated > 0) {
+            $entityManager->flush();
+            $this->addFlash('success', sprintf('%d colis envoye(s) en demande de ramassage.', $updated));
+        } else {
+            $this->addFlash('error', 'Aucun colis valide a traiter.');
+        }
+
+        return $this->redirectToRoute('app_colis_pickup');
+    }
+
+    #[Route('/{id}/edit', name: 'app_colis_edit', methods: ['GET', 'POST'])]
+    public function edit(Request $request, Colis $colis, EntityManagerInterface $entityManager, CityRepository $cityRepository, ColisRepository $colisRepository): Response
+    {
+        if ($colis->getStatut() !== Colis::STATUT_EN_ATTENTE) {
+            $this->addFlash('error', 'Ce colis ne peut plus etre modifie car il est deja en cours de traitement.');
+
+            return $this->redirectToRoute('app_colis_index');
+        }
+
+        $cityChoices = [];
+        foreach ($cityRepository->findBy([], ['name' => 'ASC']) as $city) {
+            $cityName = (string) $city->getName();
+            $cityChoices[$cityName] = $cityName;
+        }
+
+        $oldColisChoices = [];
+        foreach ($colisRepository->findBy([], ['id' => 'DESC']) as $oldColis) {
+            $orderNumber = (string) $oldColis->getOrderNumber();
+            $oldColisChoices[$orderNumber] = $orderNumber;
+        }
+
+        $form = $this->createForm(ColisType::class, $colis, [
+            'city_choices' => $cityChoices,
+            'old_colis_choices' => $oldColisChoices,
+            'default_package_option' => $colis->getPackageOption() ?: 'Ne pas ouvrir le colis',
+        ]);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $submittedData = $request->request->all((string) $form->getName());
+            $submittedCartonOption = $form->get('cartonOption')->getData();
+            $submittedOldColis = $submittedData['oldColis'] ?? null;
+            $allowedCartonOptions = ['none', 's', 'm', 'l'];
+            if (!\is_string($submittedCartonOption) || !\in_array($submittedCartonOption, $allowedCartonOptions, true)) {
+                $submittedCartonOption = null;
+            }
+            $colis->setCartonOption($submittedCartonOption);
+
+            if (\is_string($submittedOldColis) && $submittedOldColis !== '') {
+                $colis->setOldOrderNumber($submittedOldColis);
+            }
+
+            if (!$colis->isReplacePackage()) {
+                $colis->setOldOrderNumber(null);
+            }
+
+            if (!$colis->getCartonOption()) {
+                $colis->setCartonOption(null);
+            }
+
+            $entityManager->flush();
+            $this->addFlash('success', 'Colis modifie avec succes.');
+
+            return $this->redirectToRoute('app_colis_pickup');
+        }
+
+        return $this->render('colis/new.html.twig', [
+            'form' => $form->createView(),
+            'is_edit_mode' => true,
+        ]);
+    }
+
+    #[Route('/{id}/delete', name: 'app_colis_delete', methods: ['POST'])]
+    public function delete(Request $request, Colis $colis, EntityManagerInterface $entityManager): Response
+    {
+        if (!$this->isCsrfTokenValid('delete_colis_'.$colis->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Jeton CSRF invalide.');
+
+            return $this->redirectToRoute('app_colis_pickup');
+        }
+
+        if ($colis->getStatut() !== Colis::STATUT_EN_ATTENTE) {
+            $this->addFlash('error', 'Ce colis ne peut plus etre supprime car il est deja en cours de traitement.');
+
+            return $this->redirectToRoute('app_colis_index');
+        }
+
+        $entityManager->remove($colis);
+        $entityManager->flush();
+
+        $this->addFlash('success', 'Colis supprime avec succes.');
+
+        return $this->redirectToRoute('app_colis_pickup');
     }
 
     #[Route('/import', name: 'app_colis_import', methods: ['GET'])]

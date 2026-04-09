@@ -92,6 +92,12 @@ class ColisType extends AbstractType
                     'Grand carton (L)' => 'l',
                 ],
                 'required' => false,
+            ])
+            ->add('fragile', CheckboxType::class, [
+                'required' => false,
+            ])
+            ->add('allFragile', CheckboxType::class, [
+                'required' => false,
             ]);
     }
 

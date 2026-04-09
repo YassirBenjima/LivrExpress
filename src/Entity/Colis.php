@@ -68,6 +68,12 @@ class Colis
     #[ORM\Column(length: 20, nullable: true)]
     private ?string $cartonOption = null;
 
+    #[ORM\Column(options: ['default' => false])]
+    private bool $fragile = false;
+
+    #[ORM\Column(options: ['default' => false])]
+    private bool $allFragile = false;
+
     #[ORM\Column(length: 50, unique: true, nullable: true)]
     private ?string $trackingCode = null;
 
@@ -271,6 +277,30 @@ class Colis
     public function setCartonOption(?string $cartonOption): static
     {
         $this->cartonOption = $cartonOption;
+
+        return $this;
+    }
+
+    public function isFragile(): bool
+    {
+        return $this->fragile;
+    }
+
+    public function setFragile(bool $fragile): static
+    {
+        $this->fragile = $fragile;
+
+        return $this;
+    }
+
+    public function isAllFragile(): bool
+    {
+        return $this->allFragile;
+    }
+
+    public function setAllFragile(bool $allFragile): static
+    {
+        $this->allFragile = $allFragile;
 
         return $this;
     }

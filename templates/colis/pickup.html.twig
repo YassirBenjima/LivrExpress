@@ -1,16 +1,399 @@
 {% extends 'base_dashboard.html.twig' %}
 
-{% block title %}Colis pour ramassage - LivrExpress{% endblock %}
+{% block title %}Liste colis en attente de ramassage - LivrExpress{% endblock %}
 
 {% block body %}
-    <main class="grow pt-5" id="content" role="content">
-        <div class="kt-container-fixed">
-            <h1 class="text-xl font-medium leading-none text-mono pb-6">Colis pour ramassage</h1>
-            <div class="kt-card">
-                <div class="kt-card-content p-6">
-                    <p class="text-sm text-secondary-foreground">Total colis: {{ colis_list|length }}</p>
+{% set totalColis = colis_list|length %}
+{% set totalMontant = 0 %}
+{% for colis in colis_list %}
+    {% set prixNet = colis.price|replace({',': '.', ' ': '', 'DH': '', 'MAD': ''}) %}
+    {% set totalMontant = totalMontant + (prixNet + 0) %}
+{% endfor %}
+{% include 'partials/_flash_messages.html.twig' %}
+<main class="grow pt-5 dashboard-content-shift" id="content" role="content">
+    <!-- Container -->
+    <div class="kt-container-fixed" id="contentContainer">
+    </div>
+    <!-- End of Container -->
+    <!-- Container -->
+    <div class="kt-container-fixed">
+      {% include 'partials/_flash_messages.html.twig' with { flash_inline: true } %}
+     <div class="flex flex-wrap items-center lg:items-end justify-between gap-5 pb-7.5">
+      <div class="flex flex-col justify-center gap-2">
+       <h1 class="text-xl font-medium leading-none text-mono">
+        Liste colis en attente de ramassage
+       </h1>
+       <div class="flex items-center flex-wrap gap-1.5 font-medium">
+        <span class="text-base text-secondary-foreground">
+         Total colis:
+        </span>
+        <span class="text-base text-foreground font-medium me-2">
+         {{ totalColis }}
+        </span>
+        <span class="text-base text-secondary-foreground">
+         Montant total:
+        </span>
+        <span class="text-base text-foreground font-medium">
+         {{ totalMontant|number_format(2, ',', ' ') }} MAD
+        </span>
+       </div>
+      </div>
+      <div class="flex items-center gap-2.5">
+       <form id="bulk-request-pickup-form" method="post" action="{{ path('app_colis_request_pickup_bulk') }}" class="inline-flex items-center">
+        <input type="hidden" name="_token" value="{{ csrf_token('request_pickup_bulk') }}">
+        <div id="bulk-request-pickup-hidden-inputs"></div>
+        <button id="bulk-request-pickup-btn" class="kt-btn kt-btn-outline kt-btn-primary" type="submit" disabled>
+         Demander un ramassage
+        </button>
+       </form>
+       <a class="kt-btn kt-btn-primary" href="{{ path('app_colis_new') }}">
+        Ajouter un colis
+       </a>
+      </div>
+     </div>
+    </div>
+    <!-- End of Container -->
+    <!-- Container -->
+    <div class="kt-container-fixed">
+     <div class="grid gap-5 lg:gap-7.5">
+      <div class="kt-card kt-card-grid min-w-full">
+       <div class="kt-card-header flex-wrap gap-2">
+        <h3 class="kt-card-title text-sm">
+         Affichage de {{ totalColis }} colis
+        </h3>
+        <form class="flex flex-wrap gap-2 lg:gap-5" method="get" action="{{ path('app_colis_pickup') }}">
+         <div class="flex">
+          <label class="kt-input">
+           <i class="ki-filled ki-magnifier">
+           </i>
+           <input data-kt-datatable-search="#team_crew_table" name="q" placeholder="Rechercher un colis" type="text" value="{{ search_query|default('') }}"/>
+          </label>
+         </div>
+         <div class="flex flex-wrap gap-2.5">
+          <select class="kt-select w-36" data-kt-select="true" data-kt-select-placeholder="État" name="etat">
+           <option value="">
+            Tous les états
+           </option>
+           {% for etat in etats_possibles %}
+            <option value="{{ etat }}" {{ selected_etat|default('') == etat ? 'selected' : '' }}>
+             {{ etat }}
+            </option>
+           {% endfor %}
+          </select>
+          <select class="kt-select w-36" data-kt-select="true" data-kt-select-placeholder="Statut" name="statut">
+           <option value="">
+            Tous les statuts
+           </option>
+           {% for statut in statuts_possibles %}
+            <option value="{{ statut }}" {{ selected_statut|default('') == statut ? 'selected' : '' }}>
+             {{ statut }}
+            </option>
+           {% endfor %}
+          </select>
+          <button class="kt-btn kt-btn-outline kt-btn-primary" type="submit">
+           <i class="ki-filled ki-setting-4">
+           </i>
+           Filtrer
+          </button>
+          <a class="kt-btn kt-btn-outline" href="{{ path('app_colis_pickup') }}">
+           Réinitialiser
+          </a>
+         </div>
+        </form>
+       </div>
+       <div class="kt-card-content">
+        <div data-kt-datatable="true" data-kt-datatable-state-save="false" id="team_crew_table">
+         <div class="kt-scrollable-x-auto">
+          <table class="kt-table table-auto kt-table-border" data-kt-datatable-table="true">
+           <thead>
+            <tr>
+             <th class="w-[50px]">
+              <input class="kt-checkbox kt-checkbox-sm" data-kt-datatable-check="true" type="checkbox"/>
+             </th>
+             <th class="min-w-[150px]">
+              <span class="kt-table-col">
+               <span class="kt-table-col-label">
+                Code de suivi
+               </span>
+               <span class="kt-table-col-sort">
+               </span>
+              </span>
+             </th>
+             <th class="min-w-[180px]">
+              <span class="kt-table-col">
+               <span class="kt-table-col-label">
+                Nom du produit
+               </span>
+               <span class="kt-table-col-sort">
+               </span>
+              </span>
+             </th>
+             <th class="min-w-[150px]">
+              <span class="kt-table-col">
+               <span class="kt-table-col-label">
+                Date de création
+               </span>
+               <span class="kt-table-col-sort">
+               </span>
+              </span>
+             </th>
+             <th class="min-w-[150px]">
+              <span class="kt-table-col">
+               <span class="kt-table-col-label">
+                Adresse de livraison
+               </span>
+               <span class="kt-table-col-sort">
+               </span>
+              </span>
+             </th>
+             <th class="min-w-[120px]">
+              <span class="kt-table-col">
+               <span class="kt-table-col-label">
+                État
+               </span>
+               <span class="kt-table-col-sort">
+               </span>
+              </span>
+             </th>
+             <th class="min-w-[120px]">
+              <span class="kt-table-col">
+               <span class="kt-table-col-label">
+                Statut
+               </span>
+               <span class="kt-table-col-sort">
+               </span>
+              </span>
+             </th>
+             <th class="min-w-[120px]">
+              <span class="kt-table-col">
+               <span class="kt-table-col-label">
+                Livreur
+               </span>
+               <span class="kt-table-col-sort">
+               </span>
+              </span>
+             </th>
+             <th class="min-w-[160px]">
+              <span class="kt-table-col">
+               <span class="kt-table-col-label">
+                Date de livraison
+               </span>
+               <span class="kt-table-col-sort">
+               </span>
+              </span>
+             </th>
+             <th class="min-w-[140px]">
+              <span class="kt-table-col">
+               <span class="kt-table-col-label">
+                Ville
+               </span>
+               <span class="kt-table-col-sort">
+               </span>
+              </span>
+             </th>
+             <th class="min-w-[120px]">
+              <span class="kt-table-col">
+               <span class="kt-table-col-label">
+                Prix
+               </span>
+               <span class="kt-table-col-sort">
+               </span>
+              </span>
+             </th>
+             <th class="min-w-[140px]">
+              <span class="kt-table-col">
+               <span class="kt-table-col-label">
+                Réclamation
+               </span>
+               <span class="kt-table-col-sort">
+               </span>
+              </span>
+             </th>
+             <th class="min-w-[180px]">
+              <span class="kt-table-col">
+               <span class="kt-table-col-label">
+                Commentaires
+               </span>
+               <span class="kt-table-col-sort">
+               </span>
+              </span>
+             </th>
+             <th class="w-[90px] text-center">
+              <span class="kt-table-col">
+               <span class="kt-table-col-label">
+                Actions
+               </span>
+              </span>
+             </th>
+            </tr>
+           </thead>
+           <tbody>
+            {% for colis in colis_list %}
+             <tr>
+              {% set etatLabel = (colis.etat ?: 'Créé')
+                |replace({
+                  'Cree': 'Créé',
+                  'En preparation': 'En préparation',
+                  'Expedie': 'Expédié',
+                  'Livre': 'Livré',
+                  'Retour': 'Retourné'
+                }) %}
+              {% set etatBadgeClass = 'kt-badge-warning' %}
+              {% if etatLabel == 'Retourné' %}
+               {% set etatBadgeClass = 'kt-badge-destructive' %}
+              {% elseif etatLabel == 'En préparation' %}
+               {% set etatBadgeClass = 'kt-badge-info' %}
+              {% elseif etatLabel == 'Expédié' %}
+               {% set etatBadgeClass = 'kt-badge-primary' %}
+              {% elseif etatLabel == 'Livré' %}
+               {% set etatBadgeClass = 'kt-badge-success' %}
+              {% endif %}
+              {% set statutLabel = (colis.statut ?: 'En attente')
+                |replace({
+                  'Reporte': 'Reporté',
+                  'Echec': 'Échec',
+                  'Termine': 'Terminé'
+                }) %}
+              {% set statutBadgeClass = 'kt-badge-warning' %}
+              {% if statutLabel == 'Terminé' %}
+               {% set statutBadgeClass = 'kt-badge-success' %}
+              {% elseif statutLabel == 'En cours' %}
+               {% set statutBadgeClass = 'kt-badge-primary' %}
+              {% elseif statutLabel == 'Reporté' %}
+               {% set statutBadgeClass = 'kt-badge-info' %}
+              {% elseif statutLabel == 'Échec' %}
+               {% set statutBadgeClass = 'kt-badge-destructive' %}
+              {% endif %}
+              <td>
+                  <input class="kt-checkbox kt-checkbox-sm pickup-row-checkbox" data-kt-datatable-row-check="true" type="checkbox" value="{{ colis.id }}"/>
+              </td>
+              <td class="text-foreground font-medium">
+               {{ colis.trackingCode }}
+              </td>
+              <td class="text-foreground font-normal">
+               {{ colis.productNature }}
+              </td>
+              <td class="text-foreground font-normal">
+               {{ colis.createdAt ? colis.createdAt|date('d/m/Y H:i') : '-' }}
+              </td>
+              <td class="text-foreground font-normal">
+               {{ colis.address }}
+              </td>
+              <td>
+               <span class="kt-badge {{ etatBadgeClass }} kt-badge-outline rounded-[30px]">
+                <span class="kt-badge-dot size-1.5">
+                </span>
+                {{ etatLabel }}
+               </span>
+              </td>
+              <td>
+               <span class="kt-badge {{ statutBadgeClass }} kt-badge-outline rounded-[30px]">
+                <span class="kt-badge-dot size-1.5">
+                </span>
+                {{ statutLabel }}
+               </span>
+              </td>
+              <td class="text-foreground font-normal">
+               -
+              </td>
+              <td class="text-foreground font-normal">
+               -
+              </td>
+              <td class="text-foreground font-normal">
+               {{ colis.city }}
+              </td>
+              <td class="text-foreground font-medium">
+               {{ colis.price|number_format(2, ',', ' ') }} MAD
+              </td>
+              <td class="text-foreground font-normal">
+               Non
+              </td>
+              <td class="text-foreground font-normal">
+               {{ colis.comment ?: '-' }}
+              </td>
+              <td class="text-center">
+               <div class="kt-menu flex-inline" data-kt-menu="true">
+                <div class="kt-menu-item" data-kt-menu-item-offset="0, 10px" data-kt-menu-item-placement="bottom-end" data-kt-menu-item-placement-rtl="bottom-start" data-kt-menu-item-toggle="dropdown" data-kt-menu-item-trigger="click">
+                 <button class="kt-menu-toggle kt-btn kt-btn-sm kt-btn-icon kt-btn-ghost">
+                  <i class="ki-filled ki-dots-vertical text-lg">
+                  </i>
+                 </button>
+                 <div class="kt-menu-dropdown kt-menu-default w-full max-w-[220px]" data-kt-menu-dismiss="true">
+                  <div class="kt-menu-item">
+                   <a class="kt-menu-link" href="{{ path('app_colis_edit', { id: colis.id }) }}">
+                    <span class="kt-menu-icon">
+                     <i class="ki-filled ki-pencil">
+                     </i>
+                    </span>
+                    <span class="kt-menu-title">
+                     Modifier
+                    </span>
+                   </a>
+                  </div>
+                  <div class="kt-menu-item">
+                   <form method="post" action="{{ path('app_colis_delete', { id: colis.id }) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete_colis_' ~ colis.id) }}">
+                    <button class="kt-menu-link w-full" type="submit" onclick="return confirm('Supprimer ce colis ?');">
+                     <span class="kt-menu-icon">
+                      <i class="ki-filled ki-trash">
+                      </i>
+                     </span>
+                     <span class="kt-menu-title">
+                      Supprimer
+                     </span>
+                    </button>
+                   </form>
+                  </div>
+                  <div class="kt-menu-separator">
+                  </div>
+                  <div class="kt-menu-item">
+                   <form method="post" action="{{ path('app_colis_request_pickup', { id: colis.id }) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('request_pickup_' ~ colis.id) }}">
+                    <button class="kt-menu-link w-full" type="submit">
+                     <span class="kt-menu-icon">
+                      <i class="ki-filled ki-delivery-2">
+                      </i>
+                     </span>
+                     <span class="kt-menu-title">
+                      Demander un ramassage
+                     </span>
+                    </button>
+                   </form>
+                  </div>
+                 </div>
                 </div>
-            </div>
+               </div>
+              </td>
+             </tr>
+            {% endfor %}
+           </tbody>
+          </table>
+         </div>
+         <div class="kt-card-footer justify-center md:justify-between flex-col md:flex-row gap-5 text-secondary-foreground text-sm font-medium">
+          <div class="flex items-center gap-2 order-2 md:order-1">
+           Afficher
+           <select class="kt-select w-16" data-kt-datatable-size="true" data-kt-select="" name="perpage">
+           </select>
+           par page
+          </div>
+          <div class="flex items-center gap-4 order-1 md:order-2">
+           <span data-kt-datatable-info="true">
+           </span>
+           <div class="kt-datatable-pagination" data-kt-datatable-pagination="true">
+           </div>
+          </div>
+         </div>
         </div>
-    </main>
+       </div>
+      </div>
+
+     </div>
+    </div>
+    <!-- End of Container -->
+   </main>
 {% endblock %}
+
+{% block javascripts %}
+    <script src="{{ asset('assets/js/colis.js') }}"></script>
+{% endblock %}
+

@@ -1,15 +1,16 @@
 {% extends 'base_dashboard.html.twig' %}
 
-{% block title %}Ajouter un colis - LivrExpress{% endblock %}
+{% set is_edit_mode = is_edit_mode|default(false) %}
+{% block title %}{{ is_edit_mode ? 'Modifier un colis - LivrExpress' : 'Ajouter un colis - LivrExpress' }}{% endblock %}
 
 {% block stylesheets %}
     {{ parent() }}
-    <link href="{{ asset('colis-new.css?v=3') }}" rel="stylesheet"/>
+    <link href="{{ asset('assets/css/colis-new.css?v=3') }}" rel="stylesheet"/>
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('colis-new.js?v=5') }}"></script>
+    <script src="{{ asset('assets/js/colis-new.js?v=13') }}"></script>
 {% endblock %}
 
 {% block body %}
@@ -21,10 +22,10 @@
         <div class="flex flex-wrap items-center lg:items-end justify-between gap-5 pb-7.5">
             <div class="flex flex-col justify-center gap-2">
                 <h1 class="text-xl font-medium leading-none text-mono">
-                    Ajouter un colis
+                    {{ is_edit_mode ? 'Modifier un colis' : 'Ajouter un colis' }}
                 </h1>
                 <div class="flex items-center gap-2 text-sm font-normal text-secondary-foreground">
-                    Ajoutez tous vos colis en un clic
+                    {{ is_edit_mode ? 'Mettez a jour les informations de votre colis' : 'Ajoutez tous vos colis en un clic' }}
                 </div>
             </div>
             <div class="flex flex-col items-end gap-2.5">
@@ -33,7 +34,7 @@
                     Retour a la liste
                 </a>
                 <button class="kt-btn kt-btn-primary" form="colis-new-form" id="colis-save-btn" type="submit">
-                    Ajouter le colis
+                    {{ is_edit_mode ? 'Enregistrer les modifications' : 'Ajouter le colis' }}
                 </button>
                 </div>
             </div>
@@ -100,7 +101,11 @@
                                             placeholder: '№ Commande',
                                             inputmode: 'numeric',
                                             pattern: '[0-9]*',
-                                            oninput: "this.value=this.value.replace(/[^0-9]/g,'')"
+                                            oninput: "this.value=this.value.replace(/[^0-9]/g,'')",
+                                            value: is_edit_mode
+                                                ? (form.orderNumber.vars.value|replace({'CMD-': ''}))
+                                                : (form.orderNumber.vars.value ?? ''),
+                                            readonly: is_edit_mode ? 'readonly' : null
                                         } }) }}
                                     </td>
                                     <td class="py-2 text-center">
@@ -196,12 +201,21 @@
                             <div class="flex items-center gap-2">
                                 <label class="kt-label">
                                     Colis a remplacer
-                                    {{ form_widget(form.replacePackage, { attr: { class: 'kt-switch kt-switch-sm', id: 'replace-package-toggle' } }) }}
+                                    {{ form_widget(form.replacePackage, {
+                                        attr: {
+                                            class: 'kt-switch kt-switch-sm',
+                                            id: 'replace-package-toggle',
+                                            'data-initial-checked': form.replacePackage.vars.checked ? '1' : '0'
+                                        },
+                                        checked: form.replacePackage.vars.checked
+                                    }) }}
                                 </label>
                             </div>
                             <div class="hidden">
                                 {{ form_widget(form.cartonOption, { attr: { id: 'carton-option-input', class: 'hidden' } }) }}
                                 {{ form_widget(form.oldColis, { attr: { id: 'old-colis-input-hidden', class: 'hidden' } }) }}
+                                {{ form_widget(form.fragile, { attr: { id: 'fragile-input', class: 'hidden' } }) }}
+                                {{ form_widget(form.allFragile, { attr: { id: 'all-fragile-input', class: 'hidden' } }) }}
                             </div>
                         </div>
                         <div class="kt-card-table pb-3" style="overflow: visible;">
@@ -221,9 +235,11 @@
                                             data-kt-select-placeholder="Choisir un ancien colis"
                                             data-kt-select-search-placeholder="Rechercher un colis..."
                                         >
-                                            <option value="" disabled selected>Choisir un ancien colis</option>
+                                            <option value="" disabled {{ form.oldColis.vars.value ? '' : 'selected' }}>Choisir un ancien colis</option>
                                             {% for choice in form.oldColis.vars.choices %}
-                                                <option value="{{ choice.value }}">{{ choice.label }}</option>
+                                                <option value="{{ choice.value }}" {{ form.oldColis.vars.value == choice.value ? 'selected' : '' }}>
+                                                    {{ choice.label }}
+                                                </option>
                                             {% endfor %}
                                         </select>
                                     </td>
@@ -393,7 +409,7 @@
                                         Colis fragile
                                     </span>
                                 </div>
-                                <button class="kt-btn kt-btn-sm kt-btn-icon kt-btn-primary kt-btn-outline rounded-full shrink-0 self-start sm:self-center" type="button" data-badge-check="true" aria-pressed="false">
+                                <button class="kt-btn kt-btn-sm kt-btn-icon kt-btn-primary kt-btn-outline rounded-full shrink-0 self-start sm:self-center {{ form.fragile.vars.checked ? 'active' : '' }}" type="button" data-badge-check="true" data-fragile-toggle="true" aria-pressed="{{ form.fragile.vars.checked ? 'true' : 'false' }}">
                                     <i class="ki-filled ki-check"></i>
                                 </button>
                             </div>
@@ -412,7 +428,7 @@
                                         Je souhaite definir tous mes colis comme fragiles
                                     </span>
                                 </div>
-                                <button class="kt-btn kt-btn-sm kt-btn-icon kt-btn-primary kt-btn-outline rounded-full shrink-0 self-start sm:self-center" type="button" data-badge-check="true" aria-pressed="false">
+                                <button class="kt-btn kt-btn-sm kt-btn-icon kt-btn-primary kt-btn-outline rounded-full shrink-0 self-start sm:self-center {{ form.allFragile.vars.checked ? 'active' : '' }}" type="button" data-badge-check="true" data-fragile-all-toggle="true" aria-pressed="{{ form.allFragile.vars.checked ? 'true' : 'false' }}">
                                     <i class="ki-filled ki-check"></i>
                                 </button>
                             </div>
