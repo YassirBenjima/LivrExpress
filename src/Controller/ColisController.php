@@ -386,6 +386,79 @@ final class ColisController extends AbstractController
         return $this->render('colis/import.html.twig');
     }
 
+    #[Route('/import-process', name: 'app_colis_import_process', methods: ['POST'])]
+    public function importProcess(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        /** @var \Symfony\Component\HttpFoundation\File\UploadedFile|null $file */
+        $file = $request->files->get('file');
+
+        if (!$file) {
+            return $this->json(['error' => 'Aucun fichier reçu.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $xlsx = \Shuchkin\SimpleXLSX::parse($file->getRealPath());
+        if (!$xlsx) {
+            return $this->json(['error' => 'Erreur lors de la lecture du fichier Excel : ' . \Shuchkin\SimpleXLSX::parseError()], Response::HTTP_BAD_REQUEST);
+        }
+
+        $rows = $xlsx->rows();
+        if (\count($rows) < 2) {
+            return $this->json(['error' => 'Le fichier est vide ou ne contient que des en-têtes.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $headers = array_shift($rows);
+        $importedCount = 0;
+        $errors = [];
+
+        foreach ($rows as $index => $row) {
+            $data = array_combine($headers, $row);
+            
+            // Minimal validation
+            if (empty($data['N° Commande']) || empty($data['Ville']) || empty($data['Prix (DH)'])) {
+                $errors[] = sprintf("Ligne %d : Champs obligatoires manquants (N° Commande, Ville, Prix).", $index + 2);
+                continue;
+            }
+
+            $colis = new Colis();
+            $colis->setOrderNumber((string) $data['N° Commande']);
+            $colis->setRecipient($data['Destinataire'] ?? null);
+            $colis->setPhoneNumber((string) ($data['Téléphone'] ?? ''));
+            $colis->setCity($data['Ville']);
+            $colis->setNeighborhood($data['Quartier'] ?? '');
+            $colis->setAddress($data['Adresse'] ?? '');
+            $colis->setPrice((string) $data['Prix (DH)']);
+            $colis->setProductNature($data['Nature de Produit'] ?? 'Marchandise');
+            
+            // Map Type
+            $typeInput = strtolower($data['Type'] ?? '');
+            if (str_contains($typeInput, 'stock')) {
+                $colis->setType(Colis::TYPE_STOCK);
+            } else {
+                $colis->setType(Colis::TYPE_SIMPLE);
+            }
+
+            $colis->setComment($data['Commentaire'] ?? null);
+            $colis->setPackageOption($data['Option Colis'] ?? 'Ne pas ouvrir le colis');
+
+            try {
+                $entityManager->persist($colis);
+                $importedCount++;
+            } catch (\Exception $e) {
+                $errors[] = sprintf("Ligne %d : Erreur lors de l'enregistrement (%s).", $index + 2, $e->getMessage());
+            }
+        }
+
+        if ($importedCount > 0) {
+            $entityManager->flush();
+        }
+
+        return $this->json([
+            'success' => true,
+            'importedCount' => $importedCount,
+            'errors' => $errors
+        ]);
+    }
+
     #[Route('/settings', name: 'app_colis_settings', methods: ['GET'])]
     public function settings(): Response
     {
