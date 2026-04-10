@@ -96,7 +96,7 @@
                                 <tr>
                                     <td class="py-2 min-w-36 text-secondary-foreground font-normal">{{ form_label(form.orderNumber) }}</td>
                                     <td class="py-2 text-foreground font-normal text-sm">
-                                        {{ form_widget(form.orderNumber, { attr: {
+                                        {% set order_number_attr = {
                                             class: 'kt-input h-8 text-sm',
                                             placeholder: '№ Commande',
                                             inputmode: 'numeric',
@@ -104,9 +104,12 @@
                                             oninput: "this.value=this.value.replace(/[^0-9]/g,'')",
                                             value: is_edit_mode
                                                 ? (form.orderNumber.vars.value|replace({'CMD-': ''}))
-                                                : (form.orderNumber.vars.value ?? ''),
-                                            readonly: is_edit_mode ? 'readonly' : null
-                                        } }) }}
+                                                : (form.orderNumber.vars.value ?? '')
+                                        } %}
+                                        {% if is_edit_mode %}
+                                            {% set order_number_attr = order_number_attr|merge({ readonly: 'readonly' }) %}
+                                        {% endif %}
+                                        {{ form_widget(form.orderNumber, { attr: order_number_attr }) }}
                                     </td>
                                     <td class="py-2 text-center">
                                         {{ form_errors(form.orderNumber) }}

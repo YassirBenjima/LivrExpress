@@ -1,0 +1,276 @@
+{% extends 'base_dashboard.html.twig' %}
+
+{% block title %}Liste des produits - LivrExpress{% endblock %}
+
+{% block body %}
+{% include 'partials/_flash_messages.html.twig' %}
+<main class="grow pt-5 dashboard-content-shift" id="content" role="content">
+  <div class="kt-container-fixed" id="contentContainer">
+  </div>
+
+  <div class="kt-container-fixed">
+    <div class="flex flex-wrap items-center lg:items-end justify-between gap-5 pb-7.5">
+      <div class="flex flex-col justify-center gap-2">
+        <h1 class="text-xl font-medium leading-none text-mono">
+          Liste des produits
+        </h1>
+        <div class="flex items-center flex-wrap gap-1.5 font-medium">
+          <span class="text-base text-secondary-foreground">
+            Total produits:
+          </span>
+          <span class="text-base text-foreground font-medium me-2">
+            {{ total_products|default(0) }}
+          </span>
+          <span class="text-base text-secondary-foreground">
+            Quantité totale:
+          </span>
+          <span class="text-base text-foreground font-medium">
+            {{ total_qty|default(0) }}
+          </span>
+        </div>
+      </div>
+      <div class="flex items-center gap-2.5">
+        <a class="kt-btn kt-btn-primary" href="{{ path('app_stock_products_new') }}">
+          Ajouter un produit
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="kt-container-fixed">
+    <div class="grid gap-5 lg:gap-7.5">
+      <div class="kt-card kt-card-grid min-w-full">
+        <div class="kt-card-header flex-wrap gap-2">
+          <h3 class="kt-card-title text-sm">
+            Affichage de {{ products|length }} produit(s)
+          </h3>
+          <form class="flex flex-wrap gap-2 lg:gap-5" method="get" action="{{ path('app_stock_products_index') }}">
+            <div class="flex">
+              <label class="kt-input">
+                <i class="ki-filled ki-magnifier">
+                </i>
+                <input data-kt-datatable-search="#stock_products_table" name="q" placeholder="Rechercher un produit" type="text" value="{{ search_query|default('') }}"/>
+              </label>
+            </div>
+            <div class="flex flex-wrap gap-2.5">
+              <button class="kt-btn kt-btn-outline kt-btn-primary" type="submit">
+                <i class="ki-filled ki-setting-4">
+                </i>
+                Filtrer
+              </button>
+              <a class="kt-btn kt-btn-outline" href="{{ path('app_stock_products_index') }}">
+                Réinitialiser
+              </a>
+            </div>
+          </form>
+        </div>
+
+        <div class="kt-card-content">
+          <div data-kt-datatable="true" data-kt-datatable-state-save="false" id="stock_products_table">
+            <div class="kt-scrollable-x-auto">
+              <table class="kt-table table-auto kt-table-border" data-kt-datatable-table="true">
+                <thead>
+                  <tr>
+                    <th class="min-w-[90px]">
+                      <span class="kt-table-col">
+                        <span class="kt-table-col-label">
+                          Photo
+                        </span>
+                        <span class="kt-table-col-sort">
+                        </span>
+                      </span>
+                    </th>
+                    <th class="min-w-[220px]">
+                      <span class="kt-table-col">
+                        <span class="kt-table-col-label">
+                          Nom
+                        </span>
+                        <span class="kt-table-col-sort">
+                        </span>
+                      </span>
+                    </th>
+                    <th class="min-w-[200px]">
+                      <span class="kt-table-col">
+                        <span class="kt-table-col-label">
+                          Réf | Code Barre
+                        </span>
+                        <span class="kt-table-col-sort">
+                        </span>
+                      </span>
+                    </th>
+                    <th class="min-w-[150px]">
+                      <span class="kt-table-col">
+                        <span class="kt-table-col-label">
+                          Quantité (Reçu)
+                        </span>
+                        <span class="kt-table-col-sort">
+                        </span>
+                      </span>
+                    </th>
+                    <th class="min-w-[170px]">
+                      <span class="kt-table-col">
+                        <span class="kt-table-col-label">
+                          Quantité (Non Reçu)
+                        </span>
+                        <span class="kt-table-col-sort">
+                        </span>
+                      </span>
+                    </th>
+                    <th class="min-w-[220px]">
+                      <span class="kt-table-col">
+                        <span class="kt-table-col-label">
+                          Informations
+                        </span>
+                        <span class="kt-table-col-sort">
+                        </span>
+                      </span>
+                    </th>
+                    <th class="w-[90px] text-center">
+                      <span class="kt-table-col">
+                        <span class="kt-table-col-label">
+                          Actions
+                        </span>
+                      </span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for product in products %}
+                    <tr>
+                      <td class="text-foreground font-normal">
+                        {% if product.photo_url %}
+                          <img alt="{{ product.name }}" class="size-8 rounded-md object-cover" src="{{ product.photo_url }}"/>
+                        {% else %}
+                          -
+                        {% endif %}
+                      </td>
+                      <td class="text-foreground font-medium">
+                        {{ product.name }}
+                      </td>
+                      <td class="text-foreground font-normal">
+                        {% if product.has_variants %}
+                          {% if product.variants is defined and product.variants|length > 0 %}
+                            <div class="flex flex-col gap-1">
+                              {% for variant in product.variants %}
+                                <div class="flex flex-wrap items-center gap-2">
+                                  {% if variant.ref_or_barcode %}
+                                    <span class="kt-badge kt-badge-primary kt-badge-outline rounded-[30px]">
+                                      {{ variant.ref_or_barcode }}
+                                    </span>
+                                  {% else %}
+                                    <span class="kt-badge kt-badge-outline rounded-[30px]">
+                                      {{ variant.name|default('-') }}
+                                    </span>
+                                  {% endif %}
+                                </div>
+                              {% endfor %}
+                            </div>
+                          {% else %}
+                            <span class="kt-badge kt-badge-outline kt-badge-success rounded-[30px]">
+                              {{ product.variants_count }} variante{{ product.variants_count > 1 ? 's' : '' }}
+                            </span>
+                          {% endif %}
+                        {% else %}
+                          {% if product.ref_or_barcode %}
+                            <span class="kt-badge kt-badge-primary kt-badge-outline rounded-[30px]">
+                              {{ product.ref_or_barcode }}
+                            </span>
+                          {% else %}
+                            -
+                          {% endif %}
+                        {% endif %}
+                      </td>
+                      <td class="text-foreground font-medium">
+                        {% if product.has_variants and product.variants is defined and product.variants|length > 0 %}
+                          <div class="flex flex-col gap-1">
+                            {% for variant in product.variants %}
+                              <div class="flex flex-wrap items-center gap-2">
+                                <span class="text-foreground font-medium">
+                                  {{ variant.qty_received|default(0) }}
+                                </span>
+                              </div>
+                            {% endfor %}
+                          </div>
+                        {% else %}
+                          {{ product.qty_received|default(0) }}
+                        {% endif %}
+                      </td>
+                      <td class="text-foreground font-medium">
+                        {% if product.has_variants and product.variants is defined and product.variants|length > 0 %}
+                          <div class="flex flex-col gap-1">
+                            {% for variant in product.variants %}
+                              <div class="flex flex-wrap items-center gap-2">
+                                <span class="text-foreground font-medium">
+                                  {{ variant.qty_not_received|default(0) }}
+                                </span>
+                              </div>
+                            {% endfor %}
+                          </div>
+                        {% else %}
+                          {{ product.qty_not_received|default(0) }}
+                        {% endif %}
+                      </td>
+                      <td class="text-foreground font-normal">
+                        <div class="flex flex-col gap-1">
+                          <div class="flex items-center gap-2">
+                            <span class="text-secondary-foreground">Non Reçu:</span>
+                            <span class="text-foreground font-medium">
+                              {{ product.qty_not_received|default(0) }}
+                            </span>
+                          </div>
+                          <div class="text-xs text-secondary-foreground">
+                            Dernière entrée: {{ product.last_in_at ? product.last_in_at|date('d/m/Y H:i') : '-' }}
+                          </div>
+                        </div>
+                      </td>
+                      <td class="text-center">
+                        <div class="kt-menu flex-inline" data-kt-menu="true">
+                          <div class="kt-menu-item" data-kt-menu-item-offset="0, 10px" data-kt-menu-item-placement="bottom-end" data-kt-menu-item-placement-rtl="bottom-start" data-kt-menu-item-toggle="dropdown" data-kt-menu-item-trigger="click">
+                            <button class="kt-menu-toggle kt-btn kt-btn-sm kt-btn-icon kt-btn-ghost">
+                              <i class="ki-filled ki-dots-vertical text-lg">
+                              </i>
+                            </button>
+                            <div class="kt-menu-dropdown kt-menu-default w-full max-w-[175px]" data-kt-menu-dismiss="true">
+                              <div class="kt-menu-item">
+                                <span class="kt-menu-link opacity-60 cursor-not-allowed">
+                                  <span class="kt-menu-icon">
+                                    <i class="ki-filled ki-lock-2">
+                                    </i>
+                                  </span>
+                                  <span class="kt-menu-title">
+                                    À venir
+                                  </span>
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+
+            <div class="kt-card-footer justify-center md:justify-between flex-col md:flex-row gap-5 text-secondary-foreground text-sm font-medium">
+              <div class="flex items-center gap-2 order-2 md:order-1">
+                Afficher
+                <select class="kt-select w-16" data-kt-datatable-size="true" data-kt-select="" name="perpage">
+                </select>
+                par page
+              </div>
+              <div class="flex items-center gap-4 order-1 md:order-2">
+                <span data-kt-datatable-info="true">
+                </span>
+                <div class="kt-datatable-pagination" data-kt-datatable-pagination="true">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+{% endblock %}
+
