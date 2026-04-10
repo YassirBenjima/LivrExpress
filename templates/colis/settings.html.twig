@@ -5,8 +5,17 @@
 {% block body %}
     <main class="grow pt-5" id="content" role="content">
         <div class="kt-container-fixed">
-            <h1 class="text-xl font-medium leading-none text-mono pb-6">Parametres des colis</h1>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-7.5">
+            <div class="flex flex-wrap items-center lg:items-end justify-between gap-5 pb-7.5">
+                <div class="flex flex-col justify-center gap-2">
+                    <h1 class="text-xl font-medium leading-none text-mono">
+                        Parametres des colis
+                    </h1>
+                    <div class="flex items-center gap-2 text-sm font-normal text-secondary-foreground">
+                    Veuillez choisir vos configurations globales de colis
+                </div>
+            </div>
+            </div>
+        <div class="grid grid-cols-1 gap-5 lg:gap-7.5">
                 <div class="col-span-1">
                     <div class="kt-card">
                         <div class="kt-card-header">
@@ -102,9 +111,17 @@
                                                 <i class="ki-filled ki-shield-cross text-xl ps-px text-primary"></i>
                                             </div>
                                         </div>
-                                        <span class="text-mono text-sm font-medium break-words leading-5">
-                                            Colis fragile
-                                        </span>
+                                        <div class="min-w-0">
+                                            <div class="text-mono text-sm font-medium break-words leading-5">
+                                                Colis fragile
+                                            </div>
+                                            <div class="text-xs font-medium text-secondary-foreground mt-0.5">
+                                                Avec frais: 5 DH
+                                            </div>
+                                            <div class="text-xs text-secondary-foreground mt-0.5">
+                                                Marquez vos colis comme fragiles pour une manipulation plus sûre et réduire les risques de dommages.
+                                            </div>
+                                        </div>
                                     </div>
                                     <button class="kt-btn kt-btn-sm kt-btn-icon kt-btn-primary kt-btn-outline rounded-full shrink-0 self-start sm:self-center {{ (form is defined and form.fragile is defined and form.fragile.vars.checked) ? 'active' : '' }}" type="button" data-badge-check="true" data-fragile-toggle="true" aria-pressed="{{ (form is defined and form.fragile is defined and form.fragile.vars.checked) ? 'true' : 'false' }}">
                                         <i class="ki-filled ki-check"></i>
@@ -121,11 +138,20 @@
                                                 <i class="ki-filled ki-shield-tick text-xl ps-px text-yellow-600"></i>
                                             </div>
                                         </div>
-                                        <span class="text-mono text-sm font-medium break-words leading-5">
-                                            Je souhaite definir tous mes colis comme fragiles
-                                        </span>
+                                        <div class="min-w-0">
+                                            <div class="text-mono text-sm font-medium break-words leading-5">
+                                                Ouvrir Le Colis
+                                            </div>
+                                            <div class="text-xs font-medium text-secondary-foreground mt-0.5">
+                                                Gratuit
+                                            </div>
+                                            <div class="text-xs text-secondary-foreground mt-0.5">
+                                                Décidez si vous souhaitez que les clients finaux ouvrent vos colis ou non ( selectioner selon mon profile ).
+                                            </div>
+                                        </div>
                                     </div>
-                                    <button class="kt-btn kt-btn-sm kt-btn-icon kt-btn-primary kt-btn-outline rounded-full shrink-0 self-start sm:self-center {{ (form is defined and form.allFragile is defined and form.allFragile.vars.checked) ? 'active' : '' }}" type="button" data-badge-check="true" data-fragile-all-toggle="true" aria-pressed="{{ (form is defined and form.allFragile is defined and form.allFragile.vars.checked) ? 'true' : 'false' }}">
+                                    {% set can_open_colis = app.user and app.user.packageOption == 'Ouvrir le colis' %}
+                                    <button class="kt-btn kt-btn-sm kt-btn-icon kt-btn-primary kt-btn-outline rounded-full shrink-0 self-start sm:self-center {{ can_open_colis ? 'active' : '' }}" type="button" data-badge-check="true" data-open-colis-toggle="true" aria-pressed="{{ can_open_colis ? 'true' : 'false' }}">
                                         <i class="ki-filled ki-check"></i>
                                     </button>
                                 </div>
@@ -140,9 +166,17 @@
                                                 <i class="ki-filled ki-archive text-xl ps-px text-green-600"></i>
                                             </div>
                                         </div>
-                                        <span class="text-mono text-sm font-medium break-words leading-5">
-                                            Je veux utiliser un carton
-                                        </span>
+                                        <div class="min-w-0">
+                                            <div class="text-mono text-sm font-medium break-words leading-5">
+                                                Numéro de commande unique
+                                            </div>
+                                            <div class="text-xs font-medium text-secondary-foreground mt-0.5">
+                                                Gratuit
+                                            </div>
+                                            <div class="text-xs text-secondary-foreground mt-0.5">
+                                                Laissez le système vous aider à gérer votre numéro de commande unique.
+                                            </div>
+                                        </div>
                                     </div>
                                     <button class="kt-btn kt-btn-sm kt-btn-icon kt-btn-primary kt-btn-outline rounded-full shrink-0 self-start sm:self-center" type="button" data-badge-check="true" data-carton-toggle="true" aria-pressed="false">
                                         <i class="ki-filled ki-check"></i>
