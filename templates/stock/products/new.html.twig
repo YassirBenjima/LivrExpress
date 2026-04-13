@@ -2,6 +2,13 @@
 
 {% block title %}Ajouter un produit - LivrExpress{% endblock %}
 
+{% block stylesheets %}
+  {{ parent() }}
+  <link href="{{ asset('assets/css/stock-products-new.css?v=1') }}" rel="stylesheet"/>
+{% endblock %}
+
+
+
 {% block body %}
 <main class="grow pt-5 profile-content-shift" id="content" role="content">
   <div class="kt-container-fixed">
