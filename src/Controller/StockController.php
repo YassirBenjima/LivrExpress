@@ -101,7 +101,10 @@ final class StockController extends AbstractController
     #[Route('/produits/new', name: 'app_stock_products_new', methods: ['GET'])]
     public function productsNew(): Response
     {
-        return $this->render('stock/products/new.html.twig');
+        return $this->render('stock/products/new.html.twig', [
+            'is_edit_mode' => false,
+            'product' => null,
+        ]);
     }
 
     #[Route('/produits', name: 'app_stock_products_create', methods: ['POST'])]
@@ -252,6 +255,189 @@ final class StockController extends AbstractController
         return $this->redirectToRoute('app_stock_products_index');
     }
 
+    #[Route('/produits/{id}/edit', name: 'app_stock_products_edit', methods: ['GET'])]
+    public function productsEdit(int $id, StockProductRepository $stockProductRepository): Response
+    {
+        $product = $stockProductRepository->find($id);
+        if (!$product instanceof StockProduct) {
+            throw $this->createNotFoundException('Produit introuvable.');
+        }
+
+        return $this->render('stock/products/new.html.twig', [
+            'is_edit_mode' => true,
+            'product' => $product,
+        ]);
+    }
+
+    #[Route('/produits/{id}/update', name: 'app_stock_products_update', methods: ['POST'])]
+    public function productsUpdate(
+        int $id,
+        Request $request,
+        StockProductRepository $stockProductRepository,
+        StockProductVariantRepository $stockProductVariantRepository,
+        EntityManagerInterface $entityManager,
+        #[Autowire('%stock_products_upload_dir%')] string $stock_products_upload_dir,
+    ): Response {
+        $product = $stockProductRepository->find($id);
+        if (!$product instanceof StockProduct) {
+            throw $this->createNotFoundException('Produit introuvable.');
+        }
+
+        if (!$this->isCsrfTokenValid('stock_product_edit_'.$product->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Jeton CSRF invalide.');
+
+            return $this->redirectToRoute('app_stock_products_index');
+        }
+
+        $name = trim((string) $request->request->get('name', ''));
+        $category = trim((string) $request->request->get('category', ''));
+        $variantsEnabled = (bool) $request->request->get('variants_enabled');
+
+        $allowedCategories = array_map('strval', range(1, 11));
+        if ($name === '') {
+            $this->addFlash('error', 'Le nom du produit est obligatoire.');
+
+            return $this->redirectToRoute('app_stock_products_edit', ['id' => $product->getId()]);
+        }
+        if ($category === '' || !\in_array($category, $allowedCategories, true)) {
+            $this->addFlash('error', 'Veuillez choisir une catégorie valide.');
+
+            return $this->redirectToRoute('app_stock_products_edit', ['id' => $product->getId()]);
+        }
+
+        $product->setName($name);
+        $product->setCategory($category);
+        $product->setNote($request->request->get('note'));
+
+        if ($variantsEnabled) {
+            // Replace variants with submitted ones
+            foreach ($product->getVariants()->toArray() as $existing) {
+                if ($existing instanceof StockProductVariant) {
+                    $product->removeVariant($existing);
+                }
+            }
+
+            /** @var array<int, array{barcode?: mixed, name?: mixed, quantity?: mixed}> $variants */
+            $variants = $request->request->all('variants');
+            $hasAtLeastOne = false;
+            foreach ($variants as $row) {
+                $vName = trim((string) ($row['name'] ?? ''));
+                $vBarcode = trim((string) ($row['barcode'] ?? ''));
+                $vQtyRaw = (string) ($row['quantity'] ?? '');
+                $vQty = $vQtyRaw !== '' ? (int) $vQtyRaw : null;
+
+                if ($vName === '' && $vBarcode === '' && ($vQty === null || $vQty === 0)) {
+                    continue;
+                }
+
+                $hasAtLeastOne = true;
+                if ($vName === '' || $vQty === null || $vQty < 0) {
+                    $this->addFlash('error', 'Chaque variante doit avoir un nom et une quantité valide.');
+
+                    return $this->redirectToRoute('app_stock_products_edit', ['id' => $product->getId()]);
+                }
+
+                $variant = new StockProductVariant($vName, $vQty);
+                $variant->setBarcode($vBarcode !== '' ? $vBarcode : null);
+                if ($variant->getBarcode() === null) {
+                    $variant->setBarcode($this->generateUniqueBarcode($entityManager, $stockProductVariantRepository));
+                }
+                $product->addVariant($variant);
+            }
+
+            if (!$hasAtLeastOne) {
+                $this->addFlash('error', 'Ajoutez au moins une variante ou désactivez le mode variantes.');
+
+                return $this->redirectToRoute('app_stock_products_edit', ['id' => $product->getId()]);
+            }
+
+            if ($product->getBarcode() === null) {
+                $product->setBarcode($this->generateUniqueBarcode($entityManager, $stockProductVariantRepository));
+            }
+            $product->setQuantity(null);
+        } else {
+            // No variants: keep quantity + barcode on product
+            $product->setBarcode($request->request->get('barcode'));
+            if ($product->getBarcode() === null) {
+                $product->setBarcode($this->generateUniqueBarcode($entityManager, $stockProductVariantRepository));
+            }
+
+            $qtyRaw = trim((string) $request->request->get('quantity', ''));
+            if ($qtyRaw === '' || !ctype_digit($qtyRaw)) {
+                $this->addFlash('error', 'La quantité est obligatoire.');
+
+                return $this->redirectToRoute('app_stock_products_edit', ['id' => $product->getId()]);
+            }
+            $product->setQuantity((int) $qtyRaw);
+        }
+
+        $photo = $request->files->get('photo');
+        if ($photo instanceof UploadedFile) {
+            if (!$photo->isValid()) {
+                $this->addFlash('error', 'Le fichier image est invalide.');
+
+                return $this->redirectToRoute('app_stock_products_edit', ['id' => $product->getId()]);
+            }
+
+            $mime = (string) $photo->getMimeType();
+            if (!\in_array($mime, ['image/jpeg', 'image/png'], true)) {
+                $this->addFlash('error', 'Format image non supporté. Utilisez JPG ou PNG.');
+
+                return $this->redirectToRoute('app_stock_products_edit', ['id' => $product->getId()]);
+            }
+
+            if (!is_dir($stock_products_upload_dir) && !@mkdir($stock_products_upload_dir, 0775, true) && !is_dir($stock_products_upload_dir)) {
+                $this->addFlash('error', 'Impossible de créer le dossier de stockage des images.');
+
+                return $this->redirectToRoute('app_stock_products_edit', ['id' => $product->getId()]);
+            }
+
+            $ext = $photo->guessExtension() ?: 'bin';
+            $base = pathinfo($photo->getClientOriginalName(), PATHINFO_FILENAME) ?: 'product';
+            $base = preg_replace('/[^a-zA-Z0-9]+/', '-', $base) ?? 'product';
+            $base = trim(strtolower($base), '-');
+            if ($base === '') {
+                $base = 'product';
+            }
+            $filename = sprintf('%s-%s.%s', $base, uniqid(), $ext);
+            $photo->move($stock_products_upload_dir, $filename);
+            $product->setPhotoPath('uploads/stock-products/' . $filename);
+        }
+
+        $entityManager->flush();
+        $this->addFlash('success', 'Produit modifié avec succès.');
+
+        return $this->redirectToRoute('app_stock_products_index');
+    }
+
+    #[Route('/produits/{id}/delete', name: 'app_stock_products_delete', methods: ['POST'])]
+    public function productsDelete(
+        int $id,
+        Request $request,
+        StockProductRepository $stockProductRepository,
+        EntityManagerInterface $entityManager,
+    ): Response {
+        $product = $stockProductRepository->find($id);
+        if (!$product instanceof StockProduct) {
+            $this->addFlash('error', 'Produit introuvable.');
+
+            return $this->redirectToRoute('app_stock_products_index');
+        }
+
+        if (!$this->isCsrfTokenValid('delete_stock_product_'.$product->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Jeton CSRF invalide.');
+
+            return $this->redirectToRoute('app_stock_products_index');
+        }
+
+        $entityManager->remove($product);
+        $entityManager->flush();
+
+        $this->addFlash('success', 'Produit supprimé avec succès.');
+
+        return $this->redirectToRoute('app_stock_products_index');
+    }
+
     #[Route('/produits/variant/{id}/sticker', name: 'app_stock_products_variant_sticker', methods: ['GET'])]
     public function productVariantSticker(
         int $id,
@@ -385,12 +571,21 @@ final class StockController extends AbstractController
         ?string $stickerLogoUrl,
         string $filename,
     ): Response {
+        $pdfTitleParts = array_values(array_filter([
+            'Sticker',
+            $product?->getName(),
+            $variant?->getName(),
+            $barcode !== '' ? $barcode : null,
+        ], static fn ($v): bool => is_string($v) && trim($v) !== ''));
+        $pdfTitle = implode(' - ', $pdfTitleParts);
+
         $html = $this->renderView('stock/products/variant_sticker_pdf.html.twig', [
             'variant' => $variant,
             'product' => $product,
             'barcode' => $barcode,
             'qr_data_uri' => $qrDataUri,
             'logo_url' => $stickerLogoUrl !== null && trim($stickerLogoUrl) !== '' ? $stickerLogoUrl : null,
+            'pdf_title' => $pdfTitle,
         ]);
 
         $options = new Options();
@@ -411,6 +606,7 @@ final class StockController extends AbstractController
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'inline; filename="' . $filename . '"',
             'Cache-Control' => 'private, max-age=0, must-revalidate',
+            'X-Content-Type-Options' => 'nosniff',
         ]);
     }
 
