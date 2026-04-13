@@ -2,8 +2,6 @@
 
 {% block title %}Ajouter un produit - LivrExpress{% endblock %}
 
-
-
 {% block body %}
 <main class="grow pt-5 profile-content-shift" id="content" role="content">
   <div class="kt-container-fixed">
@@ -43,8 +41,7 @@
                 <h3 class="kt-card-title">Informations du produit</h3>
               </div>
               <div class="kt-card-table pb-3" style="overflow: visible;">
-                <div class="kt-scrollable-x-auto">
-                    <table class="kt-table align-middle text-sm text-muted-foreground">
+                <table class="kt-table align-middle text-sm text-muted-foreground">
                       <tr>
                         <td class="py-2 min-w-36 text-secondary-foreground font-normal">Photo</td>
                         <td class="py-2 text-secondary-foreground font-normal text-sm">Image du produit (JPG/PNG)</td>
@@ -93,10 +90,17 @@
                           data-kt-select-search-placeholder="Rechercher une catégorie..."
                         >
                           <option value="" disabled selected>Choisir une catégorie</option>
-                          <option value="generale">Générale</option>
-                          <option value="cosmetique">Cosmétique</option>
-                          <option value="electronique">Électronique</option>
-                          <option value="accessoire">Accessoire</option>
+                          <option value="1">Vêtements &amp; Accessoires</option>
+                          <option value="2">Caméras et optiques</option>
+                          <option value="3">Électronique</option>
+                          <option value="4">Santé &amp; Beauté</option>
+                          <option value="5">Maison &amp; Jardin</option>
+                          <option value="6">Fournitures de bureau</option>
+                          <option value="7">Articles de sport</option>
+                          <option value="8">Jouets</option>
+                          <option value="9">Pièces</option>
+                          <option value="10">Animaux et fournitures pour animaux</option>
+                          <option value="11">Autres</option>
                         </select>
                       </td>
                       <td class="py-2 text-center">
@@ -127,7 +131,6 @@
                       </td>
                     </tr>
                     </table>
-                </div>
               </div>
             </div>
           </div>
@@ -145,8 +148,7 @@
               </div>
               <div class="kt-card-table pb-3" style="overflow: visible;">
                 <div class="px-6 py-5" id="variants-section" style="display:none;">
-                  <div class="kt-scrollable-x-auto">
-                    <table class="kt-table align-middle text-sm text-muted-foreground">
+                  <table class="kt-table align-middle text-sm text-muted-foreground">
                       <thead>
                         <tr class="text-secondary-foreground">
                           <th class="py-2 min-w-40 font-normal">Votre Code Barre</th>
@@ -174,7 +176,6 @@
                         </tr>
                       </tbody>
                     </table>
-                  </div>
 
                   <div class="pt-4 flex justify-end pr-2">
                     <button class="kt-btn kt-btn-outline kt-btn-primary" id="add-variant-btn" type="button">
