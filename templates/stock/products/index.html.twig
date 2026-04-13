@@ -154,9 +154,9 @@
                               {% for variant in product.variants %}
                                 <div class="flex flex-wrap items-center gap-2">
                                   {% if variant.ref_or_barcode %}
-                                    <span class="kt-badge kt-badge-primary kt-badge-outline rounded-[30px]">
+                                    <a href="{{ path('app_stock_products_variant_sticker', { id: variant.id }) }}" class="kt-badge kt-badge-primary kt-badge-outline rounded-[30px] hover:opacity-90">
                                       {{ variant.ref_or_barcode }}
-                                    </span>
+                                    </a>
                                   {% else %}
                                     <span class="kt-badge kt-badge-outline rounded-[30px]">
                                       {{ variant.name|default('-') }}
@@ -172,9 +172,9 @@
                           {% endif %}
                         {% else %}
                           {% if product.ref_or_barcode %}
-                            <span class="kt-badge kt-badge-primary kt-badge-outline rounded-[30px]">
+                            <a href="{{ path('app_stock_products_sticker', { id: product.id }) }}" class="kt-badge kt-badge-primary kt-badge-outline rounded-[30px] hover:opacity-90">
                               {{ product.ref_or_barcode }}
-                            </span>
+                            </a>
                           {% else %}
                             -
                           {% endif %}
@@ -232,15 +232,30 @@
                             </button>
                             <div class="kt-menu-dropdown kt-menu-default w-full max-w-[175px]" data-kt-menu-dismiss="true">
                               <div class="kt-menu-item">
-                                <span class="kt-menu-link opacity-60 cursor-not-allowed">
-                                  <span class="kt-menu-icon">
-                                    <i class="ki-filled ki-lock-2">
-                                    </i>
-                                  </span>
-                                  <span class="kt-menu-title">
-                                    À venir
-                                  </span>
-                                </span>
+                                {% if product.has_variants and product.variants is defined and product.variants|length > 0 %}
+                                  <div class="px-2 py-1 text-xs text-secondary-foreground">Imprimer sticker</div>
+                                  {% for variant in product.variants %}
+                                    {% if variant.id is not empty %}
+                                      <a class="kt-menu-link" href="{{ path('app_stock_products_variant_sticker', { id: variant.id }) }}">
+                                        <span class="kt-menu-icon">
+                                          <i class="ki-filled ki-printer"></i>
+                                        </span>
+                                        <span class="kt-menu-title">
+                                          {{ variant.ref_or_barcode ?: variant.name ?: 'Variante' }}
+                                        </span>
+                                      </a>
+                                    {% endif %}
+                                  {% endfor %}
+                                {% else %}
+                                  <a class="kt-menu-link" href="{{ path('app_stock_products_sticker', { id: product.id }) }}">
+                                    <span class="kt-menu-icon">
+                                      <i class="ki-filled ki-printer"></i>
+                                    </span>
+                                    <span class="kt-menu-title">
+                                      Imprimer sticker
+                                    </span>
+                                  </a>
+                                {% endif %}
                               </div>
                             </div>
                           </div>

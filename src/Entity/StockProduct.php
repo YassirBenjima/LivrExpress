@@ -36,6 +36,9 @@ class StockProduct
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $photoPath = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $qrCodePath = null;
+
     #[ORM\Column]
     private \DateTimeImmutable $createdAt;
 
@@ -144,6 +147,20 @@ class StockProduct
     {
         $photoPath = $photoPath !== null ? trim($photoPath) : null;
         $this->photoPath = $photoPath !== '' ? $photoPath : null;
+        $this->touch();
+
+        return $this;
+    }
+
+    public function getQrCodePath(): ?string
+    {
+        return $this->qrCodePath;
+    }
+
+    public function setQrCodePath(?string $qrCodePath): self
+    {
+        $qrCodePath = $qrCodePath !== null ? trim($qrCodePath) : null;
+        $this->qrCodePath = $qrCodePath !== '' ? $qrCodePath : null;
         $this->touch();
 
         return $this;

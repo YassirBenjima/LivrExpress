@@ -8,6 +8,8 @@
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     stock_products_upload_dir: '%kernel.project_dir%/public/uploads/stock-products'
+    stock_products_qr_upload_dir: '%kernel.project_dir%/public/uploads/stock-products-qr'
+    stock_products_sticker_logo_url: '%env(default::STOCK_PRODUCTS_STICKER_LOGO_URL)%'
 
 services:
     # default configuration for services in *this* file

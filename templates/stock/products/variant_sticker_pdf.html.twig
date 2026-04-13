@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sticker</title>
+  <style>
+    @page { size: 90mm 50mm; margin: 0; }
+    * { box-sizing: border-box; }
+    html, body { width: 90mm; height: 50mm; margin: 0; padding: 0; overflow: hidden; }
+    body { font-family: DejaVu Sans, Arial, sans-serif; color: #111827; }
+    .sticker {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 90mm;
+      height: 50mm;
+      padding: 4mm 4mm;
+      overflow: hidden;
+    }
+    .grid { width: 100%; height: 100%; }
+    .left { float: left; width: 38mm; height: 100%; }
+    .right { float: left; width: calc(100% - 38mm); height: 100%; padding-left: 3mm; }
+    .logo { max-width: 30mm; max-height: 10mm; margin-bottom: 2mm; display: block; }
+    .qr { width: 32mm; height: 32mm; display: block; }
+    .product { font-size: 11pt; font-weight: 700; margin: 0 0 2mm 0; }
+    ul { margin: 0; padding-left: 4mm; }
+    li { font-size: 9pt; margin: 0.6mm 0; }
+    .code { font-size: 16pt; letter-spacing: 0.6pt; font-weight: 800; margin-top: 2mm; }
+  </style>
+</head>
+<body>
+  <div class="sticker">
+    <div class="grid">
+      <div class="left">
+        {% if logo_url %}
+          <img class="logo" alt="Logo" src="{{ logo_url }}"/>
+        {% endif %}
+        {% if qr_data_uri %}
+          <img class="qr" alt="QR" src="{{ qr_data_uri }}"/>
+        {% else %}
+          <div style="color:#6b7280;font-size:9pt;">QR indisponible</div>
+        {% endif %}
+      </div>
+      <div class="right">
+        <div class="product">{{ product ? product.name : '-' }}</div>
+        <ul>
+          <li>{{ variant ? variant.name : '-' }}</li>
+          <li>{{ barcode ?: '-' }}</li>
+        </ul>
+        <div class="code">{{ barcode ?: '-' }}</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+

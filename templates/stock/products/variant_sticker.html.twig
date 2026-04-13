@@ -1,0 +1,79 @@
+{% extends 'base_dashboard.html.twig' %}
+
+{% block title %}Sticker variante - LivrExpress{% endblock %}
+
+{% block stylesheets %}
+  {{ parent() }}
+  <style>
+    @media print {
+      header, nav, aside, .dashboard-content-shift, .kt-container-fixed > .flex { display: none !important; }
+      main { padding: 0 !important; }
+    }
+    .sticker {
+      width: 90mm;
+      min-height: 50mm;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 14px 16px;
+      display: grid;
+      grid-template-columns: 1fr 1.1fr;
+      gap: 14px;
+      align-items: start;
+    }
+    .sticker .qr {
+      width: 220px;
+      max-width: 100%;
+      height: auto;
+      image-rendering: pixelated;
+      border-radius: 8px;
+    }
+    .sticker .code {
+      font-size: 30px;
+      letter-spacing: 1px;
+      font-weight: 800;
+      margin-top: 10px;
+    }
+  </style>
+{% endblock %}
+
+{% block body %}
+<main class="grow pt-5 dashboard-content-shift" id="content" role="content">
+  <div class="kt-container-fixed">
+    <div class="flex flex-wrap items-center lg:items-end justify-between gap-5 pb-7.5">
+      <div class="flex flex-col justify-center gap-2">
+        <h1 class="text-xl font-medium leading-none text-mono">Sticker variante</h1>
+        <div class="text-sm text-secondary-foreground">
+          {{ product ? product.name : '' }}{% if variant %} — {{ variant.name }}{% endif %}
+        </div>
+      </div>
+      <div class="flex items-center gap-2.5">
+        <button class="kt-btn kt-btn-outline kt-btn-primary" type="button" onclick="window.print()">Imprimer</button>
+      </div>
+    </div>
+
+    <div class="sticker">
+      <div>
+        {% if qr_image_url %}
+          <img class="qr" alt="QR" src="{{ qr_image_url }}"/>
+        {% elseif qr_data_uri %}
+          <img class="qr" alt="QR" src="{{ qr_data_uri }}"/>
+        {% else %}
+          <div class="text-secondary-foreground">QR indisponible</div>
+        {% endif %}
+      </div>
+      <div>
+        <div class="text-mono text-lg font-semibold">
+          {{ product ? product.name : '-' }}
+        </div>
+        <ul class="mt-3 text-mono text-sm text-foreground" style="list-style: disc; padding-left: 18px;">
+          <li>{{ variant ? variant.name : '-' }}</li>
+          <li>{{ barcode ?: '-' }}</li>
+        </ul>
+        <div class="code text-mono">{{ barcode ?: '-' }}</div>
+      </div>
+    </div>
+  </div>
+</main>
+{% endblock %}
+

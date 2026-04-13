@@ -5,7 +5,14 @@ namespace App\Controller;
 use App\Entity\StockProduct;
 use App\Entity\StockProductVariant;
 use App\Repository\StockProductRepository;
+use App\Repository\StockProductVariantRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Dompdf\Dompdf;
+use Dompdf\Options;
+use Endroid\QrCode\ErrorCorrectionLevel;
+use Endroid\QrCode\QrCode;
+use Endroid\QrCode\Encoding\Encoding;
+use Endroid\QrCode\Writer\PngWriter;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -53,6 +60,7 @@ final class StockController extends AbstractController
                     }
 
                     $variants[] = [
+                        'id' => $variant->getId(),
                         'name' => $variant->getName(),
                         'ref_or_barcode' => $variant->getBarcode() ?: null,
                         'qty_received' => 0,
@@ -62,6 +70,7 @@ final class StockController extends AbstractController
             }
 
             $products[] = [
+                'id' => $product->getId(),
                 'name' => $product->getName(),
                 'photo_url' => $product->getPhotoPath() ? '/' . ltrim($product->getPhotoPath(), '/') : null,
                 'ref_or_barcode' => $product->getBarcode() ?: null,
@@ -99,7 +108,9 @@ final class StockController extends AbstractController
     public function productsCreate(
         Request $request,
         EntityManagerInterface $entityManager,
-        #[Autowire('%stock_products_upload_dir%')] string $stock_products_upload_dir
+        StockProductVariantRepository $stockProductVariantRepository,
+        #[Autowire('%stock_products_upload_dir%')] string $stock_products_upload_dir,
+        #[Autowire('%stock_products_qr_upload_dir%')] string $stock_products_qr_upload_dir,
     ): Response
     {
         if (!$this->isCsrfTokenValid('stock_product_new', (string) $request->request->get('_token'))) {
@@ -112,7 +123,8 @@ final class StockController extends AbstractController
         $category = trim((string) $request->request->get('category', ''));
         $variantsEnabled = (bool) $request->request->get('variants_enabled');
 
-        $allowedCategories = ['generale', 'cosmetique', 'electronique', 'accessoire'];
+        // Category select in the form submits numeric IDs (1..11)
+        $allowedCategories = array_map('strval', range(1, 11));
         if ($name === '') {
             $this->addFlash('error', 'Le nom du produit est obligatoire.');
 
@@ -156,6 +168,9 @@ final class StockController extends AbstractController
 
                 $variant = new StockProductVariant($vName, $vQty);
                 $variant->setBarcode($vBarcode !== '' ? $vBarcode : null);
+                if ($variant->getBarcode() === null) {
+                    $variant->setBarcode($this->generateUniqueBarcode($entityManager, $stockProductVariantRepository));
+                }
                 $product->addVariant($variant);
             }
 
@@ -164,8 +179,16 @@ final class StockController extends AbstractController
 
                 return $this->redirectToRoute('app_stock_products_new');
             }
+
+            // Ensure product also has its own barcode (mandatory)
+            if ($product->getBarcode() === null) {
+                $product->setBarcode($this->generateUniqueBarcode($entityManager, $stockProductVariantRepository));
+            }
         } else {
             $product->setBarcode($request->request->get('barcode'));
+            if ($product->getBarcode() === null) {
+                $product->setBarcode($this->generateUniqueBarcode($entityManager, $stockProductVariantRepository));
+            }
 
             $qtyRaw = trim((string) $request->request->get('quantity', ''));
             if ($qtyRaw === '' || !ctype_digit($qtyRaw)) {
@@ -174,6 +197,15 @@ final class StockController extends AbstractController
                 return $this->redirectToRoute('app_stock_products_new');
             }
             $product->setQuantity((int) $qtyRaw);
+        }
+
+        // QR code is generated at creation time (mandatory)
+        $barcodeForQr = $product->getBarcode();
+        if ($barcodeForQr !== null) {
+            $qrPath = $this->generateQrPngPath($barcodeForQr, $stock_products_qr_upload_dir);
+            if ($qrPath !== '') {
+                $product->setQrCodePath($qrPath);
+            }
         }
 
         $photo = $request->files->get('photo');
@@ -218,6 +250,236 @@ final class StockController extends AbstractController
         $this->addFlash('success', 'Produit enregistré avec succès.');
 
         return $this->redirectToRoute('app_stock_products_index');
+    }
+
+    #[Route('/produits/variant/{id}/sticker', name: 'app_stock_products_variant_sticker', methods: ['GET'])]
+    public function productVariantSticker(
+        int $id,
+        StockProductVariantRepository $stockProductVariantRepository,
+        Request $request,
+        #[Autowire('%stock_products_sticker_logo_url%')] ?string $stickerLogoUrl,
+    ): Response {
+        $variant = $stockProductVariantRepository->find($id);
+        if (!$variant instanceof StockProductVariant) {
+            throw $this->createNotFoundException('Variante introuvable.');
+        }
+
+        $barcode = $variant->getBarcode() ?? '';
+        $qrDataUri = null;
+        if ($barcode !== '') {
+            $qrCode = new QrCode(
+                data: $barcode,
+                encoding: new Encoding('UTF-8'),
+                errorCorrectionLevel: ErrorCorrectionLevel::Low,
+                size: 220,
+                margin: 0,
+            );
+            $qrDataUri = (new PngWriter())->write($qrCode)->getDataUri();
+        }
+
+        if ($request->query->get('html') === '1') {
+            return $this->render('stock/products/variant_sticker.html.twig', [
+                'variant' => $variant,
+                'product' => $variant->getProduct(),
+                'barcode' => $barcode,
+                'qr_image_url' => null,
+                'qr_data_uri' => $qrDataUri,
+            ]);
+        }
+
+        return $this->renderStickerPdf(
+            product: $variant->getProduct(),
+            variant: $variant,
+            barcode: $barcode,
+            qrDataUri: $qrDataUri,
+            stickerLogoUrl: $stickerLogoUrl,
+            filename: sprintf('sticker-variant-%d.pdf', (int) $variant->getId()),
+        );
+    }
+
+    #[Route('/produits/variant/{id}/sticker.pdf', name: 'app_stock_products_variant_sticker_pdf', methods: ['GET'])]
+    public function productVariantStickerPdfRedirect(int $id): Response
+    {
+        return $this->redirectToRoute('app_stock_products_variant_sticker', ['id' => $id]);
+    }
+
+    #[Route('/produits/{id}/sticker', name: 'app_stock_products_sticker', methods: ['GET'])]
+    public function productSticker(
+        int $id,
+        StockProductRepository $stockProductRepository,
+        Request $request,
+        #[Autowire('%stock_products_sticker_logo_url%')] ?string $stickerLogoUrl,
+    ): Response {
+        $product = $stockProductRepository->find($id);
+        if (!$product instanceof StockProduct) {
+            throw $this->createNotFoundException('Produit introuvable.');
+        }
+
+        $barcode = $product->getBarcode() ?? '';
+        $qrImageUrl = $product->getQrCodePath() ? '/' . ltrim($product->getQrCodePath(), '/') : null;
+        $qrDataUri = null;
+        if ($qrImageUrl === null && $barcode !== '') {
+            $qrCode = new QrCode(
+                data: $barcode,
+                encoding: new Encoding('UTF-8'),
+                errorCorrectionLevel: ErrorCorrectionLevel::Low,
+                size: 220,
+                margin: 0,
+            );
+            $qrDataUri = (new PngWriter())->write($qrCode)->getDataUri();
+        }
+
+        if ($request->query->get('html') === '1') {
+            return $this->render('stock/products/variant_sticker.html.twig', [
+                'variant' => null,
+                'product' => $product,
+                'barcode' => $barcode,
+                'qr_image_url' => $qrImageUrl,
+                'qr_data_uri' => $qrDataUri,
+            ]);
+        }
+
+        // For the PDF we always embed as data-uri (Dompdf safe).
+        if ($qrImageUrl !== null && $barcode !== '') {
+            // Try to reuse the stored PNG; if not readable, fallback.
+            $abs = $this->getParameter('kernel.project_dir') . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . ltrim($product->getQrCodePath() ?? '', '/\\');
+            if (is_file($abs)) {
+                $bytes = @file_get_contents($abs);
+                if (is_string($bytes) && $bytes !== '') {
+                    $qrDataUri = 'data:image/png;base64,' . base64_encode($bytes);
+                }
+            }
+            if ($qrDataUri === null) {
+                $qrCode = new QrCode(
+                    data: $barcode,
+                    encoding: new Encoding('UTF-8'),
+                    errorCorrectionLevel: ErrorCorrectionLevel::Low,
+                    size: 220,
+                    margin: 0,
+                );
+                $qrDataUri = (new PngWriter())->write($qrCode)->getDataUri();
+            }
+        }
+
+        return $this->renderStickerPdf(
+            product: $product,
+            variant: null,
+            barcode: $barcode,
+            qrDataUri: $qrDataUri,
+            stickerLogoUrl: $stickerLogoUrl,
+            filename: sprintf('sticker-product-%d.pdf', (int) $product->getId()),
+        );
+    }
+
+    #[Route('/produits/{id}/sticker.pdf', name: 'app_stock_products_sticker_pdf', methods: ['GET'])]
+    public function productStickerPdfRedirect(int $id): Response
+    {
+        return $this->redirectToRoute('app_stock_products_sticker', ['id' => $id]);
+    }
+
+    private function renderStickerPdf(
+        ?StockProduct $product,
+        ?StockProductVariant $variant,
+        string $barcode,
+        ?string $qrDataUri,
+        ?string $stickerLogoUrl,
+        string $filename,
+    ): Response {
+        $html = $this->renderView('stock/products/variant_sticker_pdf.html.twig', [
+            'variant' => $variant,
+            'product' => $product,
+            'barcode' => $barcode,
+            'qr_data_uri' => $qrDataUri,
+            'logo_url' => $stickerLogoUrl !== null && trim($stickerLogoUrl) !== '' ? $stickerLogoUrl : null,
+        ]);
+
+        $options = new Options();
+        $options->set('isRemoteEnabled', true);
+        $options->set('isHtml5ParserEnabled', true);
+
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html, 'UTF-8');
+        // Force single-page sticker size: 90mm x 50mm
+        $wPt = (90 / 25.4) * 72;
+        $hPt = (50 / 25.4) * 72;
+        $dompdf->setPaper([0, 0, $wPt, $hPt]);
+        $dompdf->render();
+
+        $pdf = $dompdf->output();
+
+        return new Response($pdf, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $filename . '"',
+            'Cache-Control' => 'private, max-age=0, must-revalidate',
+        ]);
+    }
+
+    private function generateUniqueBarcode(
+        EntityManagerInterface $entityManager,
+        StockProductVariantRepository $stockProductVariantRepository,
+    ): string {
+        // Short, printable, case-insensitive code: 8 chars base32-ish
+        // Example: 1762V3A9
+        $alphabet = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+        $maxAttempts = 25;
+
+        for ($i = 0; $i < $maxAttempts; $i++) {
+            $code = '';
+            $alphaLen = strlen($alphabet);
+            for ($j = 0; $j < 8; $j++) {
+                $code .= $alphabet[random_int(0, $alphaLen - 1)];
+            }
+
+            // uniqueness against both product.barcode and variant.barcode
+            $existsInVariants = $stockProductVariantRepository->count(['barcode' => $code]) > 0;
+            if ($existsInVariants) {
+                continue;
+            }
+            $existsInProducts = (int) $entityManager->createQueryBuilder()
+                ->select('COUNT(p.id)')
+                ->from(StockProduct::class, 'p')
+                ->where('p.barcode = :code')
+                ->setParameter('code', $code)
+                ->getQuery()
+                ->getSingleScalarResult() > 0;
+            if ($existsInProducts) {
+                continue;
+            }
+
+            return $code;
+        }
+
+        // Fallback (should never happen)
+        return strtoupper(bin2hex(random_bytes(4)));
+    }
+
+    private function generateQrPngPath(string $barcode, string $qrUploadDir): string
+    {
+        if (!is_dir($qrUploadDir) && !@mkdir($qrUploadDir, 0775, true) && !is_dir($qrUploadDir)) {
+            // If the folder can't be created, keep the app functional.
+            return '';
+        }
+
+        $safe = preg_replace('/[^a-zA-Z0-9_-]+/', '-', $barcode) ?? 'qr';
+        $safe = trim($safe, '-');
+        if ($safe === '') {
+            $safe = 'qr';
+        }
+        $filename = sprintf('product-%s.png', $safe);
+        $absolutePath = rtrim($qrUploadDir, "\\/") . DIRECTORY_SEPARATOR . $filename;
+
+        $qrCode = new QrCode(
+            data: $barcode,
+            encoding: new Encoding('UTF-8'),
+            errorCorrectionLevel: ErrorCorrectionLevel::Low,
+            size: 400,
+            margin: 0,
+        );
+
+        $png = (new PngWriter())->write($qrCode)->getString();
+        @file_put_contents($absolutePath, $png);
+
+        return 'uploads/stock-products-qr/' . $filename;
     }
 }
 
