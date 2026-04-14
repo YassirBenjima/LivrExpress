@@ -186,6 +186,11 @@ final class ColisController extends AbstractController
                 return false;
             }
 
+            // Business rule: Colis pickup page shows only "Colis Simple".
+            if ($colis->getType() !== Colis::TYPE_SIMPLE) {
+                return false;
+            }
+
             if ($selectedEtat !== '' && $etat !== $selectedEtat) {
                 return false;
             }
@@ -431,11 +436,27 @@ final class ColisController extends AbstractController
         }
 
         $headers = array_shift($rows);
+        if (!\is_array($headers)) {
+            $this->addFlash('error', 'Le fichier est invalide (en-têtes manquants).');
+
+            return $this->json([
+                'success' => false,
+                'error' => 'Le fichier est invalide (en-têtes manquants).',
+            ], Response::HTTP_BAD_REQUEST);
+        }
         $importedCount = 0;
         $errors = [];
 
         foreach ($rows as $index => $row) {
+            if (!\is_array($row)) {
+                $errors[] = sprintf("Ligne %d : Format invalide.", $index + 2);
+                continue;
+            }
             $data = array_combine($headers, $row);
+            if (!\is_array($data)) {
+                $errors[] = sprintf("Ligne %d : Format invalide.", $index + 2);
+                continue;
+            }
             
             // Minimal validation
             if (empty($data['N° Commande']) || empty($data['Ville']) || empty($data['Prix (DH)'])) {

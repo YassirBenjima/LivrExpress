@@ -2,11 +2,13 @@
 
 namespace App\Controller;
 
+use App\Entity\Colis;
 use App\Entity\PickupRequest;
 use App\Entity\StockProduct;
 use App\Entity\StockProductVariant;
 use App\Entity\User;
 use App\Repository\CityRepository;
+use App\Repository\ColisRepository;
 use App\Repository\PickupRequestRepository;
 use App\Repository\StockProductRepository;
 use App\Repository\StockProductVariantRepository;
@@ -30,6 +32,95 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[Route('/stock')]
 final class StockController extends AbstractController
 {
+    #[Route('/colis', name: 'app_stock_colis_pickup', methods: ['GET'])]
+    public function colisPickup(Request $request, ColisRepository $colisRepository): Response
+    {
+        $search = trim((string) $request->query->get('q', ''));
+        $selectedEtat = self::normalizeEtat(trim((string) $request->query->get('etat', '')));
+        $selectedStatut = self::normalizeStatut(trim((string) $request->query->get('statut', '')));
+
+        $colisList = $colisRepository->findBy([], ['id' => 'DESC']);
+        $colisList = array_values(array_filter($colisList, static function (Colis $colis) use ($search, $selectedEtat, $selectedStatut): bool {
+            $etat = self::normalizeEtat((string) ($colis->getEtat() ?? Colis::ETAT_CREE));
+            $statut = self::normalizeStatut((string) ($colis->getStatut() ?? Colis::STATUT_EN_ATTENTE));
+
+            // Same "pour ramassage" logic: only waiting packages.
+            if ($statut !== Colis::STATUT_EN_ATTENTE) {
+                return false;
+            }
+
+            // Business rule: Stock pickup page shows only "Colis du stock".
+            if ($colis->getType() !== Colis::TYPE_STOCK) {
+                return false;
+            }
+
+            if ($selectedEtat !== '' && $etat !== $selectedEtat) {
+                return false;
+            }
+
+            if ($selectedStatut !== '' && $statut !== $selectedStatut) {
+                return false;
+            }
+
+            if ($search === '') {
+                return true;
+            }
+
+            $haystack = mb_strtolower(implode(' ', [
+                (string) $colis->getTrackingCode(),
+                (string) $colis->getOrderNumber(),
+                (string) $colis->getProductNature(),
+                (string) $colis->getCity(),
+                (string) $colis->getAddress(),
+                (string) $colis->getRecipient(),
+                $etat,
+                $statut,
+            ]));
+
+            return str_contains($haystack, mb_strtolower($search));
+        }));
+
+        $pickupEtats = [];
+        $pickupStatuts = [];
+        foreach ($colisList as $colis) {
+            $etat = self::normalizeEtat((string) ($colis->getEtat() ?? Colis::ETAT_CREE));
+            $statut = self::normalizeStatut((string) ($colis->getStatut() ?? Colis::STATUT_EN_ATTENTE));
+            $pickupEtats[$etat] = $etat;
+            $pickupStatuts[$statut] = $statut;
+        }
+
+        return $this->render('stock/colis/pickup.html.twig', [
+            'colis_list' => $colisList,
+            'etats_possibles' => array_values($pickupEtats),
+            'statuts_possibles' => array_values($pickupStatuts),
+            'search_query' => $search,
+            'selected_etat' => $selectedEtat,
+            'selected_statut' => $selectedStatut,
+        ]);
+    }
+
+    private static function normalizeEtat(string $etat): string
+    {
+        return match ($etat) {
+            'Cree' => Colis::ETAT_CREE,
+            'En preparation' => Colis::ETAT_EN_PREPARATION,
+            'Expedie' => Colis::ETAT_EXPEDIE,
+            'Livre' => Colis::ETAT_LIVRE,
+            'Retour' => Colis::ETAT_RETOUR,
+            default => $etat,
+        };
+    }
+
+    private static function normalizeStatut(string $statut): string
+    {
+        return match ($statut) {
+            'Reporte' => Colis::STATUT_REPORTE,
+            'Echec' => Colis::STATUT_ECHEC,
+            'Termine' => Colis::STATUT_TERMINE,
+            default => $statut,
+        };
+    }
+
     #[Route('/produits', name: 'app_stock_products_index', methods: ['GET'])]
     public function productsIndex(
         Request $request,
