@@ -10,6 +10,7 @@
 {% block javascripts %}
   {{ parent() }}
   <script src="{{ asset('assets/js/stock-products.js?v=2') }}"></script>
+  <script src="{{ asset('assets/js/stock-entry-pickup.js?v=1') }}"></script>
   <script>
     (function () {
       const select = document.getElementById('stock_entry_products_select');
@@ -250,9 +251,16 @@
               </label>
             </div>
             <div class="flex flex-wrap gap-2.5">
-              <a class="kt-btn kt-btn-outline kt-btn-primary" href="{{ path('app_stock_products_index') }}">
-                Nouvelle demande de ramassage
-              </a>
+              <button
+                id="stock-entry-bulk-pickup-btn"
+                class="kt-btn kt-btn-outline kt-btn-primary"
+                type="button"
+                disabled
+                data-kt-modal-toggle="#stock_entry_pickup_request_modal"
+                data-stock-entry-pickup-open="true"
+              >
+                Demande de ramassage
+              </button>
               <button class="kt-btn kt-btn-outline kt-btn-primary" type="submit">
                 <i class="ki-filled ki-setting-4"></i>
                 Filtrer
@@ -270,6 +278,9 @@
               <table class="kt-table table-auto kt-table-border" data-kt-datatable-table="true">
                 <thead>
                   <tr>
+                    <th class="w-[50px]">
+                      <input class="kt-checkbox kt-checkbox-sm" data-kt-datatable-check="true" type="checkbox"/>
+                    </th>
                     <th class="min-w-[180px]">
                       <span class="kt-table-col">
                         <span class="kt-table-col-label">Réf</span>
@@ -328,6 +339,14 @@
                       {% set statusBadgeClass = 'kt-badge-destructive' %}
                     {% endif %}
                     <tr>
+                      <td>
+                        <input
+                          class="kt-checkbox kt-checkbox-sm stock-entry-row-checkbox"
+                          data-kt-datatable-row-check="true"
+                          type="checkbox"
+                          value="{{ m.id }}"
+                        />
+                      </td>
                       <td class="text-foreground font-medium">
                         {{ m.reference|default('-') }}
                       </td>
@@ -383,7 +402,7 @@
                     </tr>
                   {% else %}
                     <tr>
-                      <td colspan="6" class="text-secondary-foreground text-center py-8">
+                      <td colspan="7" class="text-secondary-foreground text-center py-8">
                         Aucun mouvement trouvé.
                       </td>
                     </tr>
@@ -410,5 +429,7 @@
     </div>
   </div>
 </main>
+
+{% include 'stock/entry/_pickup_request_modal.html.twig' %}
 {% endblock %}
 

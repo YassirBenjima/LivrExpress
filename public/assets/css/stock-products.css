@@ -6,8 +6,18 @@
   max-width: 95vw !important;
 }
 
+#stock_entry_pickup_request_modal .kt-modal-content {
+  width: 95vw !important;
+  max-width: 95vw !important;
+}
+
 @media (min-width: 1024px) {
   #pickup_request_modal .kt-modal-content {
+    width: 60vw !important;
+    max-width: 60vw !important;
+  }
+
+  #stock_entry_pickup_request_modal .kt-modal-content {
     width: 60vw !important;
     max-width: 60vw !important;
   }
@@ -19,6 +29,16 @@
 #pickup_request_modal .ts-dropdown-content,
 #pickup_request_modal .select2-results__options,
 #pickup_request_modal .choices__list--dropdown .choices__list {
+  max-height: 220px !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+}
+
+#stock_entry_pickup_request_modal [role="listbox"],
+#stock_entry_pickup_request_modal .ts-dropdown,
+#stock_entry_pickup_request_modal .ts-dropdown-content,
+#stock_entry_pickup_request_modal .select2-results__options,
+#stock_entry_pickup_request_modal .choices__list--dropdown .choices__list {
   max-height: 220px !important;
   overflow-y: auto !important;
   overscroll-behavior: contain;

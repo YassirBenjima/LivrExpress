@@ -27,6 +27,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -40,6 +41,7 @@ final class StockController extends AbstractController
         Request $request,
         StockMovementRepository $stockMovementRepository,
         EntityManagerInterface $entityManager,
+        CityRepository $cityRepository,
     ): Response
     {
         $search = trim((string) $request->query->get('q', ''));
@@ -78,11 +80,197 @@ final class StockController extends AbstractController
             ];
         }
 
+        $cities = [];
+        foreach ($cityRepository->findBy([], ['name' => 'ASC']) as $city) {
+            $cities[] = (string) $city->getName();
+        }
+
+        $user = $this->getUser();
+        $defaultCity = $user instanceof User ? (string) ($user->getCity() ?? '') : '';
+
         return $this->render('stock/entry/index.html.twig', [
             'movements' => $rows,
             'search_query' => $search,
             'products_for_entry' => $this->buildProductsForStockEntry($entityManager),
+            'cities' => $cities,
+            'default_city' => $defaultCity,
         ]);
+    }
+
+    #[Route('/entree/pickup-request/modal-data', name: 'app_stock_entry_pickup_request_modal_data', methods: ['GET'])]
+    public function stockEntryPickupRequestModalData(
+        Request $request,
+        StockMovementRepository $stockMovementRepository,
+    ): JsonResponse {
+        $idsRaw = trim((string) $request->query->get('ids', ''));
+        $ids = $idsRaw !== '' ? array_values(array_filter(array_map(
+            static fn (string $v): int => ctype_digit($v) ? (int) $v : 0,
+            array_map('trim', explode(',', $idsRaw))
+        ), static fn (int $v): bool => $v > 0)) : [];
+
+        if ($ids === []) {
+            return new JsonResponse(['error' => 'Aucun mouvement sélectionné.'], 400);
+        }
+
+        $movements = $stockMovementRepository->findEntryMovementsByIdsForPickupRequest($ids);
+        if ($movements === []) {
+            return new JsonResponse(['error' => 'Mouvements introuvables.'], 404);
+        }
+
+        $lines = [];
+        foreach ($movements as $m) {
+            if (!$m instanceof StockMovement) {
+                continue;
+            }
+            $productNames = [];
+            foreach ($m->getItems() as $item) {
+                $name = $item->getVariant()?->getProduct()?->getName();
+                if (is_string($name) && $name !== '') {
+                    $productNames[$name] = true;
+                }
+            }
+            $names = array_keys($productNames);
+            sort($names);
+            $lines[] = sprintf(
+                '%s — %s',
+                $m->getReference(),
+                $names !== [] ? implode(', ', array_slice($names, 0, 8)) . (count($names) > 8 ? ' …' : '') : '-'
+            );
+        }
+
+        return new JsonResponse([
+            'summary' => implode("\n", $lines),
+            'count' => count($movements),
+        ]);
+    }
+
+    #[Route('/entree/pickup-request', name: 'app_stock_entry_pickup_request', methods: ['POST'])]
+    public function stockEntryPickupRequestCreate(
+        Request $request,
+        StockMovementRepository $stockMovementRepository,
+        PickupRequestRepository $pickupRequestRepository,
+        CityRepository $cityRepository,
+        EntityManagerInterface $entityManager,
+    ): Response {
+        if (!$this->isCsrfTokenValid('stock_entry_pickup_request', (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Jeton CSRF invalide.');
+
+            return $this->redirectToRoute('app_stock_entry_index');
+        }
+
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            $this->addFlash('error', 'Vous devez être connecté pour effectuer cette action.');
+
+            return $this->redirectToRoute('app_login');
+        }
+
+        /** @var list<mixed> $movementIdsRaw */
+        $movementIdsRaw = $request->request->all('movementIds');
+        $movementIds = array_values(array_filter(array_map(
+            static fn ($v): int => is_scalar($v) && ctype_digit((string) $v) ? (int) $v : 0,
+            $movementIdsRaw
+        ), static fn (int $v): bool => $v > 0));
+
+        if ($movementIds === []) {
+            $this->addFlash('error', 'Veuillez sélectionner au moins un mouvement.');
+
+            return $this->redirectToRoute('app_stock_entry_index');
+        }
+
+        $city = trim((string) $request->request->get('city', ''));
+        $neighborhood = trim((string) $request->request->get('neighborhood', ''));
+        $address = trim((string) $request->request->get('address', ''));
+        $phone = trim((string) $request->request->get('phone', ''));
+        $note = trim((string) $request->request->get('note', ''));
+
+        if ($city === '') {
+            $this->addFlash('error', 'La ville est obligatoire.');
+
+            return $this->redirectToRoute('app_stock_entry_index');
+        }
+        if ($cityRepository->count(['name' => $city]) === 0) {
+            $this->addFlash('error', 'Veuillez choisir une ville valide.');
+
+            return $this->redirectToRoute('app_stock_entry_index');
+        }
+        if ($neighborhood === '') {
+            $this->addFlash('error', 'Le quartier est obligatoire.');
+
+            return $this->redirectToRoute('app_stock_entry_index');
+        }
+        if ($address === '') {
+            $this->addFlash('error', 'L’adresse est obligatoire.');
+
+            return $this->redirectToRoute('app_stock_entry_index');
+        }
+        if ($phone === '') {
+            $this->addFlash('error', 'Le téléphone est obligatoire.');
+
+            return $this->redirectToRoute('app_stock_entry_index');
+        }
+
+        $movements = $stockMovementRepository->findEntryMovementsByIdsForPickupRequest($movementIds);
+        if ($movements === []) {
+            $this->addFlash('error', 'Mouvements introuvables.');
+
+            return $this->redirectToRoute('app_stock_entry_index');
+        }
+
+        $productsById = [];
+        foreach ($movements as $m) {
+            foreach ($m->getItems() as $item) {
+                $product = $item->getVariant()?->getProduct();
+                if ($product instanceof StockProduct && $product->getId() !== null) {
+                    $productsById[(int) $product->getId()] = $product;
+                }
+            }
+        }
+
+        $productIds = array_keys($productsById);
+        if ($productIds === []) {
+            $this->addFlash('warning', 'Aucun produit trouvé pour les mouvements sélectionnés.');
+
+            return $this->redirectToRoute('app_stock_entry_index');
+        }
+
+        $alreadyPending = $pickupRequestRepository->findProductIdsWithPendingRequests($productIds);
+        $alreadyPendingSet = array_fill_keys($alreadyPending, true);
+
+        $created = 0;
+        $skipped = 0;
+        foreach ($productsById as $pid => $product) {
+            if (isset($alreadyPendingSet[$pid])) {
+                $skipped++;
+                continue;
+            }
+
+            $pickupRequest = new PickupRequest();
+            $pickupRequest->setProduct($product);
+            $pickupRequest->setProductNameSnapshot($product->getName());
+            $pickupRequest->setCity($city);
+            $pickupRequest->setNeighborhood($neighborhood);
+            $pickupRequest->setAddress($address);
+            $pickupRequest->setPhone($phone);
+            $pickupRequest->setNote($note !== '' ? $note : null);
+            $pickupRequest->setHasLabels(true);
+            $pickupRequest->setCreatedBy($user);
+            $pickupRequest->setStatus('pending');
+
+            $entityManager->persist($pickupRequest);
+            $created++;
+        }
+
+        $entityManager->flush();
+
+        if ($created > 0) {
+            $this->addFlash('success', sprintf('Demande(s) de ramassage créée(s): %d.', $created));
+        }
+        if ($skipped > 0) {
+            $this->addFlash('warning', sprintf('Produit(s) ignoré(s) (déjà en attente): %d.', $skipped));
+        }
+
+        return $this->redirectToRoute('app_stock_entry_index');
     }
 
     #[Route('/entree/save', name: 'app_stock_entry_save', methods: ['POST'])]

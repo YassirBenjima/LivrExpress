@@ -1,4 +1,4 @@
-<div class="kt-modal" data-kt-modal="true" id="pickup_request_modal">
+<div class="kt-modal" data-kt-modal="true" id="stock_entry_pickup_request_modal">
   <div class="kt-modal-content top-5 lg:top-[10%]">
     <div class="kt-modal-header">
       <h3 class="kt-modal-title">
@@ -10,15 +10,24 @@
     </div>
 
     <div class="kt-modal-body px-5 py-5">
-      <form id="pickup-request-form" action="#" method="post">
-        <input type="hidden" id="pickup_request_product_id" name="product_id" value=""/>
-        <input type="hidden" id="pickup_request_token" name="_token" value=""/>
+      <form id="stock-entry-pickup-request-form" action="{{ path('app_stock_entry_pickup_request') }}" method="post">
+        <input type="hidden" name="_token" value="{{ csrf_token('stock_entry_pickup_request') }}"/>
+        <div id="stock-entry-pickup-hidden-inputs"></div>
 
         <div class="grid grid-cols-1 gap-4">
           <div class="grid grid-cols-1 gap-1.5">
-            <label class="text-sm font-medium text-mono">Produit</label>
+            <label class="text-sm font-medium text-mono">Produit(s)</label>
             <label class="kt-input">
-              <input id="pickup_request_product" name="product" type="text" placeholder="Produit" value="" readonly="readonly" aria-readonly="true"/>
+              <input
+                id="stock-entry-pickup-products"
+                class="w-full bg-transparent outline-none"
+                name="products_readonly"
+                type="text"
+                placeholder="Produits"
+                value=""
+                readonly="readonly"
+                aria-readonly="true"
+              />
             </label>
           </div>
 
@@ -55,19 +64,11 @@
             </label>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="grid grid-cols-1 gap-1.5">
-              <label class="text-sm font-medium text-mono">Téléphone</label>
-              <label class="kt-input">
-                <input name="phone" type="text" placeholder="Téléphone" value=""/>
-              </label>
-            </div>
-            <div class="grid grid-cols-1 gap-1.5">
-              <label class="text-sm font-medium text-mono">Téléphone (Fournisseur)</label>
-              <label class="kt-input">
-                <input name="supplier_phone" type="text" placeholder="Téléphone (Fournisseur)" value=""/>
-              </label>
-            </div>
+          <div class="grid grid-cols-1 gap-1.5">
+            <label class="text-sm font-medium text-mono">Téléphone</label>
+            <label class="kt-input">
+              <input name="phone" type="text" placeholder="Téléphone" value=""/>
+            </label>
           </div>
 
           <div class="grid grid-cols-1 gap-1.5">
@@ -75,14 +76,6 @@
             <label class="kt-input">
               <input class="w-full bg-transparent outline-none" name="note" type="text" placeholder="Note & Remarque" value=""/>
             </label>
-          </div>
-
-          <div class="grid grid-cols-1 gap-1.5">
-            <label class="text-sm font-medium text-mono">Vous avez les étiquettes</label>
-            <select class="kt-select" data-kt-select="true" name="has_labels">
-              <option value="1" selected>Oui</option>
-              <option value="0">Non</option>
-            </select>
           </div>
 
           <div class="flex items-center justify-end gap-2 pt-2">

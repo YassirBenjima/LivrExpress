@@ -45,6 +45,37 @@ final class StockMovementRepository extends ServiceEntityRepository
         return $rows;
     }
 
+    /**
+     * @param list<int> $ids
+     *
+     * @return list<StockMovement>
+     */
+    public function findEntryMovementsByIdsForPickupRequest(array $ids): array
+    {
+        $ids = array_values(array_filter(array_map('intval', $ids), static fn (int $v): bool => $v > 0));
+        if ($ids === []) {
+            return [];
+        }
+
+        /** @var list<StockMovement> $rows */
+        $rows = $this->createQueryBuilder('m')
+            ->leftJoin('m.items', 'i')
+            ->addSelect('i')
+            ->leftJoin('i.variant', 'v')
+            ->addSelect('v')
+            ->leftJoin('v.product', 'p')
+            ->addSelect('p')
+            ->andWhere('m.direction = :dir')
+            ->andWhere('m.id IN (:ids)')
+            ->setParameter('dir', StockMovement::DIRECTION_ENTRY)
+            ->setParameter('ids', $ids)
+            ->orderBy('m.id', 'DESC')
+            ->getQuery()
+            ->getResult();
+
+        return $rows;
+    }
+
     public function existsReference(string $reference): bool
     {
         return $this->createQueryBuilder('m')
