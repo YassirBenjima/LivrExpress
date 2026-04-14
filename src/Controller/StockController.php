@@ -10,6 +10,7 @@ use App\Repository\CityRepository;
 use App\Repository\PickupRequestRepository;
 use App\Repository\StockProductRepository;
 use App\Repository\StockProductVariantRepository;
+use App\Service\StockProductMediaManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Dompdf\Dompdf;
 use Dompdf\Options;
@@ -238,8 +239,7 @@ final class StockController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager,
         StockProductVariantRepository $stockProductVariantRepository,
-        #[Autowire('%stock_products_upload_dir%')] string $stock_products_upload_dir,
-        #[Autowire('%stock_products_qr_upload_dir%')] string $stock_products_qr_upload_dir,
+        StockProductMediaManager $mediaManager,
     ): Response
     {
         if (!$this->isCsrfTokenValid('stock_product_new', (string) $request->request->get('_token'))) {
@@ -328,15 +328,6 @@ final class StockController extends AbstractController
             $product->setQuantity((int) $qtyRaw);
         }
 
-        // QR code is generated at creation time (mandatory)
-        $barcodeForQr = $product->getBarcode();
-        if ($barcodeForQr !== null) {
-            $qrPath = $this->generateQrPngPath($barcodeForQr, $stock_products_qr_upload_dir);
-            if ($qrPath !== '') {
-                $product->setQrCodePath($qrPath);
-            }
-        }
-
         $photo = $request->files->get('photo');
         if ($photo instanceof UploadedFile) {
             if (!$photo->isValid()) {
@@ -351,30 +342,35 @@ final class StockController extends AbstractController
 
                 return $this->redirectToRoute('app_stock_products_new');
             }
-
-            if (!is_dir($stock_products_upload_dir) && !@mkdir($stock_products_upload_dir, 0775, true) && !is_dir($stock_products_upload_dir)) {
-                $this->addFlash('error', 'Impossible de créer le dossier de stockage des images.');
-
-                return $this->redirectToRoute('app_stock_products_new');
-            }
-
-            $ext = $photo->guessExtension() ?: 'bin';
-            // Same naming format as user avatars: <safe-base>-<uniqid>.<ext>
-            // Keep it consistent for the whole app, and avoid collisions.
-            $base = pathinfo($photo->getClientOriginalName(), PATHINFO_FILENAME) ?: 'product';
-            $base = preg_replace('/[^a-zA-Z0-9]+/', '-', $base) ?? 'product';
-            $base = trim(strtolower($base), '-');
-            if ($base === '') {
-                $base = 'product';
-            }
-            $filename = sprintf('%s-%s.%s', $base, uniqid(), $ext);
-
-            $photo->move($stock_products_upload_dir, $filename);
-            $product->setPhotoPath('uploads/stock-products/' . $filename);
         }
 
         $entityManager->persist($product);
-        $entityManager->flush();
+
+        $newPhotoPath = null;
+        $newQrPath = null;
+        try {
+            if ($photo instanceof UploadedFile) {
+                $newPhotoPath = $mediaManager->uploadProductPhoto($photo);
+                $product->setPhotoPath($newPhotoPath);
+            }
+
+            // QR code is generated at creation time (mandatory)
+            $barcodeForQr = $product->getBarcode();
+            if ($barcodeForQr !== null) {
+                $newQrPath = $mediaManager->generateProductQrPng($barcodeForQr);
+                $product->setQrCodePath($newQrPath);
+            }
+
+            $entityManager->flush();
+        } catch (\Throwable $e) {
+            // Cleanup any new file created during this request to avoid orphans.
+            $mediaManager->deletePublicFileSafely($newPhotoPath);
+            $mediaManager->deletePublicFileSafely($newQrPath);
+
+            $this->addFlash('error', 'Erreur lors de l’enregistrement du produit.');
+
+            return $this->redirectToRoute('app_stock_products_new');
+        }
 
         $this->addFlash('success', 'Produit enregistré avec succès.');
 
@@ -404,7 +400,7 @@ final class StockController extends AbstractController
         StockProductRepository $stockProductRepository,
         StockProductVariantRepository $stockProductVariantRepository,
         EntityManagerInterface $entityManager,
-        #[Autowire('%stock_products_upload_dir%')] string $stock_products_upload_dir,
+        StockProductMediaManager $mediaManager,
     ): Response {
         $product = $stockProductRepository->find($id);
         if (!$product instanceof StockProduct) {
@@ -434,6 +430,9 @@ final class StockController extends AbstractController
 
             return $this->redirectToRoute('app_stock_products_edit', ['id' => $product->getId()]);
         }
+
+        $oldPhotoPath = $product->getPhotoPath();
+        $oldQrPath = $product->getQrCodePath();
 
         $product->setName($name);
         $product->setCategory($category);
@@ -515,26 +514,42 @@ final class StockController extends AbstractController
 
                 return $this->redirectToRoute('app_stock_products_edit', ['id' => $product->getId()]);
             }
-
-            if (!is_dir($stock_products_upload_dir) && !@mkdir($stock_products_upload_dir, 0775, true) && !is_dir($stock_products_upload_dir)) {
-                $this->addFlash('error', 'Impossible de créer le dossier de stockage des images.');
-
-                return $this->redirectToRoute('app_stock_products_edit', ['id' => $product->getId()]);
-            }
-
-            $ext = $photo->guessExtension() ?: 'bin';
-            $base = pathinfo($photo->getClientOriginalName(), PATHINFO_FILENAME) ?: 'product';
-            $base = preg_replace('/[^a-zA-Z0-9]+/', '-', $base) ?? 'product';
-            $base = trim(strtolower($base), '-');
-            if ($base === '') {
-                $base = 'product';
-            }
-            $filename = sprintf('%s-%s.%s', $base, uniqid(), $ext);
-            $photo->move($stock_products_upload_dir, $filename);
-            $product->setPhotoPath('uploads/stock-products/' . $filename);
         }
 
-        $entityManager->flush();
+        $newPhotoPath = null;
+        $newQrPath = null;
+        try {
+            if ($photo instanceof UploadedFile) {
+                $newPhotoPath = $mediaManager->uploadProductPhoto($photo);
+                $product->setPhotoPath($newPhotoPath);
+            }
+
+            // Always regenerate QR on every update (simple + avoids stale QR payload).
+            $barcodeForQr = $product->getBarcode();
+            if ($barcodeForQr !== null) {
+                $newQrPath = $mediaManager->generateProductQrPng($barcodeForQr);
+                $product->setQrCodePath($newQrPath);
+            }
+
+            $entityManager->flush();
+        } catch (\Throwable $e) {
+            // Cleanup any new file created during this request to avoid orphans.
+            $mediaManager->deletePublicFileSafely($newPhotoPath);
+            $mediaManager->deletePublicFileSafely($newQrPath);
+
+            $this->addFlash('error', 'Erreur lors de la modification du produit.');
+
+            return $this->redirectToRoute('app_stock_products_edit', ['id' => $product->getId()]);
+        }
+
+        // Delete replaced files after a successful flush (atomic-ish).
+        if ($newPhotoPath !== null && $oldPhotoPath !== null && $oldPhotoPath !== $newPhotoPath) {
+            $mediaManager->deletePublicFileSafely($oldPhotoPath);
+        }
+        if ($newQrPath !== null && $oldQrPath !== null && $oldQrPath !== $newQrPath) {
+            $mediaManager->deletePublicFileSafely($oldQrPath);
+        }
+
         $this->addFlash('success', 'Produit modifié avec succès.');
 
         return $this->redirectToRoute('app_stock_products_index');
@@ -546,6 +561,7 @@ final class StockController extends AbstractController
         Request $request,
         StockProductRepository $stockProductRepository,
         EntityManagerInterface $entityManager,
+        StockProductMediaManager $mediaManager,
     ): Response {
         $product = $stockProductRepository->find($id);
         if (!$product instanceof StockProduct) {
@@ -560,8 +576,21 @@ final class StockController extends AbstractController
             return $this->redirectToRoute('app_stock_products_index');
         }
 
+        $oldPhotoPath = $product->getPhotoPath();
+        $oldQrPath = $product->getQrCodePath();
+
         $entityManager->remove($product);
-        $entityManager->flush();
+        try {
+            $entityManager->flush();
+        } catch (\Throwable $e) {
+            $this->addFlash('error', 'Erreur lors de la suppression du produit.');
+
+            return $this->redirectToRoute('app_stock_products_index');
+        }
+
+        // Best effort cleanup after DB success.
+        $mediaManager->deletePublicFileSafely($oldPhotoPath);
+        $mediaManager->deletePublicFileSafely($oldQrPath);
 
         $this->addFlash('success', 'Produit supprimé avec succès.');
 
@@ -779,33 +808,6 @@ final class StockController extends AbstractController
         return strtoupper(bin2hex(random_bytes(4)));
     }
 
-    private function generateQrPngPath(string $barcode, string $qrUploadDir): string
-    {
-        if (!is_dir($qrUploadDir) && !@mkdir($qrUploadDir, 0775, true) && !is_dir($qrUploadDir)) {
-            // If the folder can't be created, keep the app functional.
-            return '';
-        }
-
-        $safe = preg_replace('/[^a-zA-Z0-9_-]+/', '-', $barcode) ?? 'qr';
-        $safe = trim($safe, '-');
-        if ($safe === '') {
-            $safe = 'qr';
-        }
-        $filename = sprintf('product-%s.png', $safe);
-        $absolutePath = rtrim($qrUploadDir, "\\/") . DIRECTORY_SEPARATOR . $filename;
-
-        $qrCode = new QrCode(
-            data: $barcode,
-            encoding: new Encoding('UTF-8'),
-            errorCorrectionLevel: ErrorCorrectionLevel::Low,
-            size: 400,
-            margin: 0,
-        );
-
-        $png = (new PngWriter())->write($qrCode)->getString();
-        @file_put_contents($absolutePath, $png);
-
-        return 'uploads/stock-products-qr/' . $filename;
-    }
+    // QR generation is handled by StockProductMediaManager.
 }
 
