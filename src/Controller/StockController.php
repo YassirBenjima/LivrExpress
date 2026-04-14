@@ -4,14 +4,17 @@ namespace App\Controller;
 
 use App\Entity\Colis;
 use App\Entity\PickupRequest;
+use App\Entity\StockMovement;
 use App\Entity\StockProduct;
 use App\Entity\StockProductVariant;
 use App\Entity\User;
 use App\Repository\CityRepository;
 use App\Repository\ColisRepository;
 use App\Repository\PickupRequestRepository;
+use App\Repository\StockMovementRepository;
 use App\Repository\StockProductRepository;
 use App\Repository\StockProductVariantRepository;
+use App\Entity\StockMovementItem;
 use App\Service\StockProductMediaManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Dompdf\Dompdf;
@@ -32,6 +35,241 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[Route('/stock')]
 final class StockController extends AbstractController
 {
+    #[Route('/entree', name: 'app_stock_entry_index', methods: ['GET'])]
+    public function stockEntryIndex(
+        Request $request,
+        StockMovementRepository $stockMovementRepository,
+        EntityManagerInterface $entityManager,
+    ): Response
+    {
+        $search = trim((string) $request->query->get('q', ''));
+
+        $movements = $stockMovementRepository->findEntryMovementsForIndex($search);
+
+        $rows = [];
+        foreach ($movements as $movement) {
+            if (!$movement instanceof StockMovement) {
+                continue;
+            }
+
+            $products = [];
+            foreach ($movement->getItems() as $item) {
+                $productName = $item->getVariant()?->getProduct()?->getName();
+                if (is_string($productName) && $productName !== '') {
+                    $products[] = $productName;
+                }
+            }
+
+            $productsCount = count($products);
+            $summary = $productsCount === 0
+                ? '-'
+                : ($productsCount <= 2
+                    ? implode(', ', $products)
+                    : sprintf('%s, +%d', implode(', ', array_slice($products, 0, 2)), $productsCount - 2));
+
+            $rows[] = [
+                'id' => $movement->getId(),
+                'reference' => $movement->getReference(),
+                'products_summary' => $summary,
+                'products_count' => $productsCount,
+                'status' => $movement->getStatus(),
+                'created_at' => $movement->getCreatedAt(),
+                'updated_at' => $movement->getUpdatedAt(),
+            ];
+        }
+
+        return $this->render('stock/entry/index.html.twig', [
+            'movements' => $rows,
+            'search_query' => $search,
+            'products_for_entry' => $this->buildProductsForStockEntry($entityManager),
+        ]);
+    }
+
+    #[Route('/entree/save', name: 'app_stock_entry_save', methods: ['POST'])]
+    public function stockEntrySave(
+        Request $request,
+        EntityManagerInterface $entityManager,
+        StockMovementRepository $stockMovementRepository,
+        StockProductVariantRepository $stockProductVariantRepository,
+    ): Response {
+        if (!$this->isCsrfTokenValid('stock_entry_save', (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Jeton CSRF invalide.');
+
+            return $this->redirectToRoute('app_stock_entry_index');
+        }
+
+        /** @var array<string, array{qty?: mixed}> $variantsRaw */
+        $variantsRaw = $request->request->all('variants');
+        $itemsToCreate = [];
+        foreach ($variantsRaw as $variantIdRaw => $payload) {
+            $qtyRaw = (string) ($payload['qty'] ?? '');
+            $qty = ctype_digit($qtyRaw) ? (int) $qtyRaw : 0;
+            if ($qty <= 0) {
+                continue;
+            }
+
+            $key = (string) $variantIdRaw;
+            if (ctype_digit($key) && (int) $key > 0) {
+                $itemsToCreate[$key] = $qty;
+                continue;
+            }
+            if (str_starts_with($key, 'v_') && ctype_digit(substr($key, 2)) && (int) substr($key, 2) > 0) {
+                $itemsToCreate[$key] = $qty;
+                continue;
+            }
+            if (str_starts_with($key, 'p_') && ctype_digit(substr($key, 2)) && (int) substr($key, 2) > 0) {
+                $itemsToCreate[$key] = $qty;
+            }
+        }
+
+        if ($itemsToCreate === []) {
+            $this->addFlash('warning', 'Veuillez saisir au moins une quantité à récupérer.');
+
+            return $this->redirectToRoute('app_stock_entry_index');
+        }
+
+        $reference = $this->generateUniqueStockMovementReference($stockMovementRepository);
+        $movement = new StockMovement($reference);
+        $movement->setDirection(StockMovement::DIRECTION_ENTRY);
+        $movement->setStatus(StockMovement::STATUS_PENDING);
+
+        $entityManager->persist($movement);
+
+        $variantIds = array_values(array_filter(array_map(
+            static fn (string $k): int => ctype_digit($k) ? (int) $k : 0,
+            array_keys($itemsToCreate)
+        ), static fn (int $v): bool => $v > 0));
+
+        $variants = $variantIds !== [] ? $stockProductVariantRepository->findBy(['id' => $variantIds]) : [];
+        $variantById = [];
+        foreach ($variants as $v) {
+            if ($v instanceof StockProductVariant && $v->getId() !== null) {
+                $variantById[(int) $v->getId()] = $v;
+            }
+        }
+
+        $productIdsForFallback = array_values(array_filter(array_map(
+            static fn (string $k): int => str_starts_with($k, 'p_') && ctype_digit(substr($k, 2)) ? (int) substr($k, 2) : 0,
+            array_keys($itemsToCreate)
+        ), static fn (int $v): bool => $v > 0));
+
+        $productById = [];
+        if ($productIdsForFallback !== []) {
+            $products = $entityManager->getRepository(StockProduct::class)->findBy(['id' => $productIdsForFallback]);
+            foreach ($products as $p) {
+                if ($p instanceof StockProduct && $p->getId() !== null) {
+                    $productById[(int) $p->getId()] = $p;
+                }
+            }
+        }
+
+        foreach ($itemsToCreate as $key => $qty) {
+            // PHP casts array keys like "19" to int(19). Normalize once here.
+            $keyStr = (string) $key;
+
+            if (ctype_digit($keyStr)) {
+                $variantId = (int) $keyStr;
+                $variant = $variantById[$variantId] ?? null;
+                if (!$variant instanceof StockProductVariant && $variantId > 0) {
+                    // Fallback: be resilient to any unexpected request key casting/parsing.
+                    $variant = $stockProductVariantRepository->find($variantId);
+                    if ($variant instanceof StockProductVariant) {
+                        $variantById[$variantId] = $variant;
+                    }
+                }
+                if (!$variant instanceof StockProductVariant && $variantId > 0) {
+                    // Second fallback: sometimes the UI can send the product id instead of a variant id.
+                    // In that case, behave like the "p_{id}" path.
+                    $product = $entityManager->getRepository(StockProduct::class)->find($variantId);
+                    if ($product instanceof StockProduct) {
+                        $picked = null;
+                        foreach ($product->getVariants() as $existing) {
+                            if ($existing instanceof StockProductVariant) {
+                                $picked = $existing;
+                                break;
+                            }
+                        }
+                        if (!$picked instanceof StockProductVariant) {
+                            $picked = new StockProductVariant($product->getName(), (int) ($product->getQuantity() ?? 0));
+                            $picked->setBarcode($product->getBarcode());
+                            $picked->setProduct($product);
+                            $entityManager->persist($picked);
+                        }
+                        $variant = $picked;
+                    }
+                }
+                if ($variant instanceof StockProductVariant) {
+                    $movement->addItem(new StockMovementItem($variant, $qty));
+                }
+                continue;
+            }
+
+            if (str_starts_with($keyStr, 'v_')) {
+                $variantId = (int) substr($keyStr, 2);
+                $variant = $variantById[$variantId] ?? null;
+                if (!$variant instanceof StockProductVariant && $variantId > 0) {
+                    $variant = $stockProductVariantRepository->find($variantId);
+                    if ($variant instanceof StockProductVariant) {
+                        $variantById[$variantId] = $variant;
+                    }
+                }
+                if ($variant instanceof StockProductVariant) {
+                    $movement->addItem(new StockMovementItem($variant, $qty));
+                }
+                continue;
+            }
+
+            if (str_starts_with($keyStr, 'p_')) {
+                $productId = (int) substr($keyStr, 2);
+                $product = $productById[$productId] ?? null;
+                if (!$product instanceof StockProduct) {
+                    continue;
+                }
+
+                // Ensure there is at least one real variant for this product.
+                $variant = null;
+                foreach ($product->getVariants() as $existing) {
+                    if ($existing instanceof StockProductVariant) {
+                        $variant = $existing;
+                        break;
+                    }
+                }
+                if (!$variant instanceof StockProductVariant) {
+                    $variant = new StockProductVariant($product->getName(), (int) ($product->getQuantity() ?? 0));
+                    $variant->setBarcode($product->getBarcode());
+                    $variant->setProduct($product);
+                    $entityManager->persist($variant);
+                }
+
+                $movement->addItem(new StockMovementItem($variant, $qty));
+            }
+        }
+
+        if ($movement->getItems()->count() === 0) {
+            // Debug helper: show exactly what keys the UI submits.
+            // This is intentionally shown in the UI to quickly align frontend/back parsing.
+            $receivedKeys = array_keys($variantsRaw);
+            $receivedKeys = array_slice(array_map(static fn ($k): string => (string) $k, $receivedKeys), 0, 80);
+            $parsedKeys = array_slice(array_keys($itemsToCreate), 0, 80);
+            $this->addFlash(
+                'error',
+                sprintf(
+                    'Aucune variante valide sélectionnée. Debug keys: received=%s parsed=%s',
+                    json_encode($receivedKeys, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+                    json_encode($parsedKeys, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+                )
+            );
+
+            return $this->redirectToRoute('app_stock_entry_index');
+        }
+
+        $entityManager->flush();
+
+        $this->addFlash('success', 'Mouvement de stock (entrée) enregistré avec succès.');
+
+        return $this->redirectToRoute('app_stock_entry_index');
+    }
+
     #[Route('/colis', name: 'app_stock_colis_pickup', methods: ['GET'])]
     public function colisPickup(Request $request, ColisRepository $colisRepository): Response
     {
@@ -900,5 +1138,91 @@ final class StockController extends AbstractController
     }
 
     // QR generation is handled by StockProductMediaManager.
+
+    private function generateUniqueStockMovementReference(StockMovementRepository $stockMovementRepository): string
+    {
+        // Stable-ish human friendly ref, example: SN-20260414-7K3P2X
+        $date = (new \DateTimeImmutable())->format('Ymd');
+        $alphabet = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+        $maxAttempts = 30;
+
+        for ($i = 0; $i < $maxAttempts; $i++) {
+            $suffix = '';
+            $alphaLen = strlen($alphabet);
+            for ($j = 0; $j < 6; $j++) {
+                $suffix .= $alphabet[random_int(0, $alphaLen - 1)];
+            }
+            $ref = sprintf('SN-%s-%s', $date, $suffix);
+
+            if (!$stockMovementRepository->existsReference($ref)) {
+                return $ref;
+            }
+        }
+
+        // Fallback (should never happen)
+        return sprintf('SN-%s-%s', $date, strtoupper(bin2hex(random_bytes(3))));
+    }
+
+    /**
+     * @return list<array{
+     *   id:int,
+     *   name:string,
+     *   photo_url:?string,
+     *   variants:list<array{id:int, name:string, ref:string, qty:int}>
+     * }>
+     */
+    private function buildProductsForStockEntry(EntityManagerInterface $entityManager): array
+    {
+        $rows = $entityManager->createQueryBuilder()
+            ->select('p', 'v')
+            ->from(StockProduct::class, 'p')
+            ->leftJoin('p.variants', 'v')
+            ->orderBy('p.id', 'DESC')
+            ->addOrderBy('v.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        $products = [];
+        foreach ($rows as $p) {
+            if (!$p instanceof StockProduct) {
+                continue;
+            }
+
+            $variants = [];
+            if ($p->getVariants()->count() > 0) {
+                foreach ($p->getVariants() as $v) {
+                    if (!$v instanceof StockProductVariant || $v->getId() === null) {
+                        continue;
+                    }
+                    $variants[] = [
+                        'id' => (int) $v->getId(),
+                        'name' => $v->getName(),
+                        'ref' => (string) ($v->getBarcode() ?? '-'),
+                        'qty' => (int) $v->getQuantity(),
+                    ];
+                }
+            } else {
+                // Product without variants: expose a fallback option; a real variant will be created on save.
+                if ($p->getId() !== null) {
+                    $variants[] = [
+                        'id' => 'p_' . (int) $p->getId(),
+                        'name' => $p->getName(),
+                        'ref' => (string) ($p->getBarcode() ?? '-'),
+                        'qty' => (int) ($p->getQuantity() ?? 0),
+                    ];
+                }
+            }
+
+            $products[] = [
+                'id' => (int) ($p->getId() ?? 0),
+                'name' => $p->getName(),
+                'photo_url' => $p->getPhotoPath() ? '/' . ltrim($p->getPhotoPath(), '/') : null,
+                'variants' => $variants,
+            ];
+        }
+
+        // Remove invalid (id=0) entries
+        return array_values(array_filter($products, static fn (array $p): bool => (int) ($p['id'] ?? 0) > 0 && \count((array) ($p['variants'] ?? [])) > 0));
+    }
 }
 

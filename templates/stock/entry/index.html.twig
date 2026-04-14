@@ -1,0 +1,414 @@
+{% extends 'base_dashboard.html.twig' %}
+
+{% block title %}Stock Entrée - LivrExpress{% endblock %}
+
+{% block stylesheets %}
+  {{ parent() }}
+  <link href="{{ asset('assets/css/stock-products.css?v=1') }}" rel="stylesheet"/>
+{% endblock %}
+
+{% block javascripts %}
+  {{ parent() }}
+  <script src="{{ asset('assets/js/stock-products.js?v=2') }}"></script>
+  <script>
+    (function () {
+      const select = document.getElementById('stock_entry_products_select');
+      const productsJsonEl = document.getElementById('stock_entry_products_json');
+      const selected = document.getElementById('stock_entry_selected_product');
+      const selectedName = document.getElementById('stock_entry_selected_name');
+      const selectedPhoto = document.getElementById('stock_entry_selected_photo');
+      const tbody = document.getElementById('stock_entry_selected_variants_tbody');
+      const submitBtn = document.querySelector('button[form="stock_entry_form"]');
+
+      if (!select || !selected || !selectedName || !tbody) return;
+
+      let productsMap = {};
+      try {
+        const arr = JSON.parse((productsJsonEl && productsJsonEl.textContent) ? productsJsonEl.textContent : '[]');
+        if (Array.isArray(arr)) {
+          arr.forEach(p => {
+            if (p && typeof p.id !== 'undefined') {
+              productsMap[String(p.id)] = p;
+            }
+          });
+        }
+      } catch (_) {
+        productsMap = {};
+      }
+
+      function renderSelected(selectedProducts) {
+        const count = selectedProducts.length;
+        if (count === 0) {
+          selected.classList.add('hidden');
+          selectedName.textContent = '';
+          tbody.innerHTML = '';
+          if (selectedPhoto) {
+            selectedPhoto.removeAttribute('src');
+            selectedPhoto.classList.add('hidden');
+          }
+          return;
+        }
+
+        selected.classList.remove('hidden');
+        selectedName.textContent = count === 1 ? (selectedProducts[0].name || '') : (count + ' produits');
+
+        if (selectedPhoto) {
+          const photoUrl = count === 1 ? (selectedProducts[0].photo_url || '') : '';
+          if (photoUrl) {
+            selectedPhoto.src = photoUrl;
+            selectedPhoto.classList.remove('hidden');
+          } else {
+            selectedPhoto.removeAttribute('src');
+            selectedPhoto.classList.add('hidden');
+          }
+        }
+
+        tbody.innerHTML = '';
+        selectedProducts.forEach(p => {
+          const group = document.createElement('tr');
+          group.innerHTML = `
+            <td colspan="3" class="bg-muted/20 text-foreground font-medium">
+              ${p.name || ''}
+            </td>
+          `;
+          tbody.appendChild(group);
+
+          (p.variants || []).forEach(v => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td class="text-foreground font-medium">${(v.ref || '-')}</td>
+              <td class="text-foreground font-normal">${(v.name || '-')}</td>
+              <td>
+                <input class="kt-input w-full" type="number" min="0" inputmode="numeric" name="variants[${v.id}][qty]" value="${(v.qty || 0)}" />
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
+        })
+      }
+
+      function onChange() {
+        // Remove any old qty inputs by rerendering the tbody
+        const ids = Array.from(select.selectedOptions || []).map(o => o.value).filter(Boolean);
+        const selectedProducts = ids
+          .map(id => productsMap[id])
+          .filter(Boolean);
+
+        renderSelected(selectedProducts);
+
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.classList.add('opacity-60', 'cursor-not-allowed');
+        }
+      }
+
+      select.addEventListener('change', onChange);
+      onChange();
+
+      document.addEventListener('input', (e) => {
+        const el = e.target;
+        if (!(el instanceof HTMLInputElement)) return;
+        if (!el.name || !el.name.startsWith('variants[')) return;
+
+        const inputs = document.querySelectorAll('#stock_entry_form input[name^="variants["]');
+        let hasQty = false;
+        inputs.forEach(i => {
+          const v = parseInt(i.value || '0', 10);
+          if (!Number.isNaN(v) && v > 0) hasQty = true;
+        });
+
+        if (submitBtn) {
+          submitBtn.disabled = !hasQty;
+          submitBtn.classList.toggle('opacity-60', !hasQty);
+          submitBtn.classList.toggle('cursor-not-allowed', !hasQty);
+        }
+      });
+    })();
+  </script>
+{% endblock %}
+
+{% block body %}
+<main class="grow pt-5 dashboard-content-shift" id="content" role="content">
+  <div class="kt-container-fixed" id="contentContainer">
+  </div>
+
+  <div class="kt-container-fixed">
+    <div class="flex flex-wrap items-center lg:items-end justify-between gap-5 pb-7.5">
+      <div class="flex flex-col justify-center gap-2">
+        <h1 class="text-xl font-medium leading-none text-mono">
+          Stock Entrée
+        </h1>
+        <div class="flex items-center flex-wrap gap-1.5 font-medium">
+          <span class="text-base text-secondary-foreground">
+            Total mouvements:
+          </span>
+          <span class="text-base text-foreground font-medium me-2">
+            {{ movements|length }}
+          </span>
+        </div>
+      </div>
+      <div class="flex items-center gap-2.5">
+        <button class="kt-btn kt-btn-primary" type="submit" form="stock_entry_form">
+          Enregistrer
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="kt-container-fixed">
+    <div class="grid gap-5 lg:gap-7.5">
+      <form id="stock_entry_form" method="post" action="{{ path('app_stock_entry_save') }}">
+        <input type="hidden" name="_token" value="{{ csrf_token('stock_entry_save') }}">
+
+        <div class="kt-card kt-card-grid min-w-full">
+          <div class="kt-card-header flex-wrap gap-2">
+            <h3 class="kt-card-title text-sm">
+              Liste des produits
+            </h3>
+            <div class="flex flex-wrap gap-2 lg:gap-5">
+              <select
+                id="stock_entry_products_select"
+                class="kt-select w-[320px]"
+                name="selected_products[]"
+                multiple="multiple"
+                data-kt-select="true"
+                data-kt-select-enable-search="true"
+                data-kt-select-search-placeholder="Rechercher un produit..."
+                data-kt-select-close-on-select="false"
+                data-kt-select-dropdown-parent="body"
+                data-kt-select-placeholder="Sélectionner des produits"
+              >
+                {% for p in products_for_entry|default([]) %}
+                  <option value="{{ p.id }}">
+                    {{ p.name }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="kt-card-content">
+            <div class="flex flex-col gap-4">
+              <div class="border border-border rounded-xl p-4 hidden" id="stock_entry_selected_product">
+                <div class="flex items-center justify-between gap-4">
+                  <div class="flex items-center gap-3">
+                    <div class="size-12 rounded-md bg-muted/30 overflow-hidden shrink-0">
+                      <img alt="" class="w-full h-full object-cover hidden" id="stock_entry_selected_photo"/>
+                    </div>
+                    <span class="kt-badge kt-badge-primary kt-badge-outline rounded-[30px]" id="stock_entry_selected_name">
+                    </span>
+                  </div>
+                </div>
+
+                <div class="mt-4">
+                  <div class="kt-scrollable-x-auto">
+                    <table class="kt-table table-auto kt-table-border">
+                      <thead>
+                        <tr>
+                          <th class="min-w-[160px]">
+                            <span class="kt-table-col">
+                              <span class="kt-table-col-label"># RÉF</span>
+                            </span>
+                          </th>
+                          <th class="min-w-[240px]">
+                            <span class="kt-table-col">
+                              <span class="kt-table-col-label">NOM DE LA VARIANTE</span>
+                            </span>
+                          </th>
+                          <th class="min-w-[220px]">
+                            <span class="kt-table-col">
+                              <span class="kt-table-col-label">QUANTITÉ À RÉCUPÉRER</span>
+                            </span>
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody id="stock_entry_selected_variants_tbody">
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <script type="application/json" id="stock_entry_products_json">
+          {{ products_for_entry|default([])|json_encode|raw }}
+        </script>
+      </form>
+
+      <div class="kt-card kt-card-grid min-w-full">
+        <div class="kt-card-header flex-wrap gap-2">
+          <h3 class="kt-card-title text-sm">
+            Affichage de {{ movements|length }} mouvement(s)
+          </h3>
+
+          <form class="flex flex-wrap gap-2 lg:gap-5" method="get" action="{{ path('app_stock_entry_index') }}">
+            <div class="flex">
+              <label class="kt-input">
+                <i class="ki-filled ki-magnifier"></i>
+                <input data-kt-datatable-search="#stock_entry_table" name="q" placeholder="Rechercher" type="text" value="{{ search_query|default('') }}"/>
+              </label>
+            </div>
+            <div class="flex flex-wrap gap-2.5">
+              <a class="kt-btn kt-btn-outline kt-btn-primary" href="{{ path('app_stock_products_index') }}">
+                Nouvelle demande de ramassage
+              </a>
+              <button class="kt-btn kt-btn-outline kt-btn-primary" type="submit">
+                <i class="ki-filled ki-setting-4"></i>
+                Filtrer
+              </button>
+              <a class="kt-btn kt-btn-outline" href="{{ path('app_stock_entry_index') }}">
+                Réinitialiser
+              </a>
+            </div>
+          </form>
+        </div>
+
+        <div class="kt-card-content">
+          <div data-kt-datatable="true" data-kt-datatable-state-save="false" id="stock_entry_table">
+            <div class="kt-scrollable-x-auto">
+              <table class="kt-table table-auto kt-table-border" data-kt-datatable-table="true">
+                <thead>
+                  <tr>
+                    <th class="min-w-[180px]">
+                      <span class="kt-table-col">
+                        <span class="kt-table-col-label">Réf</span>
+                        <span class="kt-table-col-sort"></span>
+                      </span>
+                    </th>
+                    <th class="min-w-[260px]">
+                      <span class="kt-table-col">
+                        <span class="kt-table-col-label">Liste des produits</span>
+                        <span class="kt-table-col-sort"></span>
+                      </span>
+                    </th>
+                    <th class="min-w-[180px]">
+                      <span class="kt-table-col">
+                        <span class="kt-table-col-label">Date de création</span>
+                        <span class="kt-table-col-sort"></span>
+                      </span>
+                    </th>
+                    <th class="min-w-[180px]">
+                      <span class="kt-table-col">
+                        <span class="kt-table-col-label">Dernière mise à jour</span>
+                        <span class="kt-table-col-sort"></span>
+                      </span>
+                    </th>
+                    <th class="min-w-[140px]">
+                      <span class="kt-table-col">
+                        <span class="kt-table-col-label">Statut</span>
+                        <span class="kt-table-col-sort"></span>
+                      </span>
+                    </th>
+                    <th class="w-[90px] text-center">
+                      <span class="kt-table-col">
+                        <span class="kt-table-col-label">Actions</span>
+                      </span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for m in movements %}
+                    {% set status = m.status|default('draft') %}
+                    {% set statusLabel = status|replace({
+                      'draft': 'Brouillon',
+                      'pending': 'En attente',
+                      'in_progress': 'En cours',
+                      'done': 'Terminé',
+                      'cancelled': 'Annulé'
+                    }) %}
+                    {% set statusBadgeClass = 'kt-badge-warning' %}
+                    {% if status == 'done' %}
+                      {% set statusBadgeClass = 'kt-badge-success' %}
+                    {% elseif status == 'in_progress' %}
+                      {% set statusBadgeClass = 'kt-badge-primary' %}
+                    {% elseif status == 'pending' %}
+                      {% set statusBadgeClass = 'kt-badge-info' %}
+                    {% elseif status == 'cancelled' %}
+                      {% set statusBadgeClass = 'kt-badge-destructive' %}
+                    {% endif %}
+                    <tr>
+                      <td class="text-foreground font-medium">
+                        {{ m.reference|default('-') }}
+                      </td>
+                      <td class="text-foreground font-normal">
+                        <div class="flex flex-col gap-1">
+                          <div class="text-foreground font-normal">
+                            {{ m.products_summary|default('-') }}
+                          </div>
+                          <div class="text-xs text-secondary-foreground">
+                            {{ m.products_count|default(0) }} produit(s)
+                          </div>
+                        </div>
+                      </td>
+                      <td class="text-foreground font-normal">
+                        {{ m.created_at ? m.created_at|date('d/m/Y H:i') : '-' }}
+                      </td>
+                      <td class="text-foreground font-normal">
+                        {{ m.updated_at ? m.updated_at|date('d/m/Y H:i') : '-' }}
+                      </td>
+                      <td>
+                        <span class="kt-badge {{ statusBadgeClass }} kt-badge-outline rounded-[30px]">
+                          <span class="kt-badge-dot size-1.5"></span>
+                          {{ statusLabel }}
+                        </span>
+                      </td>
+                      <td class="text-center">
+                        <div class="kt-menu flex-inline" data-kt-menu="true">
+                          <div class="kt-menu-item" data-kt-menu-item-offset="0, 10px" data-kt-menu-item-placement="bottom-end" data-kt-menu-item-placement-rtl="bottom-start" data-kt-menu-item-toggle="dropdown" data-kt-menu-item-trigger="click">
+                            <button class="kt-menu-toggle kt-btn kt-btn-sm kt-btn-icon kt-btn-ghost" type="button">
+                              <i class="ki-filled ki-dots-vertical text-lg"></i>
+                            </button>
+                            <div class="kt-menu-dropdown kt-menu-default w-full max-w-[200px]" data-kt-menu-dismiss="true">
+                              <div class="kt-menu-item">
+                                <button class="kt-menu-link opacity-60 cursor-not-allowed" type="button" disabled aria-disabled="true">
+                                  <span class="kt-menu-icon">
+                                    <i class="ki-filled ki-eye"></i>
+                                  </span>
+                                  <span class="kt-menu-title">Détails</span>
+                                </button>
+                              </div>
+                              <div class="kt-menu-item">
+                                <button class="kt-menu-link opacity-60 cursor-not-allowed" type="button" disabled aria-disabled="true">
+                                  <span class="kt-menu-icon">
+                                    <i class="ki-filled ki-pencil"></i>
+                                  </span>
+                                  <span class="kt-menu-title">Modifier</span>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  {% else %}
+                    <tr>
+                      <td colspan="6" class="text-secondary-foreground text-center py-8">
+                        Aucun mouvement trouvé.
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+
+            <div class="kt-card-footer justify-center md:justify-between flex-col md:flex-row gap-5 text-secondary-foreground text-sm font-medium">
+              <div class="flex items-center gap-2 order-2 md:order-1">
+                Afficher
+                <select class="kt-select w-16" data-kt-datatable-size="true" data-kt-select="" name="perpage">
+                </select>
+                par page
+              </div>
+              <div class="flex items-center gap-4 order-1 md:order-2">
+                <span data-kt-datatable-info="true"></span>
+                <div class="kt-datatable-pagination" data-kt-datatable-pagination="true"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+{% endblock %}
+
