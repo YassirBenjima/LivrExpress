@@ -8,8 +8,8 @@
 {% if hasFlashes or hasError %}
     <!-- Flash Messages Toast -->
     <div
-        class="{{ isInline ? 'flex flex-col gap-3 w-full max-w-md mb-3' : 'fixed z-[100] flex flex-col gap-3' }}"
-        style="{{ isInline ? '' : 'top: 20px; right: 20px;' }}"
+        class="{{ isInline ? 'flex flex-col gap-3 w-full max-w-md mb-3' : 'fixed flex flex-col gap-3' }}"
+        style="{{ isInline ? '' : 'top: 20px; right: 20px; z-index: 2147483647;' }}"
         id="{{ toastContainerId }}"
     >
 
@@ -47,6 +47,16 @@
     </div>
 
     <script>
+        // Ensure global toasts are not trapped under transformed/stacked containers.
+        {% if not isInline %}
+        (function () {
+            const el = document.getElementById('{{ toastContainerId }}');
+            if (el && el.parentElement !== document.body) {
+                document.body.appendChild(el);
+            }
+        })();
+        {% endif %}
+
         setTimeout(() => {
             const toasts = document.querySelectorAll('#{{ toastContainerId }} > div');
             toasts.forEach(toast => {

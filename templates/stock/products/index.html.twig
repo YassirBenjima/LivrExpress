@@ -13,10 +13,10 @@
 {% endblock %}
 
 {% block body %}
-{% include 'partials/_flash_messages.html.twig' %}
 <main class="grow pt-5 dashboard-content-shift" id="content" role="content">
   <div class="kt-container-fixed" id="contentContainer">
   </div>
+  {% include 'partials/_flash_messages.html.twig' %}
 
   <div class="kt-container-fixed">
     <div class="flex flex-wrap items-center lg:items-end justify-between gap-5 pb-7.5">
@@ -261,19 +261,30 @@
                                 </form>
                               </div>
                               <div class="kt-menu-item">
-                                <button
-                                  class="kt-menu-link "
-                                  type="button"
-                                  data-kt-modal-toggle="#pickup_request_modal"
-                                  data-pickup-request-open="true"
-                                  data-product-id="{{ product.id }}"
-                                  data-product-name="{{ product.name|e('html_attr') }}"
-                                >
-                                  <span class="kt-menu-icon">
-                                    <i class="ki-filled ki-delivery-3"></i>
-                                  </span>
-                                  <span class="kt-menu-title">Ramassage</span>
-                                </button>
+                                {% if product.pickup_requested|default(false) %}
+                                  <button class="kt-menu-link opacity-60 cursor-not-allowed" type="button" disabled aria-disabled="true">
+                                    <span class="kt-menu-icon">
+                                      <i class="ki-filled ki-delivery-3"></i>
+                                    </span>
+                                    <span class="kt-menu-title">Ramassage demandé</span>
+                                  </button>
+                                {% else %}
+                                  <button
+                                    class="kt-menu-link"
+                                    type="button"
+                                    data-kt-modal-toggle="#pickup_request_modal"
+                                    data-pickup-request-open="true"
+                                    data-product-id="{{ product.id }}"
+                                    data-product-name="{{ product.name|e('html_attr') }}"
+                                    data-pickup-action="{{ path('app_stock_products_pickup_request_create', { id: product.id }) }}"
+                                    data-pickup-csrf="{{ csrf_token('pickup_request_' ~ product.id) }}"
+                                  >
+                                    <span class="kt-menu-icon">
+                                      <i class="ki-filled ki-delivery-3"></i>
+                                    </span>
+                                    <span class="kt-menu-title">Ramassage</span>
+                                  </button>
+                                {% endif %}
                               </div>
                               <div class="kt-menu-separator"></div>
                               <div class="kt-menu-item">

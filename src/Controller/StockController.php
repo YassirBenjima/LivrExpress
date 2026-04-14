@@ -2,10 +2,12 @@
 
 namespace App\Controller;
 
+use App\Entity\PickupRequest;
 use App\Entity\StockProduct;
 use App\Entity\StockProductVariant;
 use App\Entity\User;
 use App\Repository\CityRepository;
+use App\Repository\PickupRequestRepository;
 use App\Repository\StockProductRepository;
 use App\Repository\StockProductVariantRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -28,7 +30,12 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class StockController extends AbstractController
 {
     #[Route('/produits', name: 'app_stock_products_index', methods: ['GET'])]
-    public function productsIndex(Request $request, StockProductRepository $stockProductRepository, CityRepository $cityRepository): Response
+    public function productsIndex(
+        Request $request,
+        StockProductRepository $stockProductRepository,
+        CityRepository $cityRepository,
+        PickupRequestRepository $pickupRequestRepository,
+    ): Response
     {
         $search = trim((string) $request->query->get('q', ''));
         $all = $stockProductRepository->findBy([], ['id' => 'DESC']);
@@ -86,6 +93,18 @@ final class StockController extends AbstractController
             ];
         }
 
+        // Expose "pickup already requested" without N+1.
+        $productIds = array_values(array_filter(array_map(
+            static fn (array $p): int => (int) ($p['id'] ?? 0),
+            $products
+        ), static fn (int $v): bool => $v > 0));
+        $requestedIds = $pickupRequestRepository->findProductIdsWithPendingRequests($productIds);
+        $requestedSet = array_fill_keys($requestedIds, true);
+        foreach ($products as $i => $p) {
+            $id = (int) ($p['id'] ?? 0);
+            $products[$i]['pickup_requested'] = $id > 0 && isset($requestedSet[$id]);
+        }
+
         $totalProducts = \count($products);
         $totalQty = array_sum(array_map(
             static fn (array $p): int => (int) ($p['qty_received'] ?? 0) + (int) ($p['qty_not_received'] ?? 0),
@@ -108,6 +127,97 @@ final class StockController extends AbstractController
             'cities' => $cities,
             'default_city' => $defaultCity,
         ]);
+    }
+
+    #[Route('/produits/{id}/pickup-request', name: 'app_stock_products_pickup_request_create', methods: ['POST'])]
+    public function pickupRequestCreate(
+        int $id,
+        Request $request,
+        StockProductRepository $stockProductRepository,
+        PickupRequestRepository $pickupRequestRepository,
+        CityRepository $cityRepository,
+        EntityManagerInterface $entityManager,
+    ): Response {
+        $product = $stockProductRepository->find($id);
+        if (!$product instanceof StockProduct) {
+            throw $this->createNotFoundException('Produit introuvable.');
+        }
+
+        if (!$this->isCsrfTokenValid('pickup_request_' . $product->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Jeton CSRF invalide.');
+
+            return $this->redirectToRoute('app_stock_products_index');
+        }
+
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
+
+        if ($pickupRequestRepository->hasPendingForProductId((int) $product->getId())) {
+            $this->addFlash('warning', 'Une demande de ramassage est déjà en attente pour ce produit.');
+
+            return $this->redirectToRoute('app_stock_products_index');
+        }
+
+        $city = trim((string) $request->request->get('city', ''));
+        $neighborhood = trim((string) $request->request->get('neighborhood', ''));
+        $address = trim((string) $request->request->get('address', ''));
+        $phone = trim((string) $request->request->get('phone', ''));
+        $supplierPhone = trim((string) $request->request->get('supplier_phone', ''));
+        $note = trim((string) $request->request->get('note', ''));
+        $hasLabelsRaw = (string) $request->request->get('has_labels', '');
+
+        if ($city === '') {
+            $this->addFlash('error', 'La ville est obligatoire.');
+
+            return $this->redirectToRoute('app_stock_products_index');
+        }
+        if ($cityRepository->count(['name' => $city]) === 0) {
+            $this->addFlash('error', 'Veuillez choisir une ville valide.');
+
+            return $this->redirectToRoute('app_stock_products_index');
+        }
+        if ($neighborhood === '') {
+            $this->addFlash('error', 'Le quartier est obligatoire.');
+
+            return $this->redirectToRoute('app_stock_products_index');
+        }
+        if ($address === '') {
+            $this->addFlash('error', 'L’adresse est obligatoire.');
+
+            return $this->redirectToRoute('app_stock_products_index');
+        }
+        if ($phone === '') {
+            $this->addFlash('error', 'Le téléphone est obligatoire.');
+
+            return $this->redirectToRoute('app_stock_products_index');
+        }
+        if (!\in_array($hasLabelsRaw, ['0', '1'], true)) {
+            $this->addFlash('error', 'Veuillez indiquer si vous avez les étiquettes.');
+
+            return $this->redirectToRoute('app_stock_products_index');
+        }
+
+        $pickupRequest = new PickupRequest();
+        $pickupRequest->setProduct($product);
+        $pickupRequest->setProductNameSnapshot($product->getName());
+        $pickupRequest->setCity($city);
+        $pickupRequest->setNeighborhood($neighborhood);
+        $pickupRequest->setAddress($address);
+        $pickupRequest->setPhone($phone);
+        $pickupRequest->setSupplierPhone($supplierPhone !== '' ? $supplierPhone : null);
+        $pickupRequest->setNote($note !== '' ? $note : null);
+        $pickupRequest->setHasLabels($hasLabelsRaw === '1');
+        $pickupRequest->setCreatedBy($user);
+        $pickupRequest->setStatus('pending');
+
+        $entityManager->persist($pickupRequest);
+        $entityManager->flush();
+
+        $this->addFlash('success', 'Demande de ramassage enregistrée avec succès.');
+
+        return $this->redirectToRoute('app_stock_products_index');
     }
 
     #[Route('/produits/new', name: 'app_stock_products_new', methods: ['GET'])]
