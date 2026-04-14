@@ -81,6 +81,7 @@
                               method="POST" 
                               enctype="multipart/form-data" 
                               id="colis-import-form">
+                            <input type="hidden" name="_token" value="{{ csrf_token('colis_import') }}"/>
                             <div class="dropzone dropzone-clickable flex bg-center w-full p-5 lg:p-7 bg-no-repeat bg-[length:550px] border border-input rounded-xl border-dashed branding-bg" 
                                  id="colis-import-dropzone">
                                 <div class="dz-message flex flex-col place-items-center place-content-center text-center rounded-xl w-full">

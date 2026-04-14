@@ -38,17 +38,23 @@ final class RegistrationController extends AbstractController
             $city = $request->request->get('city');
 
             if ($password !== $confirmPassword) {
-                $notifier->send((new Notification('Les mots de passe saisis ne correspondent pas.', ['browser']))->importance(Notification::IMPORTANCE_HIGH));
+                $message = 'Les mots de passe saisis ne correspondent pas.';
+                $this->addFlash('error', $message);
+                $notifier->send((new Notification($message, ['browser']))->importance(Notification::IMPORTANCE_HIGH));
                 return $this->redirectToRoute('app_register');
             } else {
                 $existingUser = $entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
                 $existingBusiness = $entityManager->getRepository(User::class)->findOneBy(['businessName' => $businessName]);
                 
                 if ($existingUser) {
-                    $notifier->send((new Notification('Cette adresse email est déjà associée à un compte.', ['browser']))->importance(Notification::IMPORTANCE_HIGH));
+                    $message = 'Cette adresse email est déjà associée à un compte.';
+                    $this->addFlash('error', $message);
+                    $notifier->send((new Notification($message, ['browser']))->importance(Notification::IMPORTANCE_HIGH));
                     return $this->redirectToRoute('app_register');
                 } elseif ($existingBusiness) {
-                    $notifier->send((new Notification('Ce nom d\'entreprise est déjà enregistré sur notre plateforme.', ['browser']))->importance(Notification::IMPORTANCE_HIGH));
+                    $message = 'Ce nom d\'entreprise est déjà enregistré sur notre plateforme.';
+                    $this->addFlash('error', $message);
+                    $notifier->send((new Notification($message, ['browser']))->importance(Notification::IMPORTANCE_HIGH));
                     return $this->redirectToRoute('app_register');
                 } else {
                     $user = new User();

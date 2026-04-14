@@ -389,21 +389,45 @@ final class ColisController extends AbstractController
     #[Route('/import-process', name: 'app_colis_import_process', methods: ['POST'])]
     public function importProcess(Request $request, EntityManagerInterface $entityManager): Response
     {
+        if (!$this->isCsrfTokenValid('colis_import', (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Session expirée. Veuillez réessayer.');
+
+            return $this->json([
+                'success' => false,
+                'error' => 'Jeton CSRF invalide.',
+            ], Response::HTTP_FORBIDDEN);
+        }
+
         /** @var \Symfony\Component\HttpFoundation\File\UploadedFile|null $file */
         $file = $request->files->get('file');
 
         if (!$file) {
-            return $this->json(['error' => 'Aucun fichier reçu.'], Response::HTTP_BAD_REQUEST);
+            $this->addFlash('error', 'Aucun fichier reçu.');
+
+            return $this->json([
+                'success' => false,
+                'error' => 'Aucun fichier reçu.',
+            ], Response::HTTP_BAD_REQUEST);
         }
 
         $xlsx = \Shuchkin\SimpleXLSX::parse($file->getRealPath());
         if (!$xlsx) {
-            return $this->json(['error' => 'Erreur lors de la lecture du fichier Excel : ' . \Shuchkin\SimpleXLSX::parseError()], Response::HTTP_BAD_REQUEST);
+            $this->addFlash('error', 'Import échoué. Vérifiez le fichier et réessayez.');
+
+            return $this->json([
+                'success' => false,
+                'error' => 'Erreur lors de la lecture du fichier Excel : ' . \Shuchkin\SimpleXLSX::parseError(),
+            ], Response::HTTP_BAD_REQUEST);
         }
 
         $rows = $xlsx->rows();
         if (\count($rows) < 2) {
-            return $this->json(['error' => 'Le fichier est vide ou ne contient que des en-têtes.'], Response::HTTP_BAD_REQUEST);
+            $this->addFlash('error', 'Le fichier est vide ou ne contient que des en-têtes.');
+
+            return $this->json([
+                'success' => false,
+                'error' => 'Le fichier est vide ou ne contient que des en-têtes.',
+            ], Response::HTTP_BAD_REQUEST);
         }
 
         $headers = array_shift($rows);
@@ -452,10 +476,18 @@ final class ColisController extends AbstractController
             $entityManager->flush();
         }
 
+        if ($importedCount > 0 && $errors === []) {
+            $this->addFlash('success', sprintf('Import terminé : %d élément(s) importé(s).', $importedCount));
+        } elseif ($importedCount > 0) {
+            $this->addFlash('info', sprintf('Import terminé : %d élément(s) importé(s), avec %d erreur(s).', $importedCount, \count($errors)));
+        } else {
+            $this->addFlash('error', 'Import échoué. Vérifiez le fichier et réessayez.');
+        }
+
         return $this->json([
-            'success' => true,
+            'success' => $importedCount > 0,
             'importedCount' => $importedCount,
-            'errors' => $errors
+            'errors' => $errors,
         ]);
     }
 

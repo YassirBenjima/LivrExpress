@@ -140,7 +140,9 @@ final class StockController extends AbstractController
     ): Response {
         $product = $stockProductRepository->find($id);
         if (!$product instanceof StockProduct) {
-            throw $this->createNotFoundException('Produit introuvable.');
+            $this->addFlash('error', 'Produit introuvable.');
+
+            return $this->redirectToRoute('app_stock_products_index');
         }
 
         if (!$this->isCsrfTokenValid('pickup_request_' . $product->getId(), (string) $request->request->get('_token'))) {
@@ -151,7 +153,9 @@ final class StockController extends AbstractController
 
         $user = $this->getUser();
         if (!$user instanceof User) {
-            throw $this->createAccessDeniedException();
+            $this->addFlash('error', 'Vous devez être connecté pour effectuer cette action.');
+
+            return $this->redirectToRoute('app_login');
         }
 
         if ($pickupRequestRepository->hasPendingForProductId((int) $product->getId())) {
@@ -382,7 +386,9 @@ final class StockController extends AbstractController
     {
         $product = $stockProductRepository->find($id);
         if (!$product instanceof StockProduct) {
-            throw $this->createNotFoundException('Produit introuvable.');
+            $this->addFlash('error', 'Produit introuvable.');
+
+            return $this->redirectToRoute('app_stock_products_index');
         }
 
         return $this->render('stock/products/new.html.twig', [
@@ -402,7 +408,9 @@ final class StockController extends AbstractController
     ): Response {
         $product = $stockProductRepository->find($id);
         if (!$product instanceof StockProduct) {
-            throw $this->createNotFoundException('Produit introuvable.');
+            $this->addFlash('error', 'Produit introuvable.');
+
+            return $this->redirectToRoute('app_stock_products_index');
         }
 
         if (!$this->isCsrfTokenValid('stock_product_edit_'.$product->getId(), (string) $request->request->get('_token'))) {

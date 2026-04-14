@@ -56,12 +56,16 @@ class ProfileController extends AbstractController
         SluggerInterface $slugger
     ): Response {
         if (!$this->isCsrfTokenValid('profile_avatar', (string) $request->request->get('_token'))) {
-            throw $this->createAccessDeniedException('Invalid CSRF token.');
+            $this->addFlash('error', 'Session expirée. Veuillez réessayer.');
+
+            return $this->redirectToRoute('app_profile');
         }
 
         $user = $this->getUser();
         if (!$user instanceof User) {
-            throw $this->createAccessDeniedException('User not authenticated.');
+            $this->addFlash('error', 'Vous devez être connecté pour effectuer cette action.');
+
+            return $this->redirectToRoute('app_login');
         }
 
         $avatarFile = $request->files->get('avatar');
@@ -116,12 +120,16 @@ class ProfileController extends AbstractController
     public function updateName(Request $request, EntityManagerInterface $entityManager): Response
     {
         if (!$this->isCsrfTokenValid('profile_name', (string) $request->request->get('_token'))) {
-            throw $this->createAccessDeniedException('Invalid CSRF token.');
+            $this->addFlash('error', 'Session expirée. Veuillez réessayer.');
+
+            return $this->redirectToRoute('app_profile');
         }
 
         $user = $this->getUser();
         if (!$user instanceof User) {
-            throw $this->createAccessDeniedException('User not authenticated.');
+            $this->addFlash('error', 'Vous devez être connecté pour effectuer cette action.');
+
+            return $this->redirectToRoute('app_login');
         }
 
         $fullName = trim((string) $request->request->get('full_name'));
@@ -140,12 +148,16 @@ class ProfileController extends AbstractController
     public function updateField(Request $request, EntityManagerInterface $entityManager): Response
     {
         if (!$this->isCsrfTokenValid('profile_field', (string) $request->request->get('_token'))) {
-            throw $this->createAccessDeniedException('Invalid CSRF token.');
+            $this->addFlash('error', 'Session expirée. Veuillez réessayer.');
+
+            return $this->redirectToRoute('app_profile');
         }
 
         $user = $this->getUser();
         if (!$user instanceof User) {
-            throw $this->createAccessDeniedException('User not authenticated.');
+            $this->addFlash('error', 'Vous devez être connecté pour effectuer cette action.');
+
+            return $this->redirectToRoute('app_login');
         }
 
         $field = (string) $request->request->get('field');
@@ -241,7 +253,9 @@ class ProfileController extends AbstractController
                 }
                 break;
             default:
-                throw $this->createNotFoundException('Field not supported.');
+                $this->addFlash('error', 'Champ non pris en charge.');
+
+                return $this->redirectToRoute('app_profile');
         }
 
         $entityManager->flush();
@@ -257,12 +271,16 @@ class ProfileController extends AbstractController
         UserPasswordHasherInterface $passwordHasher
     ): Response {
         if (!$this->isCsrfTokenValid('profile_password', (string) $request->request->get('_token'))) {
-            throw $this->createAccessDeniedException('Invalid CSRF token.');
+            $this->addFlash('error', 'Session expirée. Veuillez réessayer.');
+
+            return $this->redirectToRoute('app_profile');
         }
 
         $user = $this->getUser();
         if (!$user instanceof User) {
-            throw $this->createAccessDeniedException('User not authenticated.');
+            $this->addFlash('error', 'Vous devez être connecté pour effectuer cette action.');
+
+            return $this->redirectToRoute('app_login');
         }
 
         $currentPassword = (string) $request->request->get('current_password', '');
