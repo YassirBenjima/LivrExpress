@@ -1,0 +1,11 @@
+@media (min-width: 1024px) {
+    #wrapper {
+        margin-left: 25px !important;
+    }
+}
+
+@media (min-width: 1920px) {
+    #wrapper {
+        margin-left: 200px !important;
+    }
+}

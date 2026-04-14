@@ -1,0 +1,15 @@
+.dropzone {
+    min-height: 150px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.dropzone:hover {
+    border-color: var(--primary);
+    background-color: rgba(var(--primary-rgb), 0.05);
+}
+
+.dropzone.dz-drag-hover {
+    border-color: var(--primary);
+    background-color: rgba(var(--primary-rgb), 0.1);
+}

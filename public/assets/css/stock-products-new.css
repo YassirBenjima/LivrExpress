@@ -1,0 +1,17 @@
+/* Keep opened dropdown compact + scrollable */
+[role="listbox"],
+.ts-dropdown,
+.ts-dropdown-content,
+.select2-results__options,
+.choices__list--dropdown .choices__list {
+    max-height: 220px !important;
+    overflow-y: auto !important;
+}
+
+/* Keep enhanced selects above scroll containers/cards */
+.select2-container--open,
+.select2-dropdown,
+.select2-container {
+    z-index: 9999 !important;
+}
+
