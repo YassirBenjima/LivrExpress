@@ -86,7 +86,6 @@ class ColisType extends AbstractType
             ->add('cartonOption', ChoiceType::class, [
                 'label' => 'Option carton',
                 'choices' => [
-                    'None' => 'none',
                     'Petit carton (S)' => 's',
                     'Carton moyen (M)' => 'm',
                     'Grand carton (L)' => 'l',

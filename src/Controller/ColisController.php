@@ -131,7 +131,7 @@ final class ColisController extends AbstractController
             $submittedData = $request->request->all((string) $form->getName());
             $submittedCartonOption = $form->get('cartonOption')->getData();
             $submittedOldColis = $submittedData['oldColis'] ?? null;
-            $allowedCartonOptions = ['none', 's', 'm', 'l'];
+            $allowedCartonOptions = ['s', 'm', 'l'];
             if (!\is_string($submittedCartonOption) || !\in_array($submittedCartonOption, $allowedCartonOptions, true)) {
                 $submittedCartonOption = null;
             }
@@ -327,7 +327,7 @@ final class ColisController extends AbstractController
             $submittedData = $request->request->all((string) $form->getName());
             $submittedCartonOption = $form->get('cartonOption')->getData();
             $submittedOldColis = $submittedData['oldColis'] ?? null;
-            $allowedCartonOptions = ['none', 's', 'm', 'l'];
+            $allowedCartonOptions = ['s', 'm', 'l'];
             if (!\is_string($submittedCartonOption) || !\in_array($submittedCartonOption, $allowedCartonOptions, true)) {
                 $submittedCartonOption = null;
             }
