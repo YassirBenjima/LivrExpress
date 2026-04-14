@@ -1,0 +1,100 @@
+<div class="kt-modal" data-kt-modal="true" id="pickup_request_modal">
+  <div class="kt-modal-content top-5 lg:top-[10%]">
+    <div class="kt-modal-header">
+      <h3 class="kt-modal-title">
+        Nouvelle demande de ramassage
+      </h3>
+      <button class="kt-btn kt-btn-sm kt-btn-icon kt-btn-ghost shrink-0" data-kt-modal-dismiss="true" type="button">
+        <i class="ki-filled ki-cross"></i>
+      </button>
+    </div>
+
+    <div class="kt-modal-body px-5 py-5">
+      <form id="pickup-request-form" action="#" method="post">
+        <input type="hidden" id="pickup_request_product_id" name="product_id" value=""/>
+
+        <div class="grid grid-cols-1 gap-4">
+          <div class="grid grid-cols-1 gap-1.5">
+            <label class="text-sm font-medium text-mono">Produit</label>
+            <label class="kt-input">
+              <input id="pickup_request_product" name="product" type="text" placeholder="Produit" value="" readonly="readonly" aria-readonly="true"/>
+            </label>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 gap-1.5">
+              <label class="text-sm font-medium text-mono">Ville</label>
+              <select
+                class="kt-select"
+                data-kt-select="true"
+                data-kt-select-dropdown-parent="body"
+                data-kt-select-enable-search="true"
+                data-kt-select-placeholder="Ville"
+                data-kt-select-search-placeholder="Rechercher une ville..."
+                name="city"
+              >
+                <option value="" {{ (default_city|default('')) ? '' : 'selected' }}>Ville</option>
+                {% for city in cities|default([]) %}
+                  <option value="{{ city }}" {{ (default_city|default('')) == city ? 'selected' : '' }}>{{ city }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="grid grid-cols-1 gap-1.5">
+              <label class="text-sm font-medium text-mono">Quartier</label>
+              <label class="kt-input">
+                <input name="neighborhood" type="text" placeholder="Quartier" value=""/>
+              </label>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 gap-1.5">
+            <label class="text-sm font-medium text-mono">Adresse</label>
+            <label class="kt-input">
+              <input name="address" type="text" placeholder="Adresse" value=""/>
+            </label>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 gap-1.5">
+              <label class="text-sm font-medium text-mono">Téléphone</label>
+              <label class="kt-input">
+                <input name="phone" type="text" placeholder="Téléphone" value=""/>
+              </label>
+            </div>
+            <div class="grid grid-cols-1 gap-1.5">
+              <label class="text-sm font-medium text-mono">Téléphone (Fournisseur)</label>
+              <label class="kt-input">
+                <input name="supplier_phone" type="text" placeholder="Téléphone (Fournisseur)" value=""/>
+              </label>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 gap-1.5">
+            <label class="text-sm font-medium text-mono">Note &amp; Remarque</label>
+            <label class="kt-input">
+              <input name="note" type="text" placeholder="Note & Remarque" value=""/>
+            </label>
+          </div>
+
+          <div class="grid grid-cols-1 gap-1.5">
+            <label class="text-sm font-medium text-mono">Vous avez les étiquettes</label>
+            <select class="kt-select" data-kt-select="true" name="has_labels">
+              <option value="1" selected>Oui</option>
+              <option value="0">Non</option>
+            </select>
+          </div>
+
+          <div class="flex items-center justify-end gap-2 pt-2">
+            <button class="kt-btn kt-btn-outline" data-kt-modal-dismiss="true" type="button">
+              Annuler
+            </button>
+            <button class="kt-btn kt-btn-primary" type="submit">
+              Enregistrer
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+

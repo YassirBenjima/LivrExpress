@@ -4,6 +4,8 @@ namespace App\Controller;
 
 use App\Entity\StockProduct;
 use App\Entity\StockProductVariant;
+use App\Entity\User;
+use App\Repository\CityRepository;
 use App\Repository\StockProductRepository;
 use App\Repository\StockProductVariantRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -26,7 +28,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class StockController extends AbstractController
 {
     #[Route('/produits', name: 'app_stock_products_index', methods: ['GET'])]
-    public function productsIndex(Request $request, StockProductRepository $stockProductRepository): Response
+    public function productsIndex(Request $request, StockProductRepository $stockProductRepository, CityRepository $cityRepository): Response
     {
         $search = trim((string) $request->query->get('q', ''));
         $all = $stockProductRepository->findBy([], ['id' => 'DESC']);
@@ -90,11 +92,21 @@ final class StockController extends AbstractController
             $products
         ));
 
+        $cities = [];
+        foreach ($cityRepository->findBy([], ['name' => 'ASC']) as $city) {
+            $cities[] = (string) $city->getName();
+        }
+
+        $user = $this->getUser();
+        $defaultCity = $user instanceof User ? (string) ($user->getCity() ?? '') : '';
+
         return $this->render('stock/products/index.html.twig', [
             'products' => $products,
             'search_query' => $search,
             'total_products' => $totalProducts,
             'total_qty' => $totalQty,
+            'cities' => $cities,
+            'default_city' => $defaultCity,
         ]);
     }
 
