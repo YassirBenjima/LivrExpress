@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var eventsUrl = calendarEl.dataset.eventsUrl;
     var newUrl = calendarEl.dataset.newUrl;
+    var moveUrlTemplate = calendarEl.dataset.moveUrlTemplate;
     
     var calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
@@ -35,8 +36,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Planifier une demande: Click on day opens the new form.
         dateClick: function(arg) {
-            // Could redirect to the new form with a pre-filled date if implemented later
             if (newUrl) {
+                // Could append date parameter if needed: newUrl + '?date=' + arg.dateStr
                 window.location.href = newUrl;
             }
         },
@@ -50,8 +51,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
             var newDateStr = info.event.startStr;
             var eventId = info.event.id;
+            var updateUrl = moveUrlTemplate.replace('__ID__', eventId);
 
-            fetch('/ramassage/' + eventId + '/calendar-move', {
+            fetch(updateUrl, {
                 method: 'POST',
                 body: JSON.stringify({ newDate: newDateStr }),
                 headers: {

@@ -5,3 +5,23 @@
     max-height: 220px !important;
     overflow-y: auto !important;
 }
+
+/* Metronic Calendar Tuning */
+.fc-event {
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 2px 4px;
+    font-size: 0.8rem;
+    margin-bottom: 2px;
+    border: none;
+}
+.fc-event.fc-event-info { background-color: var(--tw-info); color: white; }
+.fc-event.fc-event-primary { background-color: var(--tw-primary); color: white; }
+.fc-event.fc-event-success { background-color: var(--tw-success); color: white; }
+.fc-event.fc-event-danger { background-color: var(--tw-danger); color: white; }
+.fc-event.fc-event-warning { background-color: var(--tw-warning); color: white; }
+.fc .fc-toolbar-title { font-size: 1.25rem; font-weight: 600; }
+.fc .fc-button-primary { background-color: var(--tw-primary); border-color: var(--tw-primary); }
+.fc .fc-button-primary:not(:disabled):active, .fc .fc-button-primary:not(:disabled).fc-button-active {
+    background-color: var(--tw-primary-active); border-color: var(--tw-primary-active);
+}
