@@ -135,23 +135,25 @@
             </div>
             {% endif %}
            </div>
-           <div class="flex items-center gap-2 pt-2.5 border-t border-border">
-            <form method="post" action="{{ path('app_ramassage_update_status', { id: pickup.id }) }}" class="flex-1">
-             <input type="hidden" name="_token" value="{{ csrf_token('ramassage_status_' ~ pickup.id) }}">
-             <input type="hidden" name="status" value="confirmed">
-             <button class="kt-btn kt-btn-xs kt-btn-info w-full" type="submit">
-              <i class="ki-filled ki-check text-xs"></i>
-              Confirmer
-             </button>
-            </form>
-            <form method="post" action="{{ path('app_ramassage_update_status', { id: pickup.id }) }}">
-             <input type="hidden" name="_token" value="{{ csrf_token('ramassage_status_' ~ pickup.id) }}">
-             <input type="hidden" name="status" value="cancelled">
-             <button class="kt-btn kt-btn-xs kt-btn-icon kt-btn-destructive kt-btn-outline rounded-full" type="submit" onclick="return confirm('Annuler cette demande ?');" title="Annuler">
-              <i class="ki-filled ki-cross text-xs"></i>
-             </button>
-            </form>
-           </div>
+            {# Commenté pour l'instant : Actions (Confirmer / Annuler)
+            <div class="flex items-center gap-2 pt-2.5 border-t border-border">
+             <form method="post" action="{{ path('app_ramassage_update_status', { id: pickup.id }) }}" class="flex-1">
+              <input type="hidden" name="_token" value="{{ csrf_token('ramassage_status_' ~ pickup.id) }}">
+              <input type="hidden" name="status" value="confirmed">
+              <button class="kt-btn kt-btn-xs kt-btn-info w-full" type="submit">
+               <i class="ki-filled ki-check text-xs"></i>
+               Confirmer
+              </button>
+             </form>
+             <form method="post" action="{{ path('app_ramassage_update_status', { id: pickup.id }) }}">
+              <input type="hidden" name="_token" value="{{ csrf_token('ramassage_status_' ~ pickup.id) }}">
+              <input type="hidden" name="status" value="cancelled">
+              <button class="kt-btn kt-btn-xs kt-btn-icon kt-btn-destructive kt-btn-outline rounded-full" type="submit" onclick="return confirm('Annuler cette demande ?');" title="Annuler">
+               <i class="ki-filled ki-cross text-xs"></i>
+              </button>
+             </form>
+            </div>
+            #}
           </div>
          </div>
         </div>
@@ -211,16 +213,18 @@
             </div>
             {% endif %}
            </div>
-           <div class="flex items-center gap-2 pt-2.5 border-t border-border">
-            <form method="post" action="{{ path('app_ramassage_update_status', { id: pickup.id }) }}" class="flex-1">
-             <input type="hidden" name="_token" value="{{ csrf_token('ramassage_status_' ~ pickup.id) }}">
-             <input type="hidden" name="status" value="picked_up">
-             <button class="kt-btn kt-btn-xs kt-btn-success w-full" type="submit">
-              <i class="ki-filled ki-truck text-xs"></i>
-              Marquer ramassé
-             </button>
-            </form>
-           </div>
+            {# Commenté pour l'instant : Action (Marquer ramassé)
+            <div class="flex items-center gap-2 pt-2.5 border-t border-border">
+             <form method="post" action="{{ path('app_ramassage_update_status', { id: pickup.id }) }}" class="flex-1">
+              <input type="hidden" name="_token" value="{{ csrf_token('ramassage_status_' ~ pickup.id) }}">
+              <input type="hidden" name="status" value="picked_up">
+              <button class="kt-btn kt-btn-xs kt-btn-success w-full" type="submit">
+               <i class="ki-filled ki-truck text-xs"></i>
+               Marquer ramassé
+              </button>
+             </form>
+            </div>
+            #}
           </div>
          </div>
         </div>

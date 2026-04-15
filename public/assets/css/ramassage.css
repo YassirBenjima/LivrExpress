@@ -1,0 +1,7 @@
+/* Force select dropdowns to show ~6 items max with scrollbar */
+.select2-results__options,
+.ts-dropdown-content,
+[role="listbox"] {
+    max-height: 220px !important;
+    overflow-y: auto !important;
+}

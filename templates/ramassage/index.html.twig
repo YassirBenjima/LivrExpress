@@ -170,13 +170,15 @@
                </span>
               </span>
              </th>
+             {# Commenté pour l'instant : Colonne Actions
              <th class="w-[90px] text-center">
               <span class="kt-table-col">
                <span class="kt-table-col-label">
                 Actions
                </span>
               </span>
-             </th>
+             </th> 
+             #}
             </tr>
            </thead>
            <tbody>
@@ -233,6 +235,7 @@
               <td class="text-foreground font-normal">
                {{ pickup.assignedDriver ?: '-' }}
               </td>
+              {# Commenté pour l'instant : Menu Actions (Confirmer, Annuler, Ramassé)
               <td class="text-center">
                <div class="kt-menu flex-inline" data-kt-menu="true">
                 <div class="kt-menu-item" data-kt-menu-item-offset="0, 10px" data-kt-menu-item-placement="bottom-end" data-kt-menu-item-placement-rtl="bottom-start" data-kt-menu-item-toggle="dropdown" data-kt-menu-item-trigger="click">
@@ -308,6 +311,7 @@
                 </div>
                </div>
               </td>
+              #}
              </tr>
             {% endfor %}
            </tbody>

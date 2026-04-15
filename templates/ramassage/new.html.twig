@@ -34,42 +34,6 @@
         <!-- begin: grid -->
         <div class="grid grid-cols-1 gap-5 lg:gap-7.5">
             <div class="col-span-1">
-                <div class="kt-card">
-                    <div class="kt-card-content px-10 py-7.5 lg:pe-12.5">
-                        <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 md:gap-10 p-2.5">
-                            <div class="flex flex-col items-start gap-3 w-full lg:max-w-[60%]">
-                                <h2 class="text-xl font-semibold text-mono">
-                                    Informations
-                                </h2>
-                                <div class="grid grid-cols-1 gap-2 w-full">
-                                    <div class="flex items-start gap-1.5 lg:pe-7.5">
-                                        <i class="ki-filled ki-check-circle text-base text-green-500"></i>
-                                        <span class="text-sm text-mono">
-                                            Veuillez fournir une adresse précise pour faciliter le ramassage de vos produits.
-                                        </span>
-                                    </div>
-                                    <div class="flex items-start gap-1.5 lg:pe-7.5">
-                                        <i class="ki-filled ki-check-circle text-base text-green-500"></i>
-                                        <span class="text-sm text-mono">
-                                            Le ramassage sera planifié dans les 24h suivant la demande.
-                                        </span>
-                                    </div>
-                                    <div class="flex items-start gap-1.5 lg:pe-7.5">
-                                        <i class="ki-filled ki-check-circle text-base text-green-500"></i>
-                                        <span class="text-sm text-mono">
-                                            Vous serez notifié par SMS lorsque le livreur sera en route.
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="shrink-0 self-center lg:self-auto flex items-center justify-center">
-                                <i class="ki-filled ki-truck dark:hidden text-primary" style="font-size: 80px; line-height: 1;"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-span-1">
                 <form method="post" action="{{ path('app_ramassage_new') }}" id="ramassage-new-form">
                 <input type="hidden" name="_token" value="{{ csrf_token('ramassage_new') }}">
                 <div class="grid grid-cols-1 xl:grid-cols-2 gap-5 lg:gap-7.5">
@@ -188,4 +152,9 @@
     <!-- End of Container -->
 </main>
 <!-- End of Content -->
+{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link href="{{ asset('assets/css/ramassage.css') }}" rel="stylesheet" type="text/css" />
 {% endblock %}
