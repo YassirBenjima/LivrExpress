@@ -1,0 +1,338 @@
+{% extends 'base_dashboard.html.twig' %}
+
+{% block title %}Liste des ramassages - LivrExpress{% endblock %}
+
+{% block body %}
+{% set totalRamassages = pickups|length %}
+<main class="grow pt-5 dashboard-content-shift" id="content" role="content">
+    <!-- Container -->
+    <div class="kt-container-fixed" id="contentContainer">
+    </div>
+    <!-- End of Container -->
+    <!-- Container -->
+    <div class="kt-container-fixed">
+     <div class="flex flex-wrap items-center lg:items-end justify-between gap-5 pb-7.5">
+      <div class="flex flex-col justify-center gap-2">
+       <h1 class="text-xl font-medium leading-none text-mono">
+        Liste des ramassages
+       </h1>
+       <div class="flex items-center flex-wrap gap-1.5 font-medium">
+        <span class="text-base text-secondary-foreground">
+         Total ramassages:
+        </span>
+        <span class="text-base text-foreground font-medium">
+         {{ totalRamassages }}
+        </span>
+       </div>
+      </div>
+      <div class="flex items-center gap-2.5">
+       <a class="kt-btn kt-btn-outline" href="{{ path('app_ramassage_planning') }}">
+        Planification
+       </a>
+       <a class="kt-btn kt-btn-primary" href="{{ path('app_ramassage_new') }}">
+        Demander un ramassage
+       </a>
+      </div>
+     </div>
+    </div>
+    <!-- End of Container -->
+    <!-- Container -->
+    <div class="kt-container-fixed">
+     <div class="grid gap-5 lg:gap-7.5">
+      <div class="kt-card kt-card-grid min-w-full">
+       <div class="kt-card-header flex-wrap gap-2">
+        <h3 class="kt-card-title text-sm">
+         Affichage de {{ totalRamassages }} ramassages
+        </h3>
+        <form class="flex flex-wrap gap-2 lg:gap-5" method="get" action="{{ path('app_ramassage_index') }}">
+         <div class="flex">
+          <label class="kt-input">
+           <i class="ki-filled ki-magnifier">
+           </i>
+           <input data-kt-datatable-search="#ramassage_table" name="q" placeholder="Rechercher un ramassage" type="text" value="{{ search_query|default('') }}"/>
+          </label>
+         </div>
+         <div class="flex flex-wrap gap-2.5">
+          <select class="kt-select w-36" data-kt-select="true" data-kt-select-placeholder="Statut" name="statut">
+           <option value="">
+            Tous les statuts
+           </option>
+           {% for statut in statuts_possibles %}
+            <option value="{{ statut }}" {{ selected_statut|default('') == statut ? 'selected' : '' }}>
+             {{ statut_labels[statut]|default(statut) }}
+            </option>
+           {% endfor %}
+          </select>
+          <button class="kt-btn kt-btn-outline kt-btn-primary" type="submit">
+           <i class="ki-filled ki-setting-4">
+           </i>
+           Filtrer
+          </button>
+          <a class="kt-btn kt-btn-outline" href="{{ path('app_ramassage_index') }}">
+           Réinitialiser
+          </a>
+         </div>
+        </form>
+       </div>
+       <div class="kt-card-content">
+        <div data-kt-datatable="true" data-kt-datatable-state-save="false" id="ramassage_table">
+         <div class="kt-scrollable-x-auto">
+          <table class="kt-table table-auto kt-table-border" data-kt-datatable-table="true">
+           <thead>
+            <tr>
+             <th class="min-w-[140px]">
+              <span class="kt-table-col">
+               <span class="kt-table-col-label">
+                Téléphone
+               </span>
+               <span class="kt-table-col-sort">
+               </span>
+              </span>
+             </th>
+             <th class="min-w-[120px]">
+              <span class="kt-table-col">
+               <span class="kt-table-col-label">
+                Type
+               </span>
+               <span class="kt-table-col-sort">
+               </span>
+              </span>
+             </th>
+             <th class="min-w-[180px]">
+              <span class="kt-table-col">
+               <span class="kt-table-col-label">
+                Détails
+               </span>
+               <span class="kt-table-col-sort">
+               </span>
+              </span>
+             </th>
+             <th class="min-w-[140px]">
+              <span class="kt-table-col">
+               <span class="kt-table-col-label">
+                Ville
+               </span>
+               <span class="kt-table-col-sort">
+               </span>
+              </span>
+             </th>
+             <th class="min-w-[180px]">
+              <span class="kt-table-col">
+               <span class="kt-table-col-label">
+                Adresse
+               </span>
+               <span class="kt-table-col-sort">
+               </span>
+              </span>
+             </th>
+             <th class="min-w-[150px]">
+              <span class="kt-table-col">
+               <span class="kt-table-col-label">
+                Note
+               </span>
+               <span class="kt-table-col-sort">
+               </span>
+              </span>
+             </th>
+             <th class="min-w-[150px]">
+              <span class="kt-table-col">
+               <span class="kt-table-col-label">
+                Date
+               </span>
+               <span class="kt-table-col-sort">
+               </span>
+              </span>
+             </th>
+             <th class="min-w-[130px]">
+              <span class="kt-table-col">
+               <span class="kt-table-col-label">
+                Statut
+               </span>
+               <span class="kt-table-col-sort">
+               </span>
+              </span>
+             </th>
+             <th class="min-w-[120px]">
+              <span class="kt-table-col">
+               <span class="kt-table-col-label">
+                Suivi
+               </span>
+               <span class="kt-table-col-sort">
+               </span>
+              </span>
+             </th>
+             <th class="min-w-[140px]">
+              <span class="kt-table-col">
+               <span class="kt-table-col-label">
+                Livreur
+               </span>
+               <span class="kt-table-col-sort">
+               </span>
+              </span>
+             </th>
+             <th class="w-[90px] text-center">
+              <span class="kt-table-col">
+               <span class="kt-table-col-label">
+                Actions
+               </span>
+              </span>
+             </th>
+            </tr>
+           </thead>
+           <tbody>
+            {% for pickup in pickups %}
+             <tr>
+              {% set statusLabel = statut_labels[pickup.status]|default(pickup.status) %}
+              {% set statusBadgeClass = 'kt-badge-warning' %}
+              {% if pickup.status == 'confirmed' %}
+               {% set statusBadgeClass = 'kt-badge-info' %}
+              {% elseif pickup.status == 'picked_up' %}
+               {% set statusBadgeClass = 'kt-badge-success' %}
+              {% elseif pickup.status == 'cancelled' %}
+               {% set statusBadgeClass = 'kt-badge-destructive' %}
+              {% endif %}
+              <td class="text-foreground font-medium">
+               {{ pickup.phone }}
+              </td>
+              <td>
+               <span class="kt-badge {{ pickup.type == 'stock' ? 'kt-badge-primary' : 'kt-badge-info' }} kt-badge-outline rounded-[30px]">
+                <span class="kt-badge-dot size-1.5">
+                </span>
+                {{ pickup.type == 'stock' ? 'Stock' : 'Simple' }}
+               </span>
+              </td>
+              <td class="text-foreground font-normal">
+               {{ pickup.productNameSnapshot ?: '-' }}
+              </td>
+              <td class="text-foreground font-normal">
+               {{ pickup.city }}
+              </td>
+              <td class="text-foreground font-normal">
+               {{ pickup.address }}{% if pickup.neighborhood %}, {{ pickup.neighborhood }}{% endif %}
+              </td>
+              <td class="text-foreground font-normal">
+               {{ pickup.note ?: '-' }}
+              </td>
+              <td class="text-foreground font-normal">
+               {{ pickup.createdAt ? pickup.createdAt|date('d/m/Y H:i') : '-' }}
+              </td>
+              <td>
+               <span class="kt-badge {{ statusBadgeClass }} kt-badge-outline rounded-[30px]">
+                <span class="kt-badge-dot size-1.5">
+                </span>
+                {{ statusLabel }}
+               </span>
+              </td>
+              <td class="text-foreground font-normal">
+               {% if pickup.hasLabels %}
+                <span class="text-success text-xs font-medium">Avec étiquettes</span>
+               {% else %}
+                <span class="text-warning text-xs font-medium">Sans étiquettes</span>
+               {% endif %}
+              </td>
+              <td class="text-foreground font-normal">
+               {{ pickup.assignedDriver ?: '-' }}
+              </td>
+              <td class="text-center">
+               <div class="kt-menu flex-inline" data-kt-menu="true">
+                <div class="kt-menu-item" data-kt-menu-item-offset="0, 10px" data-kt-menu-item-placement="bottom-end" data-kt-menu-item-placement-rtl="bottom-start" data-kt-menu-item-toggle="dropdown" data-kt-menu-item-trigger="click">
+                 <button class="kt-menu-toggle kt-btn kt-btn-sm kt-btn-icon kt-btn-ghost">
+                  <i class="ki-filled ki-dots-vertical text-lg">
+                  </i>
+                 </button>
+                 <div class="kt-menu-dropdown kt-menu-default w-full max-w-[200px]" data-kt-menu-dismiss="true">
+                  <div class="kt-menu-item">
+                   <a class="kt-menu-link" href="#">
+                    <span class="kt-menu-icon">
+                     <i class="ki-filled ki-search-list">
+                     </i>
+                    </span>
+                    <span class="kt-menu-title">
+                     Voir
+                    </span>
+                   </a>
+                  </div>
+                  {% if pickup.status == 'pending' %}
+                  <div class="kt-menu-item">
+                   <form method="post" action="{{ path('app_ramassage_update_status', { id: pickup.id }) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('ramassage_status_' ~ pickup.id) }}">
+                    <input type="hidden" name="status" value="confirmed">
+                    <input type="hidden" name="redirect" value="index">
+                    <button class="kt-menu-link w-full" type="submit">
+                     <span class="kt-menu-icon">
+                      <i class="ki-filled ki-check-circle">
+                      </i>
+                     </span>
+                     <span class="kt-menu-title">
+                      Confirmer
+                     </span>
+                    </button>
+                   </form>
+                  </div>
+                  <div class="kt-menu-item">
+                   <form method="post" action="{{ path('app_ramassage_update_status', { id: pickup.id }) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('ramassage_status_' ~ pickup.id) }}">
+                    <input type="hidden" name="status" value="cancelled">
+                    <input type="hidden" name="redirect" value="index">
+                    <button class="kt-menu-link w-full" type="submit" onclick="return confirm('Annuler cette demande de ramassage ?');">
+                     <span class="kt-menu-icon">
+                      <i class="ki-filled ki-cross-circle">
+                      </i>
+                     </span>
+                     <span class="kt-menu-title">
+                      Annuler
+                     </span>
+                    </button>
+                   </form>
+                  </div>
+                  {% endif %}
+                  {% if pickup.status == 'confirmed' %}
+                  <div class="kt-menu-item">
+                   <form method="post" action="{{ path('app_ramassage_update_status', { id: pickup.id }) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('ramassage_status_' ~ pickup.id) }}">
+                    <input type="hidden" name="status" value="picked_up">
+                    <input type="hidden" name="redirect" value="index">
+                    <button class="kt-menu-link w-full" type="submit">
+                     <span class="kt-menu-icon">
+                      <i class="ki-filled ki-truck">
+                      </i>
+                     </span>
+                     <span class="kt-menu-title">
+                      Marquer ramassé
+                     </span>
+                    </button>
+                   </form>
+                  </div>
+                  {% endif %}
+                 </div>
+                </div>
+               </div>
+              </td>
+             </tr>
+            {% endfor %}
+           </tbody>
+          </table>
+         </div>
+         <div class="kt-card-footer justify-center md:justify-between flex-col md:flex-row gap-5 text-secondary-foreground text-sm font-medium">
+          <div class="flex items-center gap-2 order-2 md:order-1">
+           Afficher
+           <select class="kt-select w-16" data-kt-datatable-size="true" data-kt-select="" name="perpage">
+           </select>
+           par page
+          </div>
+          <div class="flex items-center gap-4 order-1 md:order-2">
+           <span data-kt-datatable-info="true">
+           </span>
+           <div class="kt-datatable-pagination" data-kt-datatable-pagination="true">
+           </div>
+          </div>
+         </div>
+        </div>
+       </div>
+      </div>
+
+     </div>
+    </div>
+    <!-- End of Container -->
+   </main>
+{% endblock %}

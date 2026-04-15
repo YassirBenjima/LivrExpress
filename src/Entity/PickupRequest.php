@@ -18,7 +18,7 @@ class PickupRequest
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: StockProduct::class)]
-    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?StockProduct $product = null;
 
     #[ORM\Column(length: 255)]
@@ -54,6 +54,15 @@ class PickupRequest
 
     #[ORM\Column(length: 20)]
     private string $status = 'pending';
+
+    #[ORM\Column(length: 30, options: ['simple' => 'stock'])]
+    private string $type = 'stock';
+
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $scheduledAt = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $assignedDriver = null;
 
     public function __construct()
     {
@@ -203,5 +212,41 @@ class PickupRequest
 
         return $this;
     }
-}
 
+    public function getType(): string
+    {
+        return $this->type;
+    }
+
+    public function setType(string $type): self
+    {
+        $this->type = trim($type);
+
+        return $this;
+    }
+
+    public function getScheduledAt(): ?\DateTimeImmutable
+    {
+        return $this->scheduledAt;
+    }
+
+    public function setScheduledAt(?\DateTimeImmutable $scheduledAt): self
+    {
+        $this->scheduledAt = $scheduledAt;
+
+        return $this;
+    }
+
+    public function getAssignedDriver(): ?string
+    {
+        return $this->assignedDriver;
+    }
+
+    public function setAssignedDriver(?string $assignedDriver): self
+    {
+        $assignedDriver = $assignedDriver !== null ? trim($assignedDriver) : null;
+        $this->assignedDriver = $assignedDriver !== '' ? $assignedDriver : null;
+
+        return $this;
+    }
+}

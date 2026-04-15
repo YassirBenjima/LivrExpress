@@ -1,0 +1,305 @@
+{% extends 'base_dashboard.html.twig' %}
+
+{% block title %}Planification des ramassages - LivrExpress{% endblock %}
+
+{% block body %}
+<main class="grow pt-5 dashboard-content-shift" id="content" role="content">
+    <!-- Container -->
+    <div class="kt-container-fixed" id="contentContainer">
+    </div>
+    <!-- End of Container -->
+    <!-- Container — Header -->
+    <div class="kt-container-fixed">
+     <div class="flex flex-wrap items-center lg:items-end justify-between gap-5 pb-7.5">
+      <div class="flex flex-col justify-center gap-2">
+       <h1 class="text-xl font-medium leading-none text-mono">
+        Planification des ramassages
+       </h1>
+       <div class="flex items-center gap-2 text-sm font-normal text-secondary-foreground">
+        Vue d'ensemble de vos demandes de ramassage
+       </div>
+      </div>
+      <div class="flex items-center gap-2.5">
+       <a class="kt-btn kt-btn-outline" href="{{ path('app_ramassage_index') }}">
+        Voir la liste
+       </a>
+       <a class="kt-btn kt-btn-primary" href="{{ path('app_ramassage_new') }}">
+        Nouvelle demande
+       </a>
+      </div>
+     </div>
+    </div>
+    <!-- End of Container -->
+
+    <!-- Container — KPI Stats -->
+    <div class="kt-container-fixed">
+     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-7.5 pb-7.5">
+      <!-- Total -->
+      <div class="kt-card">
+       <div class="kt-card-content flex items-center gap-4 p-5">
+        <div class="size-[50px] shrink-0 rounded-xl bg-primary/10 flex items-center justify-center">
+         <i class="ki-filled ki-parcel text-xl text-primary"></i>
+        </div>
+        <div class="flex flex-col">
+         <span class="text-2xl font-semibold text-mono">{{ stats.total }}</span>
+         <span class="text-xs text-secondary-foreground font-medium">Total demandes</span>
+        </div>
+       </div>
+      </div>
+      <!-- En attente -->
+      <div class="kt-card">
+       <div class="kt-card-content flex items-center gap-4 p-5">
+        <div class="size-[50px] shrink-0 rounded-xl bg-warning/10 flex items-center justify-center">
+         <i class="ki-filled ki-time text-xl text-warning"></i>
+        </div>
+        <div class="flex flex-col">
+         <span class="text-2xl font-semibold text-mono">{{ stats.pending }}</span>
+         <span class="text-xs text-secondary-foreground font-medium">En attente</span>
+        </div>
+       </div>
+      </div>
+      <!-- Confirmés -->
+      <div class="kt-card">
+       <div class="kt-card-content flex items-center gap-4 p-5">
+        <div class="size-[50px] shrink-0 rounded-xl bg-info/10 flex items-center justify-center">
+         <i class="ki-filled ki-check-circle text-xl text-info"></i>
+        </div>
+        <div class="flex flex-col">
+         <span class="text-2xl font-semibold text-mono">{{ stats.confirmed }}</span>
+         <span class="text-xs text-secondary-foreground font-medium">Confirmés</span>
+        </div>
+       </div>
+      </div>
+      <!-- Ramassés -->
+      <div class="kt-card">
+       <div class="kt-card-content flex items-center gap-4 p-5">
+        <div class="size-[50px] shrink-0 rounded-xl bg-success/10 flex items-center justify-center">
+         <i class="ki-filled ki-truck text-xl text-success"></i>
+        </div>
+        <div class="flex flex-col">
+         <span class="text-2xl font-semibold text-mono">{{ stats.picked_up }}</span>
+         <span class="text-xs text-secondary-foreground font-medium">Ramassés</span>
+        </div>
+       </div>
+      </div>
+     </div>
+    </div>
+    <!-- End of Container -->
+
+    <!-- Container — Kanban Board -->
+    <div class="kt-container-fixed">
+     <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-7.5">
+
+      <!-- ══════════ COLUMN: En attente ══════════ -->
+      <div class="flex flex-col gap-4">
+       <div class="flex items-center gap-2.5 px-1 pb-1 border-b-2 border-warning">
+        <span class="size-2.5 rounded-full bg-warning shrink-0"></span>
+        <h3 class="text-sm font-semibold text-mono">En attente</h3>
+        <span class="kt-badge kt-badge-warning kt-badge-outline kt-badge-sm rounded-full ms-auto">{{ grouped.pending|length }}</span>
+       </div>
+       <div class="flex flex-col gap-3 max-h-[calc(100vh-320px)] overflow-y-auto pe-1">
+       {% for pickup in grouped.pending %}
+        <div class="kt-card border border-border hover:border-warning/40 transition-colors duration-200">
+         <div class="kt-card-content p-4">
+          <div class="flex flex-col gap-3">
+           <div class="flex items-start justify-between gap-2">
+            <span class="text-sm font-semibold text-mono leading-tight line-clamp-2">{{ pickup.productNameSnapshot ?: 'Ramassage' }}</span>
+            <span class="kt-badge kt-badge-warning kt-badge-outline kt-badge-xs rounded-[30px] shrink-0">
+             <span class="kt-badge-dot size-1"></span>
+             En attente
+            </span>
+           </div>
+           <div class="flex flex-col gap-1.5">
+            <div class="flex items-center gap-2 text-xs text-secondary-foreground">
+             <i class="ki-filled ki-geolocation text-sm text-muted-foreground w-3.5 shrink-0"></i>
+             <span class="truncate">{{ pickup.city }} — {{ pickup.address }}</span>
+            </div>
+            {% if pickup.neighborhood %}
+            <div class="flex items-center gap-2 text-xs text-secondary-foreground">
+             <i class="ki-filled ki-map text-sm text-muted-foreground w-3.5 shrink-0"></i>
+             <span class="truncate">{{ pickup.neighborhood }}</span>
+            </div>
+            {% endif %}
+            <div class="flex items-center gap-2 text-xs text-secondary-foreground">
+             <i class="ki-filled ki-phone text-sm text-muted-foreground w-3.5 shrink-0"></i>
+             {{ pickup.phone }}
+            </div>
+            <div class="flex items-center gap-2 text-xs text-secondary-foreground">
+             <i class="ki-filled ki-calendar text-sm text-muted-foreground w-3.5 shrink-0"></i>
+             {{ pickup.createdAt|date('d/m/Y H:i') }}
+            </div>
+            {% if pickup.note %}
+            <div class="flex items-start gap-2 text-xs text-secondary-foreground">
+             <i class="ki-filled ki-message-text text-sm text-muted-foreground w-3.5 shrink-0 mt-px"></i>
+             <span class="line-clamp-2">{{ pickup.note }}</span>
+            </div>
+            {% endif %}
+           </div>
+           <div class="flex items-center gap-2 pt-2.5 border-t border-border">
+            <form method="post" action="{{ path('app_ramassage_update_status', { id: pickup.id }) }}" class="flex-1">
+             <input type="hidden" name="_token" value="{{ csrf_token('ramassage_status_' ~ pickup.id) }}">
+             <input type="hidden" name="status" value="confirmed">
+             <button class="kt-btn kt-btn-xs kt-btn-info w-full" type="submit">
+              <i class="ki-filled ki-check text-xs"></i>
+              Confirmer
+             </button>
+            </form>
+            <form method="post" action="{{ path('app_ramassage_update_status', { id: pickup.id }) }}">
+             <input type="hidden" name="_token" value="{{ csrf_token('ramassage_status_' ~ pickup.id) }}">
+             <input type="hidden" name="status" value="cancelled">
+             <button class="kt-btn kt-btn-xs kt-btn-icon kt-btn-destructive kt-btn-outline rounded-full" type="submit" onclick="return confirm('Annuler cette demande ?');" title="Annuler">
+              <i class="ki-filled ki-cross text-xs"></i>
+             </button>
+            </form>
+           </div>
+          </div>
+         </div>
+        </div>
+       {% else %}
+        <div class="kt-card border border-dashed border-border">
+         <div class="kt-card-content p-6 text-center">
+          <i class="ki-filled ki-information-2 text-2xl text-muted-foreground mb-2"></i>
+          <p class="text-sm text-secondary-foreground">Aucune demande en attente</p>
+         </div>
+        </div>
+       {% endfor %}
+       </div>
+      </div>
+
+      <!-- ══════════ COLUMN: Confirmé ══════════ -->
+      <div class="flex flex-col gap-4">
+       <div class="flex items-center gap-2.5 px-1 pb-1 border-b-2 border-info">
+        <span class="size-2.5 rounded-full bg-info shrink-0"></span>
+        <h3 class="text-sm font-semibold text-mono">Confirmé</h3>
+        <span class="kt-badge kt-badge-info kt-badge-outline kt-badge-sm rounded-full ms-auto">{{ grouped.confirmed|length }}</span>
+       </div>
+       <div class="flex flex-col gap-3 max-h-[calc(100vh-320px)] overflow-y-auto pe-1">
+       {% for pickup in grouped.confirmed %}
+        <div class="kt-card border border-border hover:border-info/40 transition-colors duration-200">
+         <div class="kt-card-content p-4">
+          <div class="flex flex-col gap-3">
+           <div class="flex items-start justify-between gap-2">
+            <span class="text-sm font-semibold text-mono leading-tight line-clamp-2">{{ pickup.productNameSnapshot ?: 'Ramassage' }}</span>
+            <span class="kt-badge kt-badge-info kt-badge-outline kt-badge-xs rounded-[30px] shrink-0">
+             <span class="kt-badge-dot size-1"></span>
+             Confirmé
+            </span>
+           </div>
+           <div class="flex flex-col gap-1.5">
+            <div class="flex items-center gap-2 text-xs text-secondary-foreground">
+             <i class="ki-filled ki-geolocation text-sm text-muted-foreground w-3.5 shrink-0"></i>
+             <span class="truncate">{{ pickup.city }} — {{ pickup.address }}</span>
+            </div>
+            {% if pickup.neighborhood %}
+            <div class="flex items-center gap-2 text-xs text-secondary-foreground">
+             <i class="ki-filled ki-map text-sm text-muted-foreground w-3.5 shrink-0"></i>
+             <span class="truncate">{{ pickup.neighborhood }}</span>
+            </div>
+            {% endif %}
+            <div class="flex items-center gap-2 text-xs text-secondary-foreground">
+             <i class="ki-filled ki-phone text-sm text-muted-foreground w-3.5 shrink-0"></i>
+             {{ pickup.phone }}
+            </div>
+            <div class="flex items-center gap-2 text-xs text-secondary-foreground">
+             <i class="ki-filled ki-calendar text-sm text-muted-foreground w-3.5 shrink-0"></i>
+             {{ pickup.createdAt|date('d/m/Y H:i') }}
+            </div>
+            {% if pickup.note %}
+            <div class="flex items-start gap-2 text-xs text-secondary-foreground">
+             <i class="ki-filled ki-message-text text-sm text-muted-foreground w-3.5 shrink-0 mt-px"></i>
+             <span class="line-clamp-2">{{ pickup.note }}</span>
+            </div>
+            {% endif %}
+           </div>
+           <div class="flex items-center gap-2 pt-2.5 border-t border-border">
+            <form method="post" action="{{ path('app_ramassage_update_status', { id: pickup.id }) }}" class="flex-1">
+             <input type="hidden" name="_token" value="{{ csrf_token('ramassage_status_' ~ pickup.id) }}">
+             <input type="hidden" name="status" value="picked_up">
+             <button class="kt-btn kt-btn-xs kt-btn-success w-full" type="submit">
+              <i class="ki-filled ki-truck text-xs"></i>
+              Marquer ramassé
+             </button>
+            </form>
+           </div>
+          </div>
+         </div>
+        </div>
+       {% else %}
+        <div class="kt-card border border-dashed border-border">
+         <div class="kt-card-content p-6 text-center">
+          <i class="ki-filled ki-information-2 text-2xl text-muted-foreground mb-2"></i>
+          <p class="text-sm text-secondary-foreground">Aucun ramassage confirmé</p>
+         </div>
+        </div>
+       {% endfor %}
+       </div>
+      </div>
+
+      <!-- ══════════ COLUMN: Ramassé ══════════ -->
+      <div class="flex flex-col gap-4">
+       <div class="flex items-center gap-2.5 px-1 pb-1 border-b-2 border-success">
+        <span class="size-2.5 rounded-full bg-success shrink-0"></span>
+        <h3 class="text-sm font-semibold text-mono">Ramassé</h3>
+        <span class="kt-badge kt-badge-success kt-badge-outline kt-badge-sm rounded-full ms-auto">{{ grouped.picked_up|length }}</span>
+       </div>
+       <div class="flex flex-col gap-3 max-h-[calc(100vh-320px)] overflow-y-auto pe-1">
+       {% for pickup in grouped.picked_up %}
+        <div class="kt-card border border-border hover:border-success/40 transition-colors duration-200">
+         <div class="kt-card-content p-4">
+          <div class="flex flex-col gap-3">
+           <div class="flex items-start justify-between gap-2">
+            <span class="text-sm font-semibold text-mono leading-tight line-clamp-2">{{ pickup.productNameSnapshot ?: 'Ramassage' }}</span>
+            <span class="kt-badge kt-badge-success kt-badge-outline kt-badge-xs rounded-[30px] shrink-0">
+             <span class="kt-badge-dot size-1"></span>
+             Ramassé
+            </span>
+           </div>
+           <div class="flex flex-col gap-1.5">
+            <div class="flex items-center gap-2 text-xs text-secondary-foreground">
+             <i class="ki-filled ki-geolocation text-sm text-muted-foreground w-3.5 shrink-0"></i>
+             <span class="truncate">{{ pickup.city }} — {{ pickup.address }}</span>
+            </div>
+            {% if pickup.neighborhood %}
+            <div class="flex items-center gap-2 text-xs text-secondary-foreground">
+             <i class="ki-filled ki-map text-sm text-muted-foreground w-3.5 shrink-0"></i>
+             <span class="truncate">{{ pickup.neighborhood }}</span>
+            </div>
+            {% endif %}
+            <div class="flex items-center gap-2 text-xs text-secondary-foreground">
+             <i class="ki-filled ki-phone text-sm text-muted-foreground w-3.5 shrink-0"></i>
+             {{ pickup.phone }}
+            </div>
+            <div class="flex items-center gap-2 text-xs text-secondary-foreground">
+             <i class="ki-filled ki-calendar text-sm text-muted-foreground w-3.5 shrink-0"></i>
+             {{ pickup.createdAt|date('d/m/Y H:i') }}
+            </div>
+            {% if pickup.assignedDriver %}
+            <div class="flex items-center gap-2 text-xs text-secondary-foreground">
+             <i class="ki-filled ki-user text-sm text-muted-foreground w-3.5 shrink-0"></i>
+             {{ pickup.assignedDriver }}
+            </div>
+            {% endif %}
+           </div>
+           <div class="flex items-center gap-1.5 pt-2.5 border-t border-border">
+            <i class="ki-filled ki-check-circle text-success text-sm"></i>
+            <span class="text-xs text-success font-medium">Ramassage effectué</span>
+           </div>
+          </div>
+         </div>
+        </div>
+       {% else %}
+        <div class="kt-card border border-dashed border-border">
+         <div class="kt-card-content p-6 text-center">
+          <i class="ki-filled ki-information-2 text-2xl text-muted-foreground mb-2"></i>
+          <p class="text-sm text-secondary-foreground">Aucun ramassage effectué</p>
+         </div>
+        </div>
+       {% endfor %}
+       </div>
+      </div>
+
+     </div>
+    </div>
+    <!-- End of Container -->
+   </main>
+{% endblock %}

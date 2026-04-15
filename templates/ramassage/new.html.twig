@@ -1,0 +1,191 @@
+{% extends 'base_dashboard.html.twig' %}
+
+{% block title %}Nouvelle demande de ramassage - LivrExpress{% endblock %}
+
+{% block body %}
+<!-- Content -->
+<main class="grow pt-5 profile-content-shift" id="content" role="content">
+    <!-- Container -->
+    <div class="kt-container-fixed">
+        <div class="flex flex-wrap items-center lg:items-end justify-between gap-5 pb-7.5">
+            <div class="flex flex-col justify-center gap-2">
+                <h1 class="text-xl font-medium leading-none text-mono">
+                    Nouvelle demande de ramassage
+                </h1>
+                <div class="flex items-center gap-2 text-sm font-normal text-secondary-foreground">
+                    Remplissez les informations pour planifier un ramassage
+                </div>
+            </div>
+            <div class="flex flex-col items-end gap-2.5">
+                <div class="flex items-center gap-2.5">
+                <a class="kt-btn kt-btn-outline" href="{{ path('app_ramassage_index') }}">
+                    Retour à la liste
+                </a>
+                <button class="kt-btn kt-btn-primary" form="ramassage-new-form" id="ramassage-save-btn" type="submit">
+                    Soumettre la demande
+                </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- End of Container -->
+    <!-- Container -->
+    <div class="kt-container-fixed">
+        <!-- begin: grid -->
+        <div class="grid grid-cols-1 gap-5 lg:gap-7.5">
+            <div class="col-span-1">
+                <div class="kt-card">
+                    <div class="kt-card-content px-10 py-7.5 lg:pe-12.5">
+                        <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 md:gap-10 p-2.5">
+                            <div class="flex flex-col items-start gap-3 w-full lg:max-w-[60%]">
+                                <h2 class="text-xl font-semibold text-mono">
+                                    Informations
+                                </h2>
+                                <div class="grid grid-cols-1 gap-2 w-full">
+                                    <div class="flex items-start gap-1.5 lg:pe-7.5">
+                                        <i class="ki-filled ki-check-circle text-base text-green-500"></i>
+                                        <span class="text-sm text-mono">
+                                            Veuillez fournir une adresse précise pour faciliter le ramassage de vos produits.
+                                        </span>
+                                    </div>
+                                    <div class="flex items-start gap-1.5 lg:pe-7.5">
+                                        <i class="ki-filled ki-check-circle text-base text-green-500"></i>
+                                        <span class="text-sm text-mono">
+                                            Le ramassage sera planifié dans les 24h suivant la demande.
+                                        </span>
+                                    </div>
+                                    <div class="flex items-start gap-1.5 lg:pe-7.5">
+                                        <i class="ki-filled ki-check-circle text-base text-green-500"></i>
+                                        <span class="text-sm text-mono">
+                                            Vous serez notifié par SMS lorsque le livreur sera en route.
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="shrink-0 self-center lg:self-auto flex items-center justify-center">
+                                <i class="ki-filled ki-truck dark:hidden text-primary" style="font-size: 80px; line-height: 1;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-span-1">
+                <form method="post" action="{{ path('app_ramassage_new') }}" id="ramassage-new-form">
+                <input type="hidden" name="_token" value="{{ csrf_token('ramassage_new') }}">
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-5 lg:gap-7.5">
+                    <div class="col-span-1">
+                    <!-- Informations du ramassage Card -->
+                    <div class="kt-card min-w-full">
+                        <div class="kt-card-header">
+                            <h3 class="kt-card-title">Informations du ramassage</h3>
+                        </div>
+                        <div class="kt-card-table pb-3" style="overflow: visible;">
+                            <table class="kt-table align-middle text-sm text-muted-foreground">
+                                <tr>
+                                    <td class="py-2 min-w-36 text-secondary-foreground font-normal">Téléphone *</td>
+                                    <td class="py-2 text-foreground font-normal text-sm">
+                                        <input class="kt-input h-8 text-sm" type="text" name="phone" placeholder="Numéro de téléphone" required/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2 text-secondary-foreground font-normal">Téléphone fournisseur</td>
+                                    <td class="py-2 text-foreground font-normal text-sm">
+                                        <input class="kt-input h-8 text-sm" type="text" name="supplier_phone" placeholder="Téléphone du fournisseur (optionnel)"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2 text-secondary-foreground font-normal">Ville *</td>
+                                    <td class="py-2 text-foreground font-normal text-sm">
+                                        <select
+                                            class="kt-select"
+                                            name="city"
+                                            required
+                                            data-kt-select="true"
+                                            data-kt-select-dropdown-parent="body"
+                                            data-kt-select-enable-search="true"
+                                            data-kt-select-placeholder="Choisir une ville"
+                                            data-kt-select-search-placeholder="Rechercher une ville..."
+                                        >
+                                            <option value="" disabled selected>Choisir une ville</option>
+                                            {% for cityName in cities %}
+                                                <option value="{{ cityName }}">{{ cityName }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2 text-secondary-foreground font-normal">Quartier *</td>
+                                    <td class="py-2 text-foreground font-normal text-sm">
+                                        <input class="kt-input h-8 text-sm" type="text" name="neighborhood" placeholder="Quartier" required/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2 text-secondary-foreground font-normal">Adresse *</td>
+                                    <td class="py-2 text-foreground font-normal text-sm">
+                                        <input class="kt-input h-8 text-sm" type="text" name="address" placeholder="Adresse complète" required/>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    </div>
+
+                    <div class="col-span-1">
+                    <div class="kt-card min-w-full">
+                        <div class="kt-card-header">
+                            <h3 class="kt-card-title">Informations complémentaires</h3>
+                        </div>
+                        <div class="kt-card-table pb-3" style="overflow: visible;">
+                            <table class="kt-table align-middle text-sm text-muted-foreground">
+                                <tr>
+                                    <td class="py-2 min-w-36 text-secondary-foreground font-normal">Nature du produit *</td>
+                                    <td class="py-2 text-foreground font-normal text-sm">
+                                        <input class="kt-input h-8 text-sm" type="text" name="product_name" placeholder="Description du produit à ramasser" required/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2 text-secondary-foreground font-normal">Type</td>
+                                    <td class="py-2 text-foreground font-normal text-sm">
+                                        <select
+                                            class="kt-select"
+                                            name="type"
+                                            data-kt-select="true"
+                                            data-kt-select-dropdown-parent="body"
+                                            data-kt-select-placeholder="Choisir un type"
+                                        >
+                                            <option value="simple" selected>Simple</option>
+                                            <option value="stock">Stock</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2 text-secondary-foreground font-normal">Note</td>
+                                    <td class="py-2 text-foreground font-normal text-sm">
+                                        <input class="kt-input h-8 text-sm" type="text" name="note" placeholder="Instructions spéciales (optionnel)"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2 text-secondary-foreground font-normal">Étiquettes</td>
+                                    <td class="py-2 text-foreground font-normal text-sm">
+                                        <div class="flex items-center gap-2.5">
+                                            <input type="hidden" name="has_labels" value="0">
+                                            <input class="kt-switch kt-switch-sm" type="checkbox" name="has_labels" value="1" checked>
+                                            <span class="text-xs text-secondary-foreground">J'ai les étiquettes</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    </div>
+
+                </div>
+                </form>
+            </div>
+        </div>
+        <!-- end: grid -->
+    </div>
+    <!-- End of Container -->
+</main>
+<!-- End of Content -->
+{% endblock %}
