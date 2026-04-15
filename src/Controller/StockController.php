@@ -651,6 +651,12 @@ final class StockController extends AbstractController
         ]);
     }
 
+    #[Route('/emballage', name: 'app_stock_packaging_settings', methods: ['GET'])]
+    public function packagingSettings(): Response
+    {
+        return $this->render('stock/packaging/settings.html.twig');
+    }
+
     #[Route('/produits/{id}/pickup-request', name: 'app_stock_products_pickup_request_create', methods: ['POST'])]
     public function pickupRequestCreate(
         int $id,

@@ -1,0 +1,257 @@
+{% extends 'base_dashboard.html.twig' %}
+
+{% block title %}Gestion d'emballage - LivrExpress{% endblock %}
+
+{% block body %}
+<main class="grow pt-5 dashboard-content-shift" id="content" role="content" data-user-settings-root="true" data-user-settings-page="packaging">
+    <div class="kt-container-fixed">
+        <div class="flex flex-wrap items-center lg:items-end justify-between gap-5 pb-7.5">
+            <div class="flex flex-col justify-center gap-2">
+                <h1 class="text-xl font-medium leading-none text-mono">
+                    Gestion d'emballage
+                </h1>
+                <div class="flex items-center gap-2 text-sm font-normal text-secondary-foreground">
+                    Veuillez choisir votre configuration d'emballage
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-5 lg:gap-7.5">
+            <div class="col-span-1">
+                <div class="kt-card">
+                    <div class="kt-card-header">
+                        <h3 class="kt-card-title">Cartons</h3>
+                    </div>
+                    <div class="kt-card-content pb-7.5 px-4 sm:px-6">
+                        <div class="text-sm font-normal text-secondary-foreground mb-3">
+                            Définissez votre configuration pour les colis cartons
+                        </div>
+                        <div class="grid gap-2.5">
+                            <div class="flex items-start sm:items-center justify-between group border border-border rounded-xl gap-3 px-3.5 py-2.5">
+                                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                                    <div class="size-[50px] shrink-0 rounded-xl bg-muted/60 flex items-center justify-center">
+                                        <i class="ki-filled ki-information-2 text-xl text-muted-foreground"></i>
+                                    </div>
+                                    <div class="flex flex-col min-w-0">
+                                        <span class="text-mono text-sm font-medium">Aucune</span>
+                                        <span class="text-xs text-secondary-foreground">Je n'ai pas besoin de cartons</span>
+                                    </div>
+                                </div>
+                                <button class="kt-btn kt-btn-sm kt-btn-icon kt-btn-primary kt-btn-outline rounded-full shrink-0 self-start sm:self-center" type="button" data-badge-check="true" data-packaging-category="cartons" data-packaging-choice="none" aria-pressed="false">
+                                    <i class="ki-filled ki-check"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-start sm:items-center justify-between group border border-border rounded-xl gap-3 px-3.5 py-2.5">
+                                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                                    <div class="size-[50px] shrink-0 rounded-xl bg-muted/60 flex items-center justify-center">
+                                        <i class="ki-filled ki-information-2 text-xl text-muted-foreground"></i>
+                                    </div>
+                                    <div class="flex flex-col min-w-0">
+                                        <span class="text-mono text-sm font-medium">Petit carton (S)</span>
+                                        <span class="text-xs text-secondary-foreground">Avec frais: 1.5 DH</span>
+                                        <span class="text-xs text-secondary-foreground">Carton box de petite taille.</span>
+                                    </div>
+                                </div>
+                                <button class="kt-btn kt-btn-sm kt-btn-icon kt-btn-primary kt-btn-outline rounded-full shrink-0 self-start sm:self-center" type="button" data-badge-check="true" data-packaging-category="cartons" data-packaging-choice="S" aria-pressed="false">
+                                    <i class="ki-filled ki-check"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-start sm:items-center justify-between group border border-border rounded-xl gap-3 px-3.5 py-2.5">
+                                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                                    <div class="size-[50px] shrink-0 rounded-xl bg-muted/60 flex items-center justify-center">
+                                        <i class="ki-filled ki-information-2 text-xl text-muted-foreground"></i>
+                                    </div>
+                                    <div class="flex flex-col min-w-0">
+                                        <span class="text-mono text-sm font-medium">Carton moyen (M)</span>
+                                        <span class="text-xs text-secondary-foreground">Avec frais: 2.5 DH</span>
+                                        <span class="text-xs text-secondary-foreground">Carton box de moyenne taille.</span>
+                                    </div>
+                                </div>
+                                <button class="kt-btn kt-btn-sm kt-btn-icon kt-btn-primary kt-btn-outline rounded-full shrink-0 self-start sm:self-center" type="button" data-badge-check="true" data-packaging-category="cartons" data-packaging-choice="M" aria-pressed="false">
+                                    <i class="ki-filled ki-check"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-start sm:items-center justify-between group border border-border rounded-xl gap-3 px-3.5 py-2.5">
+                                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                                    <div class="size-[50px] shrink-0 rounded-xl bg-muted/60 flex items-center justify-center">
+                                        <i class="ki-filled ki-information-2 text-xl text-muted-foreground"></i>
+                                    </div>
+                                    <div class="flex flex-col min-w-0">
+                                        <span class="text-mono text-sm font-medium">Grand carton (L)</span>
+                                        <span class="text-xs text-secondary-foreground">Avec frais: 3 DH</span>
+                                        <span class="text-xs text-secondary-foreground">Carton box de grande taille.</span>
+                                    </div>
+                                </div>
+                                <button class="kt-btn kt-btn-sm kt-btn-icon kt-btn-primary kt-btn-outline rounded-full shrink-0 self-start sm:self-center" type="button" data-badge-check="true" data-packaging-category="cartons" data-packaging-choice="L" aria-pressed="false">
+                                    <i class="ki-filled ki-check"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-span-1">
+                <div class="kt-card">
+                    <div class="kt-card-header">
+                        <h3 class="kt-card-title">Sachets</h3>
+                    </div>
+                    <div class="kt-card-content pb-7.5 px-4 sm:px-6">
+                        <div class="text-sm font-normal text-secondary-foreground mb-3">
+                            Définissez votre configuration pour les sachets
+                        </div>
+                        <div class="grid gap-2.5">
+                            <div class="flex items-start sm:items-center justify-between group border border-border rounded-xl gap-3 px-3.5 py-2.5">
+                                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                                    <div class="size-[50px] shrink-0 rounded-xl bg-muted/60 flex items-center justify-center">
+                                        <i class="ki-filled ki-information-2 text-xl text-muted-foreground"></i>
+                                    </div>
+                                    <div class="flex flex-col min-w-0">
+                                        <span class="text-mono text-sm font-medium">Aucun</span>
+                                        <span class="text-xs text-secondary-foreground">Je n'ai pas besoin de sachets</span>
+                                    </div>
+                                </div>
+                                <button class="kt-btn kt-btn-sm kt-btn-icon kt-btn-primary kt-btn-outline rounded-full shrink-0 self-start sm:self-center" type="button" data-badge-check="true" data-packaging-category="sachets" data-packaging-choice="none" aria-pressed="false">
+                                    <i class="ki-filled ki-check"></i>
+                                </button>
+                            </div>
+
+                            <div class="flex items-start sm:items-center justify-between group border border-border rounded-xl gap-3 px-3.5 py-2.5">
+                                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                                    <div class="size-[50px] shrink-0 rounded-xl bg-muted/60 flex items-center justify-center">
+                                        <i class="ki-filled ki-information-2 text-xl text-muted-foreground"></i>
+                                    </div>
+                                    <div class="flex flex-col min-w-0">
+                                        <span class="text-mono text-sm font-medium">Sachet (S)</span>
+                                        <span class="text-xs text-secondary-foreground">Avec frais: 1 DH</span>
+                                        <span class="text-xs text-secondary-foreground">Emaballage sachet de petite taille.</span>
+
+                                    </div>
+                                </div>
+                                <button class="kt-btn kt-btn-sm kt-btn-icon kt-btn-primary kt-btn-outline rounded-full shrink-0 self-start sm:self-center" type="button" data-badge-check="true" data-packaging-category="sachets" data-packaging-choice="S" aria-pressed="false">
+                                    <i class="ki-filled ki-check"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-start sm:items-center justify-between group border border-border rounded-xl gap-3 px-3.5 py-2.5">
+                                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                                    <div class="size-[50px] shrink-0 rounded-xl bg-muted/60 flex items-center justify-center">
+                                        <i class="ki-filled ki-information-2 text-xl text-muted-foreground"></i>
+                                    </div>
+                                    <div class="flex flex-col min-w-0">
+                                        <span class="text-mono text-sm font-medium">Sachet (M)</span>
+                                        <span class="text-xs text-secondary-foreground">Avec frais: 1.5 DH</span>
+                                        <span class="text-xs text-secondary-foreground">Emaballage sachet de moyenne taille.</span>
+
+                                    </div>
+                                </div>
+                                <button class="kt-btn kt-btn-sm kt-btn-icon kt-btn-primary kt-btn-outline rounded-full shrink-0 self-start sm:self-center" type="button" data-badge-check="true" data-packaging-category="sachets" data-packaging-choice="M" aria-pressed="false">
+                                    <i class="ki-filled ki-check"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-start sm:items-center justify-between group border border-border rounded-xl gap-3 px-3.5 py-2.5">
+                                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                                    <div class="size-[50px] shrink-0 rounded-xl bg-muted/60 flex items-center justify-center">
+                                        <i class="ki-filled ki-information-2 text-xl text-muted-foreground"></i>
+                                    </div>
+                                    <div class="flex flex-col min-w-0">
+                                        <span class="text-mono text-sm font-medium">Sachet (L)</span>
+                                        <span class="text-xs text-secondary-foreground">Avec frais: 2 DH</span>
+                                        <span class="text-xs text-secondary-foreground">Emaballage sachet de grande taille.</span>
+
+                                    </div>
+                                </div>
+                                <button class="kt-btn kt-btn-sm kt-btn-icon kt-btn-primary kt-btn-outline rounded-full shrink-0 self-start sm:self-center" type="button" data-badge-check="true" data-packaging-category="sachets" data-packaging-choice="L" aria-pressed="false">
+                                    <i class="ki-filled ki-check"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-span-1">
+                <div class="kt-card">
+                    <div class="kt-card-header">
+                        <h3 class="kt-card-title">Papiers bulle</h3>
+                    </div>
+                    <div class="kt-card-content pb-7.5 px-4 sm:px-6">
+                        <div class="text-sm font-normal text-secondary-foreground mb-3">
+                            Définissez votre configuration pour les papiers bulle
+                        </div>
+                        <div class="grid gap-2.5">
+                            <div class="flex items-start sm:items-center justify-between group border border-border rounded-xl gap-3 px-3.5 py-2.5">
+                                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                                    <div class="size-[50px] shrink-0 rounded-xl bg-muted/60 flex items-center justify-center">
+                                        <i class="ki-filled ki-information-2 text-xl text-muted-foreground"></i>
+                                    </div>
+                                    <div class="flex flex-col min-w-0">
+                                        <span class="text-mono text-sm font-medium">Aucun</span>
+                                        <span class="text-xs text-secondary-foreground">Je n'ai pas besoin de papiers bulle</span>
+                                    </div>
+                                </div>
+                                <button class="kt-btn kt-btn-sm kt-btn-icon kt-btn-primary kt-btn-outline rounded-full shrink-0 self-start sm:self-center" type="button" data-badge-check="true" data-packaging-category="bubble_wrap" data-packaging-choice="none" aria-pressed="false">
+                                    <i class="ki-filled ki-check"></i>
+                                </button>
+                            </div>
+
+                            <div class="flex items-start sm:items-center justify-between group border border-border rounded-xl gap-3 px-3.5 py-2.5">
+                                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                                    <div class="size-[50px] shrink-0 rounded-xl bg-muted/60 flex items-center justify-center">
+                                        <i class="ki-filled ki-information-2 text-xl text-muted-foreground"></i>
+                                    </div>
+                                    <div class="flex flex-col min-w-0">
+                                        <span class="text-mono text-sm font-medium">Papier bulle (S)</span>
+                                        <span class="text-xs text-secondary-foreground">Avec frais: 1.5 DH</span>
+                                        <span class="text-xs text-secondary-foreground">Emaballage papier bulle de petite taille</span>
+
+                                    </div>
+                                </div>
+                                <button class="kt-btn kt-btn-sm kt-btn-icon kt-btn-primary kt-btn-outline rounded-full shrink-0 self-start sm:self-center" type="button" data-badge-check="true" data-packaging-category="bubble_wrap" data-packaging-choice="S" aria-pressed="false">
+                                    <i class="ki-filled ki-check"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-start sm:items-center justify-between group border border-border rounded-xl gap-3 px-3.5 py-2.5">
+                                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                                    <div class="size-[50px] shrink-0 rounded-xl bg-muted/60 flex items-center justify-center">
+                                        <i class="ki-filled ki-information-2 text-xl text-muted-foreground"></i>
+                                    </div>
+                                    <div class="flex flex-col min-w-0">
+                                        <span class="text-mono text-sm font-medium">Papier bulle (M)</span>
+                                        <span class="text-xs text-secondary-foreground">Avec frais: 2 DH</span>
+                                        <span class="text-xs text-secondary-foreground">Emaballage papier bulle de moyenne taille.</span>
+
+                                    </div>
+                                </div>
+                                <button class="kt-btn kt-btn-sm kt-btn-icon kt-btn-primary kt-btn-outline rounded-full shrink-0 self-start sm:self-center" type="button" data-badge-check="true" data-packaging-category="bubble_wrap" data-packaging-choice="M" aria-pressed="false">
+                                    <i class="ki-filled ki-check"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-start sm:items-center justify-between group border border-border rounded-xl gap-3 px-3.5 py-2.5">
+                                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                                    <div class="size-[50px] shrink-0 rounded-xl bg-muted/60 flex items-center justify-center">
+                                        <i class="ki-filled ki-information-2 text-xl text-muted-foreground"></i>
+                                    </div>
+                                    <div class="flex flex-col min-w-0">
+                                        <span class="text-mono text-sm font-medium">Papier bulle (L)</span>
+                                        <span class="text-xs text-secondary-foreground">Avec frais: 2.5 DH</span>
+                                        <span class="text-xs text-secondary-foreground">Emaballage papier bulle de grande taille.</span>
+
+                                    </div>
+                                </div>
+                                <button class="kt-btn kt-btn-sm kt-btn-icon kt-btn-primary kt-btn-outline rounded-full shrink-0 self-start sm:self-center" type="button" data-badge-check="true" data-packaging-category="bubble_wrap" data-packaging-choice="L" aria-pressed="false">
+                                    <i class="ki-filled ki-check"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}
+
+{% block javascripts %}
+    <script src="{{ asset('assets/js/user-settings.js') }}"></script>
+{% endblock %}
+

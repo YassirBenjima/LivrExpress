@@ -3,7 +3,7 @@
 {% block title %}Parametres des colis - LivrExpress{% endblock %}
 
 {% block body %}
-<main class="grow pt-5 dashboard-content-shift" id="content" role="content">
+<main class="grow pt-5 dashboard-content-shift" id="content" role="content" data-user-settings-root="true" data-user-settings-page="parcel">
         <div class="kt-container-fixed">
             <div class="flex flex-wrap items-center lg:items-end justify-between gap-5 pb-7.5">
                 <div class="flex flex-col justify-center gap-2">
@@ -189,4 +189,8 @@
             </div>
         </div>
     </main>
+{% endblock %}
+
+{% block javascripts %}
+    <script src="{{ asset('assets/js/user-settings.js') }}"></script>
 {% endblock %}
