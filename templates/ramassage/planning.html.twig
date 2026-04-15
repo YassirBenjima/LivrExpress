@@ -102,6 +102,37 @@
         </div>
     </div>
     <!-- End of Container -->
+
+    <!-- Confirmation Modal (Metronic style) -->
+    <div class="kt-modal kt-modal-center" data-kt-modal="true" id="ramassage_confirm_modal">
+        <div class="kt-modal-content max-w-[500px] w-full">
+            <div class="kt-modal-header justify-end border-0 pt-5">
+                <button class="kt-btn kt-btn-sm kt-btn-icon kt-btn-outline" data-kt-modal-dismiss="true" id="ramassage_confirm_close">
+                    <i class="ki-filled ki-cross"></i>
+                </button>
+            </div>
+            <div class="kt-modal-body flex flex-col items-center pt-0 pb-10 px-6">
+                <div class="mb-9">
+                    <img alt="Confirmation" class="dark:hidden max-h-[150px]" src="{{ asset('assets/media/illustrations/23.svg') }}">
+                    <img alt="Confirmation" class="light:hidden max-h-[150px]" src="{{ asset('assets/media/illustrations/23-dark.svg') }}">
+                </div>
+                <h3 class="text-lg font-medium text-mono text-center mb-3" id="ramassage_confirm_title">
+                    Confirmation
+                </h3>
+                <div class="text-sm text-center text-secondary-foreground mb-7" id="ramassage_confirm_message">
+                    Voulez-vous confirmer cette action ?
+                </div>
+                <div class="flex items-center gap-2.5">
+                    <button class="kt-btn kt-btn-outline" data-kt-modal-dismiss="true" id="ramassage_confirm_cancel">
+                        Annuler
+                    </button>
+                    <button class="kt-btn kt-btn-primary" id="ramassage_confirm_submit">
+                        Confirmer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
    </main>
 {% endblock %}
 

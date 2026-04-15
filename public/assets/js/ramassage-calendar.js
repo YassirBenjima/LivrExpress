@@ -5,6 +5,90 @@ document.addEventListener('DOMContentLoaded', function () {
     var eventsUrl = calendarEl.dataset.eventsUrl;
     var newUrl = calendarEl.dataset.newUrl;
     var moveUrlTemplate = calendarEl.dataset.moveUrlTemplate;
+
+    function closeCalendarPopovers() {
+        document.querySelectorAll('.fc-popover').forEach(function (popover) {
+            popover.style.display = 'none';
+        });
+    }
+
+    function showConfirmationModal(options) {
+        var modalEl = document.getElementById('ramassage_confirm_modal');
+        var titleEl = document.getElementById('ramassage_confirm_title');
+        var messageEl = document.getElementById('ramassage_confirm_message');
+        var submitBtn = document.getElementById('ramassage_confirm_submit');
+        var cancelBtn = document.getElementById('ramassage_confirm_cancel');
+        var closeBtn = document.getElementById('ramassage_confirm_close');
+
+        var defaultMessage = options && options.message ? options.message : "Voulez-vous confirmer cette action ?";
+
+        // Fallback if Metronic modal is unavailable on current page.
+        if (!modalEl || typeof KTModal === 'undefined') {
+            return Promise.resolve(window.confirm(defaultMessage));
+        }
+
+        if (titleEl) {
+            titleEl.textContent = options && options.title ? options.title : "Confirmation";
+        }
+        if (messageEl) {
+            messageEl.textContent = defaultMessage;
+        }
+        if (submitBtn) {
+            submitBtn.textContent = options && options.confirmText ? options.confirmText : "Confirmer";
+        }
+        if (cancelBtn) {
+            cancelBtn.textContent = options && options.cancelText ? options.cancelText : "Annuler";
+        }
+
+        var existingModal = KTModal.getInstance(modalEl);
+        if (!existingModal) {
+            return Promise.resolve(window.confirm(defaultMessage));
+        }
+
+        return new Promise(function (resolve) {
+            closeCalendarPopovers();
+
+            var resolved = false;
+            var modal = existingModal;
+
+            function cleanup() {
+                if (submitBtn) submitBtn.removeEventListener('click', onConfirm);
+                if (cancelBtn) cancelBtn.removeEventListener('click', onCancel);
+                if (closeBtn) closeBtn.removeEventListener('click', onCancel);
+                modalEl.removeEventListener('click', onBackdropClick);
+            }
+
+            function finish(value) {
+                if (resolved) return;
+                resolved = true;
+                cleanup();
+                resolve(value);
+            }
+
+            function onConfirm() {
+                modal && modal.hide();
+                finish(true);
+            }
+
+            function onCancel() {
+                modal && modal.hide();
+                finish(false);
+            }
+
+            function onBackdropClick(event) {
+                if (event.target === modalEl) {
+                    onCancel();
+                }
+            }
+
+            if (submitBtn) submitBtn.addEventListener('click', onConfirm);
+            if (cancelBtn) cancelBtn.addEventListener('click', onCancel);
+            if (closeBtn) closeBtn.addEventListener('click', onCancel);
+            modalEl.addEventListener('click', onBackdropClick);
+
+            modal && modal.show();
+        });
+    }
     
     var calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
@@ -44,36 +128,43 @@ document.addEventListener('DOMContentLoaded', function () {
         
         // Rescheduling: Drag and drop
         eventDrop: function (info) {
-            if (!confirm("Voulez-vous replanifier: " + info.event.title + " ?")) {
-                info.revert();
-                return;
-            }
-
-            var newDateStr = info.event.startStr;
-            var eventId = info.event.id;
-            var updateUrl = moveUrlTemplate.replace('__ID__', eventId);
-
-            fetch(updateUrl, {
-                method: 'POST',
-                body: JSON.stringify({ newDate: newDateStr }),
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    console.log('Event moved successfully');
-                } else {
-                    alert("Erreur: " + data.message);
+            showConfirmationModal({
+                title: "Replanification",
+                message: "Voulez-vous replanifier: " + info.event.title + " ?",
+                confirmText: "Replanifier",
+                cancelText: "Annuler"
+            }).then(function (isConfirmed) {
+                if (!isConfirmed) {
                     info.revert();
+                    return;
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert("Erreur serveur lors de la replanification.");
-                info.revert();
+
+                var newDateStr = info.event.startStr;
+                var eventId = info.event.id;
+                var updateUrl = moveUrlTemplate.replace('__ID__', eventId);
+
+                fetch(updateUrl, {
+                    method: 'POST',
+                    body: JSON.stringify({ newDate: newDateStr }),
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log('Event moved successfully');
+                    } else {
+                        alert("Erreur: " + data.message);
+                        info.revert();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert("Erreur serveur lors de la replanification.");
+                    info.revert();
+                });
             });
         }
     });

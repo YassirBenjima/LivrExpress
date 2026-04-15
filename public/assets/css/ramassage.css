@@ -25,3 +25,13 @@
 .fc .fc-button-primary:not(:disabled):active, .fc .fc-button-primary:not(:disabled).fc-button-active {
     background-color: var(--tw-primary-active); border-color: var(--tw-primary-active);
 }
+
+/* Keep FullCalendar overlays behind app modals */
+.fc .fc-popover {
+    z-index: 40 !important;
+}
+
+/* Ensure Metronic confirmation modal is always on top */
+#ramassage_confirm_modal {
+    z-index: 2000 !important;
+}
