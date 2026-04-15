@@ -264,10 +264,14 @@ final class StockController extends AbstractController
         $entityManager->flush();
 
         if ($created > 0) {
-            $this->addFlash('success', sprintf('Demande(s) de ramassage créée(s): %d.', $created));
-        }
-        if ($skipped > 0) {
-            $this->addFlash('warning', sprintf('Produit(s) ignoré(s) (déjà en attente): %d.', $skipped));
+            $msg = sprintf('Demande(s) de ramassage créée(s): %d.', $created);
+            // Avoid noisy warning flashes when we still created something.
+            if ($skipped > 0) {
+                $msg .= sprintf(' (%d produit(s) déjà en attente)', $skipped);
+            }
+            $this->addFlash('success', $msg);
+        } elseif ($skipped > 0) {
+            $this->addFlash('warning', sprintf('Aucune demande créée: %d produit(s) ont déjà une demande en attente.', $skipped));
         }
 
         return $this->redirectToRoute('app_stock_entry_index');
