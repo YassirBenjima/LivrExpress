@@ -177,4 +177,56 @@ final class RamassageController extends AbstractController
 
         return $this->redirectToRoute('app_ramassage_planning');
     }
+
+    #[Route('/calendar/events', name: 'app_ramassage_calendar_events', methods: ['GET'])]
+    public function calendarEvents(PickupRequestRepository $pickupRequestRepository): Response
+    {
+        $pickups = $pickupRequestRepository->findAll();
+        $events = [];
+
+        foreach ($pickups as $pickup) {
+            $statusColors = [
+                'pending' => 'info',
+                'confirmed' => 'primary',
+                'picked_up' => 'success',
+                'cancelled' => 'danger'
+            ];
+            $color = $statusColors[$pickup->getStatus()] ?? 'primary';
+
+            // Using scheduledAt, fallback to createdAt if not scheduled yet
+            $date = $pickup->getScheduledAt() ? $pickup->getScheduledAt()->format('Y-m-d\TH:i:s') : $pickup->getCreatedAt()->format('Y-m-d\TH:i:s');
+
+            $events[] = [
+                'id' => $pickup->getId(),
+                'title' => $pickup->getProductNameSnapshot() . ' - ' . $pickup->getCity(),
+                'start' => $date,
+                'className' => 'fc-event-' . $color,
+                'extendedProps' => [
+                    'status' => $pickup->getStatus(),
+                    'phone' => $pickup->getPhone(),
+                    'address' => $pickup->getAddress()
+                ]
+            ];
+        }
+
+        return $this->json($events);
+    }
+
+    #[Route('/{id}/calendar-move', name: 'app_ramassage_calendar_move', methods: ['POST'])]
+    public function calendarMove(Request $request, PickupRequest $pickup, EntityManagerInterface $entityManager): Response
+    {
+        $data = json_decode($request->getContent(), true);
+        if (!isset($data['newDate'])) {
+            return $this->json(['success' => false, 'message' => 'Missing date'], 400);
+        }
+
+        try {
+            $newDate = new \DateTimeImmutable($data['newDate']);
+            $pickup->setScheduledAt($newDate);
+            $entityManager->flush();
+            return $this->json(['success' => true]);
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'message' => 'Invalid date format'], 400);
+        }
+    }
 }
