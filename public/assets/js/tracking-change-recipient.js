@@ -59,18 +59,60 @@
         if (!citySelect) return;
         const targetValue = (rawValue || "").trim();
         let resolvedValue = "";
+        const normalize = (value) =>
+            (value || "")
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .replace(/\s+/g, " ")
+                .trim()
+                .toLowerCase();
 
         if (targetValue !== "") {
+            const normalizedTarget = normalize(targetValue);
             const matchingOption = Array.from(citySelect.options).find(
                 (option) =>
-                    option.value.trim().toLowerCase() ===
-                    targetValue.toLowerCase(),
+                    normalize(option.value) === normalizedTarget ||
+                    normalize(option.textContent) === normalizedTarget,
             );
             resolvedValue = matchingOption ? matchingOption.value : "";
         }
 
+        Array.from(citySelect.options).forEach((option) => {
+            option.selected = option.value === resolvedValue;
+        });
         citySelect.value = resolvedValue;
+        citySelect.setAttribute("data-db-value", resolvedValue);
         citySelect.dispatchEvent(new Event("change", { bubbles: true }));
+        citySelect.dispatchEvent(new Event("input", { bubbles: true }));
+
+        // Force visual label refresh for custom kt-select wrappers.
+        const selectedOption =
+            citySelect.options[citySelect.selectedIndex] || null;
+        const selectedLabel = selectedOption
+            ? (selectedOption.textContent || "").trim()
+            : "";
+        const fieldContainer = citySelect.closest(".flex.flex-col");
+        if (fieldContainer) {
+            const renderedLabel = fieldContainer.querySelector(
+                ".kt-select-display .kt-select-option-text, .kt-select-placeholder",
+            );
+            if (renderedLabel) {
+                renderedLabel.textContent = selectedLabel || "Choisir une ville";
+            }
+        }
+
+        window.setTimeout(() => {
+            citySelect.dispatchEvent(new Event("change", { bubbles: true }));
+            const reopenedLabel = document.querySelector(
+                ".kt-select-dropdown .kt-select-option.selected .kt-select-option-text",
+            );
+            if (reopenedLabel && selectedLabel) {
+                const triggerLabel = citySelect
+                    .closest(".flex.flex-col")
+                    ?.querySelector(".kt-select-display .kt-select-option-text");
+                if (triggerLabel) triggerLabel.textContent = reopenedLabel.textContent;
+            }
+        }, 0);
     }
 
     function syncFormPrefillFromSelection() {
