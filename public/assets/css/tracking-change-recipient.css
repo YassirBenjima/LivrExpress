@@ -1,0 +1,4 @@
+#content .kt-select-dropdown .kt-select-options {
+  max-height: 240px;
+  overflow-y: auto;
+}

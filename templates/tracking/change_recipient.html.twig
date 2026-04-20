@@ -1,0 +1,240 @@
+{% extends 'base_dashboard.html.twig' %}
+
+{% block title %}Changement destinataire - LivrExpress{% endblock %}
+
+{% block body %}
+{% set totalColis = colis_list|length %}
+<main class="grow pt-5 dashboard-content-shift" id="content" role="content">
+  <div class="kt-container-fixed" id="contentContainer"></div>
+
+  <div class="kt-container-fixed">
+    <div class="flex flex-wrap items-center lg:items-end justify-between gap-5 pb-7.5">
+      <div class="flex flex-col justify-center gap-2">
+        <h1 class="text-xl font-medium leading-none text-mono">Changement destinataire</h1>
+        <div class="flex items-center flex-wrap gap-1.5 font-medium">
+          <span class="text-base text-secondary-foreground">Total colis :</span>
+          <span class="text-base text-foreground font-medium">{{ totalColis }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="kt-container-fixed">
+    <div class="kt-card border border-border/60 mb-5">
+      <div class="kt-card-content p-4">
+        <div class="flex flex-col gap-4">
+          <div class="flex items-center justify-between flex-wrap gap-3">
+            <div class="flex items-center gap-3">
+              <div class="text-sm font-semibold text-foreground">Mise à jour groupée destinataire</div>
+              <span class="kt-badge kt-badge-info kt-badge-outline rounded-[30px]">
+                <span class="kt-badge-dot size-1.5"></span>
+                <span id="selectedCount">0</span>&nbsp;sélectionné(s)
+              </span>
+            </div>
+            <div class="text-2sm text-secondary-foreground">Sélectionnez des colis puis mettez à jour les informations du destinataire.</div>
+          </div>
+
+          <form class="flex flex-wrap items-end gap-3" method="post" action="{{ path('app_suivi_changement_destinataire_bulk_recipient') }}" id="bulkRecipientForm">
+            <input type="hidden" name="_token" value="{{ csrf_token('suivi_change_recipient_bulk') }}"/>
+            <input type="hidden" name="tab" value="{{ tab }}"/>
+            <input type="hidden" name="q" value="{{ search_query|default('') }}"/>
+            <input type="hidden" name="filter_city" value="{{ selected_city|default('') }}"/>
+            <input type="hidden" name="date_from" value="{{ date_from|default('') }}"/>
+            <input type="hidden" name="date_to" value="{{ date_to|default('') }}"/>
+
+            <div class="flex flex-col gap-1">
+              <label class="text-2sm text-secondary-foreground font-medium">Destinataire</label>
+              <input class="kt-input w-56" name="recipient" placeholder="Nom du destinataire" type="text"/>
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="text-2sm text-secondary-foreground font-medium">Téléphone</label>
+              <input class="kt-input w-44" name="phoneNumber" placeholder="Numéro de téléphone" type="text"/>
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="text-2sm text-secondary-foreground font-medium">Ville</label>
+              <select
+                id="bulkRecipientCity"
+                class="kt-select w-56"
+                name="city"
+                data-kt-select="true"
+                data-kt-select-dropdown-parent="body"
+                data-kt-select-enable-search="true"
+                data-kt-select-placeholder="Choisir une ville"
+                data-kt-select-search-placeholder="Rechercher une ville..."
+              >
+                <option value="">Choisir une ville</option>
+                {% for city in city_choices %}
+                  <option value="{{ city }}">{{ city }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="text-2sm text-secondary-foreground font-medium">Adresse</label>
+              <input class="kt-input w-72" name="address" placeholder="Adresse" type="text"/>
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="text-2sm text-secondary-foreground font-medium">Quartier</label>
+              <input class="kt-input w-44" name="neighborhood" placeholder="Quartier" type="text"/>
+            </div>
+
+            <button class="kt-btn kt-btn-primary" type="submit" data-bulk-action-button="true" disabled>
+              <i class="ki-filled ki-user-edit"></i>
+              Mettre à jour
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="kt-container-fixed">
+    <div class="grid gap-5 lg:gap-7.5">
+      <div class="kt-card kt-card-grid min-w-full">
+        <div class="kt-card-header flex-wrap gap-2">
+          <h3 class="kt-card-title text-sm">Affichage de {{ totalColis }} colis</h3>
+          <form class="flex flex-wrap gap-2 lg:gap-5" method="get" action="{{ path('app_suivi_changement_destinataire') }}">
+            <input type="hidden" name="tab" value="{{ tab }}"/>
+            <div class="flex">
+              <label class="kt-input">
+                <i class="ki-filled ki-magnifier"></i>
+                <input
+                  data-kt-datatable-search="#tracking_change_recipient_table"
+                  name="q"
+                  placeholder="Code de suivi, destinataire, ville..."
+                  type="text"
+                  value="{{ search_query|default('') }}"
+                />
+              </label>
+            </div>
+            <div class="flex flex-wrap gap-2.5">
+              <select
+                class="kt-select w-56"
+                name="city"
+                data-kt-select="true"
+                data-kt-select-dropdown-parent="body"
+                data-kt-select-enable-search="true"
+                data-kt-select-placeholder="Choisir une ville"
+                data-kt-select-search-placeholder="Rechercher une ville..."
+              >
+                <option value="">Choisir une ville</option>
+                {% for city in city_choices %}
+                  <option value="{{ city }}" {{ selected_city|default('') == city ? 'selected' : '' }}>{{ city }}</option>
+                {% endfor %}
+              </select>
+              <label class="kt-input w-40">
+                <i class="ki-filled ki-calendar-2"></i>
+                <input name="date_from" type="date" value="{{ date_from|default('') }}" />
+              </label>
+              <label class="kt-input w-40">
+                <i class="ki-filled ki-calendar-2"></i>
+                <input name="date_to" type="date" value="{{ date_to|default('') }}" />
+              </label>
+              <button class="kt-btn kt-btn-outline kt-btn-primary" type="submit">
+                <i class="ki-filled ki-setting-4"></i>
+                Filtrer
+              </button>
+              <a class="kt-btn kt-btn-outline" href="{{ path('app_suivi_changement_destinataire', { tab: tab }) }}">
+                Réinitialiser
+              </a>
+            </div>
+          </form>
+        </div>
+
+        <div class="kt-card-content">
+          <div data-kt-datatable="true" data-kt-datatable-state-save="false" id="tracking_change_recipient_table">
+            <div class="kt-scrollable-x-auto">
+              <table class="kt-table table-auto kt-table-border" data-kt-datatable-table="true">
+                <thead>
+                  <tr>
+                    <th class="w-[50px]">
+                      <input class="kt-checkbox kt-checkbox-sm" data-kt-datatable-check="true" id="selectAllColis" type="checkbox"/>
+                    </th>
+                    <th class="min-w-[150px]"><span class="kt-table-col"><span class="kt-table-col-label">Code de suivi</span></span></th>
+                    <th class="min-w-[180px]"><span class="kt-table-col"><span class="kt-table-col-label">Nom du produit</span></span></th>
+                    <th class="min-w-[160px]"><span class="kt-table-col"><span class="kt-table-col-label">Date de ramassage</span></span></th>
+                    <th class="min-w-[180px]"><span class="kt-table-col"><span class="kt-table-col-label">Destinataire</span></span></th>
+                    <th class="min-w-[120px]"><span class="kt-table-col"><span class="kt-table-col-label">Statut</span></span></th>
+                    <th class="min-w-[140px]"><span class="kt-table-col"><span class="kt-table-col-label">Ville</span></span></th>
+                    <th class="min-w-[120px]"><span class="kt-table-col"><span class="kt-table-col-label">Prix</span></span></th>
+                    <th class="min-w-[220px]"><span class="kt-table-col"><span class="kt-table-col-label">Commentaire</span></span></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for colis in colis_list %}
+                    {% set statutLabel = (colis.statut ?: 'En attente')
+                      |replace({'Reporte': 'Reporté', 'Echec': 'Échec', 'Termine': 'Terminé', 'Pending': 'En attente', 'In progress': 'En cours', 'Postponed': 'Reporté', 'Failed': 'Échec', 'Completed': 'Terminé'}) %}
+                    {% set statutBadgeClass = 'kt-badge-warning' %}
+                    {% if statutLabel == 'Terminé' %}
+                      {% set statutBadgeClass = 'kt-badge-success' %}
+                    {% elseif statutLabel == 'En cours' %}
+                      {% set statutBadgeClass = 'kt-badge-primary' %}
+                    {% elseif statutLabel == 'Reporté' %}
+                      {% set statutBadgeClass = 'kt-badge-info' %}
+                    {% elseif statutLabel == 'Échec' %}
+                      {% set statutBadgeClass = 'kt-badge-destructive' %}
+                    {% endif %}
+
+                    <tr>
+                      <td>
+                        <input
+                          class="kt-checkbox kt-checkbox-sm pickup-row-checkbox colis-checkbox"
+                          data-kt-datatable-row-check="true"
+                          data-recipient="{{ colis.recipient ?: '' }}"
+                          data-phone-number="{{ colis.phoneNumber ?: '' }}"
+                          data-city="{{ colis.city ?: '' }}"
+                          data-address="{{ colis.address ?: '' }}"
+                          data-neighborhood="{{ colis.neighborhood ?: '' }}"
+                          type="checkbox"
+                          value="{{ colis.id }}"
+                        />
+                      </td>
+                      <td class="text-foreground font-medium">{{ colis.trackingCode }}</td>
+                      <td class="text-foreground font-normal">{{ colis.productNature }}</td>
+                      <td class="text-foreground font-normal">{{ colis.createdAt ? colis.createdAt|date('d/m/Y') : '-' }}</td>
+                      <td class="text-foreground font-normal">{{ colis.recipient ?: '-' }}</td>
+                      <td>
+                        <span class="kt-badge {{ statutBadgeClass }} kt-badge-outline rounded-[30px]">
+                          <span class="kt-badge-dot size-1.5"></span>
+                          {{ statutLabel }}
+                        </span>
+                      </td>
+                      <td class="text-foreground font-normal">{{ colis.city }}</td>
+                      <td class="text-foreground font-medium">{{ colis.price|number_format(2, ',', ' ') }} MAD</td>
+                      <td class="text-foreground font-normal">{{ colis.comment ?: '-' }}</td>
+                    </tr>
+                  {% else %}
+                    <tr>
+                      <td colspan="9" class="text-center text-secondary-foreground py-6">Aucun enregistrement correspondant</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+
+            <div class="kt-card-footer justify-center md:justify-between flex-col md:flex-row gap-5 text-secondary-foreground text-sm font-medium">
+              <div class="flex items-center gap-2 order-2 md:order-1">
+                Afficher
+                <select class="kt-select w-16" data-kt-datatable-size="true" data-kt-select="" name="perpage"></select>
+                par page
+              </div>
+              <div class="flex items-center gap-4 order-1 md:order-2">
+                <span data-kt-datatable-info="true"></span>
+                <div class="kt-datatable-pagination" data-kt-datatable-pagination="true"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+{% endblock %}
+
+{% block stylesheets %}
+  {{ parent() }}
+  <link href="{{ asset('assets/css/tracking-change-recipient.css') }}" rel="stylesheet" type="text/css" />
+{% endblock %}
+
+{% block javascripts %}
+  <script src="{{ asset('assets/js/tracking-change-recipient.js') }}"></script>
+{% endblock %}
