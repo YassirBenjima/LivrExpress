@@ -129,11 +129,11 @@
                 <i class="ki-filled ki-calendar-2"></i>
                 <input name="date_to" type="date" value="{{ date_to|default('') }}" />
               </label>
-              <button class="kt-btn kt-btn-outline kt-btn-primary" type="submit">
+              <button class="kt-btn kt-btn-outline kt-btn-primary mb-2 md:mb-0" type="submit">
                 <i class="ki-filled ki-setting-4"></i>
                 Filtrer
               </button>
-              <a class="kt-btn kt-btn-outline" href="{{ path('app_suivi_changement_destinataire', { tab: tab }) }}">
+              <a class="kt-btn kt-btn-outline mb-2 md:mb-0" href="{{ path('app_suivi_changement_destinataire', { tab: tab }) }}">
                 Réinitialiser
               </a>
             </div>
