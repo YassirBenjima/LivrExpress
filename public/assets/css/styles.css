@@ -133,6 +133,12 @@
     }
 }
 
+/* Standard delete confirmation modal sizing across pages */
+.kt-modal-delete .kt-modal-content {
+    width: min(460px, 95vw) !important;
+    max-width: 95vw !important;
+}
+
 @media (min-width: 1024px) {
     #content.dashboard-content-shift .kt-container-fixed,
     #content.profile-content-shift .kt-container-fixed {

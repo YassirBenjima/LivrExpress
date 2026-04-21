@@ -35,6 +35,21 @@
     }
   });
 
+  const deleteButtons = Array.from(document.querySelectorAll('[data-colis-delete-open="true"]'));
+  const deleteForm = document.getElementById('colis-delete-form');
+  const deleteTitle = document.querySelector('[data-colis-delete-title="true"]');
+  const deleteToken = document.querySelector('[data-colis-delete-token="true"]');
+
+  if (deleteButtons.length > 0 && deleteForm && deleteTitle && deleteToken) {
+    deleteButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        deleteTitle.textContent = button.getAttribute('data-delete-title') || '';
+        deleteToken.value = button.getAttribute('data-delete-token') || '';
+        deleteForm.setAttribute('action', button.getAttribute('data-delete-action') || '');
+      });
+    });
+  }
+
   // Initial sync in case some checkboxes are pre-checked (unlikely but safe)
   syncBulkSelection();
 })();
