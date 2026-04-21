@@ -1,0 +1,186 @@
+{% extends 'base_dashboard.html.twig' %}
+
+{% block title %}Demandes de Retour - LivrExpress{% endblock %}
+
+{% block body %}
+<main class="grow pt-5 dashboard-content-shift" id="content" role="content">
+    <!-- Header/Statistics Container -->
+    <div class="kt-container-fixed">
+        <div class="flex flex-wrap items-center lg:items-end justify-between gap-5 pb-7.5">
+            <div class="flex flex-col justify-center gap-2">
+                <h1 class="text-xl font-medium leading-none text-mono">
+                    Demandes de Retour
+                </h1>
+                <div class="flex items-center flex-wrap gap-1.5 font-medium">
+                    <span class="text-base text-secondary-foreground">
+                        Total retours:
+                    </span>
+                    <span class="text-base text-foreground font-medium me-2">
+                        {{ total_count }}
+                    </span>
+                    <span class="text-base text-secondary-foreground">
+                        Valeur totale:
+                    </span>
+                    <span class="text-base text-foreground font-medium">
+                        {{ total_value|number_format(2, ',', ' ') }} MAD
+                    </span>
+                </div>
+            </div>
+            <div class="flex items-center gap-2.5">
+                {#
+                <button class="kt-btn kt-btn-outline" onclick="window.print()">
+                    <i class="ki-filled ki-printer"></i> Imprimer la liste
+                </button>
+                #}
+            </div>
+        </div>
+    </div>
+    <!-- End of Header -->
+
+    <!-- Table Container -->
+    <div class="kt-container-fixed">
+        <div class="grid gap-5 lg:gap-7.5">
+            <div class="kt-card kt-card-grid min-w-full">
+                <div class="kt-card-header flex-wrap gap-2">
+                    <h3 class="kt-card-title text-sm">
+                        Affichage de {{ total_count }} colis
+                    </h3>
+                    <div class="flex flex-wrap gap-2.5">
+                        <label class="kt-input">
+                            <i class="ki-filled ki-magnifier"></i>
+                            <input data-kt-datatable-search="#retour_table" placeholder="Rechercher un retour..." type="text"/>
+                        </label>
+                    </div>
+                </div>
+                <div class="kt-card-content">
+                    <div data-kt-datatable="true" data-kt-datatable-state-save="true" id="retour_table">
+                        <div class="kt-scrollable-x-auto">
+                            <table class="kt-table table-auto kt-table-border" data-kt-datatable-table="true">
+                                <thead>
+                                    <tr>
+                                        <th class="min-w-[150px]">
+                                            <span class="kt-table-col">
+                                                <span class="kt-table-col-label">Code de suivi</span>
+                                                <span class="kt-table-col-sort"></span>
+                                            </span>
+                                        </th>
+                                        <th class="min-w-[180px]">
+                                            <span class="kt-table-col">
+                                                <span class="kt-table-col-label">Produit</span>
+                                                <span class="kt-table-col-sort"></span>
+                                            </span>
+                                        </th>
+                                        <th class="min-w-[150px]">
+                                            <span class="kt-table-col">
+                                                <span class="kt-table-col-label">Destinataire</span>
+                                                <span class="kt-table-col-sort"></span>
+                                            </span>
+                                        </th>
+                                        <th class="min-w-[140px]">
+                                            <span class="kt-table-col">
+                                                <span class="kt-table-col-label">Ville</span>
+                                                <span class="kt-table-col-sort"></span>
+                                            </span>
+                                        </th>
+                                        <th class="min-w-[160px]">
+                                            <span class="kt-table-col">
+                                                <span class="kt-table-col-label">Date de retour</span>
+                                                <span class="kt-table-col-sort"></span>
+                                            </span>
+                                        </th>
+                                        <th class="min-w-[120px]">
+                                            <span class="kt-table-col">
+                                                <span class="kt-table-col-label">Prix</span>
+                                                <span class="kt-table-col-sort"></span>
+                                            </span>
+                                        </th>
+                                        <th class="min-w-[120px] text-center">
+                                            <span class="kt-table-col justify-center">
+                                                <span class="kt-table-col-label">État</span>
+                                            </span>
+                                        </th>
+                                        <th class="w-[100px] text-center">
+                                            <span class="kt-table-col justify-center">
+                                                <span class="kt-table-col-label">Actions</span>
+                                            </span>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for colis in colis_list %}
+                                        <tr>
+                                            <td class="text-foreground font-medium">
+                                                {{ colis.trackingCode }}
+                                            </td>
+                                            <td class="text-foreground font-medium">
+                                                {{ colis.productNature }}
+                                            </td>
+                                            <td class="text-foreground">
+                                                {{ colis.recipient ?: '-' }}
+                                            </td>
+                                            <td class="text-foreground">
+                                                {{ colis.city }}
+                                            </td>
+                                            <td class="text-foreground">
+                                                <div class="flex flex-col">
+                                                    <span class="font-medium">{{ colis.createdAt ? colis.createdAt|date('d/m/Y') : '-' }}</span>
+                                                    <span class="text-xs text-muted-foreground">{{ colis.createdAt ? colis.createdAt|date('H:i') : '' }}</span>
+                                                </div>
+                                            </td>
+                                            <td class="text-foreground font-medium">
+                                                {{ colis.price|number_format(2, ',', ' ') }} MAD
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="kt-badge kt-badge-destructive kt-badge-outline rounded-[30px] font-bold px-3 py-1">
+                                                    <span class="kt-badge-dot size-1.5"></span>
+                                                    Retourné
+                                                </span>
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="kt-menu flex-inline" data-kt-menu="true">
+                                                    <div class="kt-menu-item" data-kt-menu-item-offset="0, 10px" data-kt-menu-item-placement="bottom-end" data-kt-menu-item-placement-rtl="bottom-start" data-kt-menu-item-toggle="dropdown" data-kt-menu-item-trigger="click">
+                                                        <button class="kt-menu-toggle kt-btn kt-btn-sm kt-btn-icon kt-btn-ghost">
+                                                            <i class="ki-filled ki-dots-vertical text-lg"></i>
+                                                        </button>
+                                                        <div class="kt-menu-dropdown kt-menu-default w-full max-w-[175px]" data-kt-menu-dismiss="true">
+                                                            <div class="kt-menu-item">
+                                                                <a class="kt-menu-link" href="#">
+                                                                    <span class="kt-menu-icon">
+                                                                        <i class="ki-filled ki-arrows-loop"></i>
+                                                                    </span>
+                                                                    <span class="kt-menu-title">Demande de retour</span>
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% else %}
+                                        <tr>
+                                            <td colspan="8" class="text-center py-10 text-muted-foreground italic">
+                                                Aucune demande de retour trouvée.
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="kt-card-footer justify-center md:justify-between flex-col md:flex-row gap-5 text-secondary-foreground text-sm font-medium">
+                            <div class="flex items-center gap-2 order-2 md:order-1">
+                                Afficher
+                                <select class="kt-select w-16" data-kt-datatable-size="true" name="perpage"></select>
+                                par page
+                            </div>
+                            <div class="flex items-center gap-4 order-1 md:order-2">
+                                <span data-kt-datatable-info="true"></span>
+                                <div class="kt-datatable-pagination" data-kt-datatable-pagination="true"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}

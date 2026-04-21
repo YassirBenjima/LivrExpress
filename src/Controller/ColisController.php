@@ -517,4 +517,19 @@ final class ColisController extends AbstractController
     {
         return $this->render('colis/settings.html.twig');
     }
+
+    #[Route('/retour', name: 'app_colis_retour', methods: ['GET'])]
+    public function retour(ColisRepository $colisRepository): Response
+    {
+        $colisList = $colisRepository->findBy(['etat' => Colis::ETAT_RETOUR], ['id' => 'DESC']);
+
+        $totalCount = \count($colisList);
+        $totalValue = array_reduce($colisList, static fn(float $sum, Colis $colis): float => $sum + (float) ($colis->getPrice() ?? 0), 0.0);
+
+        return $this->render('colis/retour.html.twig', [
+            'colis_list' => $colisList,
+            'total_count' => $totalCount,
+            'total_value' => $totalValue,
+        ]);
+    }
 }
