@@ -20,11 +20,18 @@ final class Version20260415130000 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        $this->addSql('ALTER TABLE pickup_request ADD type VARCHAR(30) NOT NULL DEFAULT \'simple\'');
-        $this->addSql('ALTER TABLE pickup_request ADD scheduled_at DATETIME DEFAULT NULL COMMENT \'(DC2Type:datetime_immutable)\'');
-        $this->addSql('ALTER TABLE pickup_request ADD assigned_driver VARCHAR(255) DEFAULT NULL');
+        $columns = $this->connection->createSchemaManager()->listTableColumns('pickup_request');
+        if (!isset($columns['type'])) {
+            $this->addSql('ALTER TABLE pickup_request ADD type VARCHAR(30) NOT NULL DEFAULT \'simple\'');
+        }
+        if (!isset($columns['scheduled_at'])) {
+            $this->addSql('ALTER TABLE pickup_request ADD scheduled_at DATETIME DEFAULT NULL COMMENT \'(DC2Type:datetime_immutable)\'');
+        }
+        if (!isset($columns['assigned_driver'])) {
+            $this->addSql('ALTER TABLE pickup_request ADD assigned_driver VARCHAR(255) DEFAULT NULL');
+        }
+
         $this->addSql('ALTER TABLE pickup_request MODIFY product_id INT DEFAULT NULL');
-        $this->addSql('ALTER TABLE pickup_request DROP FOREIGN KEY IF EXISTS FK_pickup_request_product');
 
         // Re-add the foreign key with SET NULL on delete
         $fkName = $this->connection->createSchemaManager()->listTableForeignKeys('pickup_request');
@@ -32,7 +39,6 @@ final class Version20260415130000 extends AbstractMigration
             $localColumns = $fk->getLocalColumns();
             if (\in_array('product_id', $localColumns, true)) {
                 $this->addSql(sprintf('ALTER TABLE pickup_request DROP FOREIGN KEY %s', $fk->getName()));
-                break;
             }
         }
 

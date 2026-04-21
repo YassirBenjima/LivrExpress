@@ -3,15 +3,20 @@
 namespace App\Controller;
 
 use App\Entity\Colis;
+use App\Entity\WhatsAppTemplate;
+use App\Form\WhatsAppTemplateType;
 use App\Repository\CityRepository;
 use App\Repository\ColisRepository;
+use App\Repository\WhatsAppTemplateRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
 #[Route('/suivi')]
@@ -25,6 +30,7 @@ final class TrackingController extends AbstractController
     ): Response {
         $tab = $this->normalizeTab((string) $request->query->get('tab', 'same'));
         $search = trim((string) $request->query->get('q', ''));
+        $status = trim((string) $request->query->get('status', ''));
         $selectedCity = trim((string) $request->query->get('city', ''));
 
         $dateFrom = $this->parseDateOnly((string) $request->query->get('date_from', ''));
@@ -254,10 +260,142 @@ final class TrackingController extends AbstractController
         return $this->redirectToRoute('app_suivi_changement_destinataire', $this->getRedirectQuery($request));
     }
 
-    #[Route('/modele-whatsapp', name: 'app_suivi_modele_whatsapp', methods: ['GET'])]
-    public function modeleWhatsapp(): Response
-    {
-        return $this->render('tracking/whatsapp_template.html.twig');
+    #[Route('/modele-whatsapp', name: 'app_suivi_modele_whatsapp', methods: ['GET', 'POST'])]
+    public function modeleWhatsapp(
+        Request $request,
+        WhatsAppTemplateRepository $whatsAppTemplateRepository,
+        EntityManagerInterface $entityManager,
+        ValidatorInterface $validator,
+    ): Response {
+        $editingId = $request->query->getInt('edit', 0);
+        $editingTemplate = $editingId > 0 ? $whatsAppTemplateRepository->find($editingId) : null;
+        if ($editingId > 0 && !$editingTemplate instanceof WhatsAppTemplate) {
+            $this->addFlash('error', 'Modèle introuvable.');
+
+            return $this->redirectToRoute('app_suivi_modele_whatsapp');
+        }
+        if ($editingTemplate instanceof WhatsAppTemplate && $editingTemplate->isDefault()) {
+            $this->addFlash('warning', 'Le modèle par défaut ne peut pas être modifié.');
+
+            return $this->redirectToRoute('app_suivi_modele_whatsapp');
+        }
+
+        $search = trim((string) $request->query->get('q', ''));
+        $status = trim((string) $request->query->get('status', ''));
+        $templateToBind = $editingTemplate instanceof WhatsAppTemplate ? $editingTemplate : new WhatsAppTemplate();
+        $form = $this->createForm(WhatsAppTemplateType::class, $templateToBind);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted()) {
+            $this->validateTemplatePlaceholders($templateToBind, $form);
+            $errors = $validator->validate($templateToBind);
+            foreach ($errors as $error) {
+                $path = $error->getPropertyPath();
+                if (\in_array($path, ['title', 'message'], true) && $form->has($path)) {
+                    $form->get($path)->addError(new \Symfony\Component\Form\FormError($error->getMessage()));
+                } else {
+                    $form->addError(new \Symfony\Component\Form\FormError($error->getMessage()));
+                }
+            }
+
+            if ($form->isValid()) {
+                $entityManager->persist($templateToBind);
+                $entityManager->flush();
+
+                $this->addFlash('success', $editingTemplate ? 'Modèle mis à jour avec succès.' : 'Modèle créé avec succès.');
+
+                return $this->redirectToRoute('app_suivi_modele_whatsapp');
+            }
+        }
+
+        return $this->render('tracking/whatsapp_template.html.twig', [
+            'form' => $form->createView(),
+            'templates' => $whatsAppTemplateRepository->findForIndex($search, $status),
+            'search_query' => $search,
+            'selected_status' => $status,
+            'status_options' => [
+                WhatsAppTemplate::STATUS_ACTIVE => 'Activé',
+                WhatsAppTemplate::STATUS_INACTIVE => 'Désactivé',
+                'default' => 'Default',
+            ],
+            'is_edit_mode' => $editingTemplate instanceof WhatsAppTemplate,
+            'editing_template' => $editingTemplate,
+            'allowed_placeholders' => WhatsAppTemplate::ALLOWED_PLACEHOLDERS,
+            'message_preview' => $this->renderPlaceholderPreview(),
+            'message_soft_limit' => 400,
+            'message_hard_limit' => 2000,
+        ]);
+    }
+
+    #[Route('/modele-whatsapp/{id}/status', name: 'app_suivi_modele_whatsapp_toggle_status', methods: ['POST'])]
+    public function toggleWhatsappTemplateStatus(
+        int $id,
+        Request $request,
+        WhatsAppTemplateRepository $whatsAppTemplateRepository,
+        EntityManagerInterface $entityManager,
+    ): Response {
+        $template = $whatsAppTemplateRepository->find($id);
+        if (!$template instanceof WhatsAppTemplate) {
+            $this->addFlash('error', 'Modèle introuvable.');
+
+            return $this->redirectToRoute('app_suivi_modele_whatsapp');
+        }
+
+        if (!$this->isCsrfTokenValid('toggle_whatsapp_template_' . $template->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Jeton CSRF invalide.');
+
+            return $this->redirectToRoute('app_suivi_modele_whatsapp');
+        }
+
+        if ($template->isDefault()) {
+            $this->addFlash('warning', 'Le modèle par défaut ne peut pas changer de statut.');
+
+            return $this->redirectToRoute('app_suivi_modele_whatsapp');
+        }
+
+        $nextStatus = $template->getStatus() === WhatsAppTemplate::STATUS_ACTIVE
+            ? WhatsAppTemplate::STATUS_INACTIVE
+            : WhatsAppTemplate::STATUS_ACTIVE;
+        $template->setStatus($nextStatus);
+        $entityManager->flush();
+
+        $this->addFlash('success', 'Statut du modèle mis à jour.');
+
+        return $this->redirectToRoute('app_suivi_modele_whatsapp');
+    }
+
+    #[Route('/modele-whatsapp/{id}/delete', name: 'app_suivi_modele_whatsapp_delete', methods: ['POST'])]
+    public function deleteWhatsappTemplate(
+        int $id,
+        Request $request,
+        WhatsAppTemplateRepository $whatsAppTemplateRepository,
+        EntityManagerInterface $entityManager,
+    ): Response {
+        $template = $whatsAppTemplateRepository->find($id);
+        if (!$template instanceof WhatsAppTemplate) {
+            $this->addFlash('error', 'Modèle introuvable.');
+
+            return $this->redirectToRoute('app_suivi_modele_whatsapp');
+        }
+
+        if (!$this->isCsrfTokenValid('delete_whatsapp_template_' . $template->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Jeton CSRF invalide.');
+
+            return $this->redirectToRoute('app_suivi_modele_whatsapp');
+        }
+
+        if ($template->isDefault()) {
+            $this->addFlash('warning', 'Le modèle par défaut ne peut pas être supprimé.');
+
+            return $this->redirectToRoute('app_suivi_modele_whatsapp');
+        }
+
+        $entityManager->remove($template);
+        $entityManager->flush();
+
+        $this->addFlash('success', 'Modèle supprimé avec succès.');
+
+        return $this->redirectToRoute('app_suivi_modele_whatsapp');
     }
 
     /**
@@ -383,5 +521,28 @@ final class TrackingController extends AbstractController
         }
 
         return $query;
+    }
+
+    private function validateTemplatePlaceholders(WhatsAppTemplate $template, FormInterface $form): void
+    {
+        preg_match_all('/@[A-Za-z0-9_]+/', $template->getMessage(), $matches);
+        $foundPlaceholders = array_unique($matches[0] ?? []);
+        $invalid = array_values(array_filter(
+            $foundPlaceholders,
+            static fn (string $item): bool => !\in_array($item, WhatsAppTemplate::ALLOWED_PLACEHOLDERS, true),
+        ));
+
+        if ($invalid !== []) {
+            $form->get('message')->addError(new \Symfony\Component\Form\FormError(
+                sprintf('Placeholder(s) non autorisé(s): %s.', implode(', ', $invalid))
+            ));
+        }
+    }
+
+    private function renderPlaceholderPreview(): string
+    {
+        return 'Bonjour @name, on n\'est pas arrivé à vous joindre par appel pour livrer votre produit @product, '
+            . 'on a expédié votre colis depuis Casablanca jusqu\'à @address, merci d\'appeler notre livreur '
+            . 'sur @numLivreur, il a toujours votre colis et il attend toujours pour vous livrer. Merci beaucoup.';
     }
 }

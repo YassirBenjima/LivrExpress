@@ -121,14 +121,14 @@
                   <option value="{{ city }}" {{ selected_city|default('') == city ? 'selected' : '' }}>{{ city }}</option>
                 {% endfor %}
               </select>
-              <label class="kt-input w-40">
+              {# <label class="kt-input w-40">
                 <i class="ki-filled ki-calendar-2"></i>
                 <input name="date_from" type="date" value="{{ date_from|default('') }}" />
-              </label>
-              <label class="kt-input w-40">
+              </label> #}
+              {# <label class="kt-input w-40">
                 <i class="ki-filled ki-calendar-2"></i>
                 <input name="date_to" type="date" value="{{ date_to|default('') }}" />
-              </label>
+              </label> #}
               <button class="kt-btn kt-btn-outline kt-btn-primary mb-2 md:mb-0" type="submit">
                 <i class="ki-filled ki-setting-4"></i>
                 Filtrer
