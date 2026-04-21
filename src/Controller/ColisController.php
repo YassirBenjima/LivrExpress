@@ -66,11 +66,11 @@ final class ColisController extends AbstractController
             'colis_list' => $colisList,
             'etats_possibles' => array_values(array_filter(
                 Colis::getEtatsPossibles(),
-                static fn (string $etat): bool => $etat !== Colis::ETAT_CREE
+                static fn(string $etat): bool => $etat !== Colis::ETAT_CREE
             )),
             'statuts_possibles' => array_values(array_filter(
                 Colis::getStatutsPossibles(),
-                static fn (string $statut): bool => $statut !== Colis::STATUT_EN_ATTENTE
+                static fn(string $statut): bool => $statut !== Colis::STATUT_EN_ATTENTE
             )),
             'search_query' => $search,
             'selected_etat' => $selectedEtat,
@@ -239,7 +239,7 @@ final class ColisController extends AbstractController
     #[Route('/{id}/request-pickup', name: 'app_colis_request_pickup', methods: ['POST'])]
     public function requestPickup(Request $request, Colis $colis, EntityManagerInterface $entityManager): Response
     {
-        if (!$this->isCsrfTokenValid('request_pickup_'.$colis->getId(), (string) $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('request_pickup_' . $colis->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Jeton CSRF invalide.');
 
             return $this->redirectToRoute('app_colis_pickup');
@@ -365,7 +365,7 @@ final class ColisController extends AbstractController
     #[Route('/{id}/delete', name: 'app_colis_delete', methods: ['POST'])]
     public function delete(Request $request, Colis $colis, EntityManagerInterface $entityManager): Response
     {
-        if (!$this->isCsrfTokenValid('delete_colis_'.$colis->getId(), (string) $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('delete_colis_' . $colis->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Jeton CSRF invalide.');
 
             return $this->redirectToRoute('app_colis_pickup');
@@ -457,7 +457,7 @@ final class ColisController extends AbstractController
                 $errors[] = sprintf("Ligne %d : Format invalide.", $index + 2);
                 continue;
             }
-            
+
             // Minimal validation
             if (empty($data['N° Commande']) || empty($data['Ville']) || empty($data['Prix (DH)'])) {
                 $errors[] = sprintf("Ligne %d : Champs obligatoires manquants (N° Commande, Ville, Prix).", $index + 2);
@@ -473,7 +473,7 @@ final class ColisController extends AbstractController
             $colis->setAddress($data['Adresse'] ?? '');
             $colis->setPrice((string) $data['Prix (DH)']);
             $colis->setProductNature($data['Nature de Produit'] ?? 'Marchandise');
-            
+
             // Map Type
             $typeInput = strtolower($data['Type'] ?? '');
             if (str_contains($typeInput, 'stock')) {

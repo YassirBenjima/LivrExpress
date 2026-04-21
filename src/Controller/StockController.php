@@ -42,8 +42,7 @@ final class StockController extends AbstractController
         StockMovementRepository $stockMovementRepository,
         EntityManagerInterface $entityManager,
         CityRepository $cityRepository,
-    ): Response
-    {
+    ): Response {
         $search = trim((string) $request->query->get('q', ''));
 
         $movements = $stockMovementRepository->findEntryMovementsForIndex($search);
@@ -104,9 +103,9 @@ final class StockController extends AbstractController
     ): JsonResponse {
         $idsRaw = trim((string) $request->query->get('ids', ''));
         $ids = $idsRaw !== '' ? array_values(array_filter(array_map(
-            static fn (string $v): int => ctype_digit($v) ? (int) $v : 0,
+            static fn(string $v): int => ctype_digit($v) ? (int) $v : 0,
             array_map('trim', explode(',', $idsRaw))
-        ), static fn (int $v): bool => $v > 0)) : [];
+        ), static fn(int $v): bool => $v > 0)) : [];
 
         if ($ids === []) {
             return new JsonResponse(['error' => 'Aucun mouvement sélectionné.'], 400);
@@ -168,9 +167,9 @@ final class StockController extends AbstractController
         /** @var list<mixed> $movementIdsRaw */
         $movementIdsRaw = $request->request->all('movementIds');
         $movementIds = array_values(array_filter(array_map(
-            static fn ($v): int => is_scalar($v) && ctype_digit((string) $v) ? (int) $v : 0,
+            static fn($v): int => is_scalar($v) && ctype_digit((string) $v) ? (int) $v : 0,
             $movementIdsRaw
-        ), static fn (int $v): bool => $v > 0));
+        ), static fn(int $v): bool => $v > 0));
 
         if ($movementIds === []) {
             $this->addFlash('error', 'Veuillez sélectionner au moins un mouvement.');
@@ -328,9 +327,9 @@ final class StockController extends AbstractController
         $entityManager->persist($movement);
 
         $variantIds = array_values(array_filter(array_map(
-            static fn (string $k): int => ctype_digit($k) ? (int) $k : 0,
+            static fn(string $k): int => ctype_digit($k) ? (int) $k : 0,
             array_keys($itemsToCreate)
-        ), static fn (int $v): bool => $v > 0));
+        ), static fn(int $v): bool => $v > 0));
 
         $variants = $variantIds !== [] ? $stockProductVariantRepository->findBy(['id' => $variantIds]) : [];
         $variantById = [];
@@ -341,9 +340,9 @@ final class StockController extends AbstractController
         }
 
         $productIdsForFallback = array_values(array_filter(array_map(
-            static fn (string $k): int => str_starts_with($k, 'p_') && ctype_digit(substr($k, 2)) ? (int) substr($k, 2) : 0,
+            static fn(string $k): int => str_starts_with($k, 'p_') && ctype_digit(substr($k, 2)) ? (int) substr($k, 2) : 0,
             array_keys($itemsToCreate)
-        ), static fn (int $v): bool => $v > 0));
+        ), static fn(int $v): bool => $v > 0));
 
         $productById = [];
         if ($productIdsForFallback !== []) {
@@ -441,7 +440,7 @@ final class StockController extends AbstractController
             // Debug helper: show exactly what keys the UI submits.
             // This is intentionally shown in the UI to quickly align frontend/back parsing.
             $receivedKeys = array_keys($variantsRaw);
-            $receivedKeys = array_slice(array_map(static fn ($k): string => (string) $k, $receivedKeys), 0, 80);
+            $receivedKeys = array_slice(array_map(static fn($k): string => (string) $k, $receivedKeys), 0, 80);
             $parsedKeys = array_slice(array_keys($itemsToCreate), 0, 80);
             $this->addFlash(
                 'error',
@@ -557,8 +556,7 @@ final class StockController extends AbstractController
         StockProductRepository $stockProductRepository,
         CityRepository $cityRepository,
         PickupRequestRepository $pickupRequestRepository,
-    ): Response
-    {
+    ): Response {
         $search = trim((string) $request->query->get('q', ''));
         $all = $stockProductRepository->findBy([], ['id' => 'DESC']);
 
@@ -575,7 +573,7 @@ final class StockController extends AbstractController
             // At creation time, quantity is considered "not received" (pending),
             // while "received" starts at 0.
             $totalQty = $product->getVariants()->count() > 0
-                ? array_sum(array_map(static fn (StockProductVariant $v): int => $v->getQuantity(), $product->getVariants()->toArray()))
+                ? array_sum(array_map(static fn(StockProductVariant $v): int => $v->getQuantity(), $product->getVariants()->toArray()))
                 : (int) ($product->getQuantity() ?? 0);
 
             $variantsCount = $product->getVariants()->count();
@@ -617,9 +615,9 @@ final class StockController extends AbstractController
 
         // Expose "pickup already requested" without N+1.
         $productIds = array_values(array_filter(array_map(
-            static fn (array $p): int => (int) ($p['id'] ?? 0),
+            static fn(array $p): int => (int) ($p['id'] ?? 0),
             $products
-        ), static fn (int $v): bool => $v > 0));
+        ), static fn(int $v): bool => $v > 0));
         $requestedIds = $pickupRequestRepository->findProductIdsWithPendingRequests($productIds);
         $requestedSet = array_fill_keys($requestedIds, true);
         foreach ($products as $i => $p) {
@@ -629,7 +627,7 @@ final class StockController extends AbstractController
 
         $totalProducts = \count($products);
         $totalQty = array_sum(array_map(
-            static fn (array $p): int => (int) ($p['qty_received'] ?? 0) + (int) ($p['qty_not_received'] ?? 0),
+            static fn(array $p): int => (int) ($p['qty_received'] ?? 0) + (int) ($p['qty_not_received'] ?? 0),
             $products
         ));
 
@@ -767,8 +765,7 @@ final class StockController extends AbstractController
         EntityManagerInterface $entityManager,
         StockProductVariantRepository $stockProductVariantRepository,
         StockProductMediaManager $mediaManager,
-    ): Response
-    {
+    ): Response {
         if (!$this->isCsrfTokenValid('stock_product_new', (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Session expirée. Veuillez réessayer.');
 
@@ -936,7 +933,7 @@ final class StockController extends AbstractController
             return $this->redirectToRoute('app_stock_products_index');
         }
 
-        if (!$this->isCsrfTokenValid('stock_product_edit_'.$product->getId(), (string) $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('stock_product_edit_' . $product->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Jeton CSRF invalide.');
 
             return $this->redirectToRoute('app_stock_products_index');
@@ -1097,7 +1094,7 @@ final class StockController extends AbstractController
             return $this->redirectToRoute('app_stock_products_index');
         }
 
-        if (!$this->isCsrfTokenValid('delete_stock_product_'.$product->getId(), (string) $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('delete_stock_product_' . $product->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Jeton CSRF invalide.');
 
             return $this->redirectToRoute('app_stock_products_index');
@@ -1262,7 +1259,7 @@ final class StockController extends AbstractController
             $product?->getName(),
             $variant?->getName(),
             $barcode !== '' ? $barcode : null,
-        ], static fn ($v): bool => is_string($v) && trim($v) !== ''));
+        ], static fn($v): bool => is_string($v) && trim($v) !== ''));
         $pdfTitle = implode(' - ', $pdfTitleParts);
 
         $html = $this->renderView('stock/products/variant_sticker_pdf.html.twig', [
@@ -1420,7 +1417,6 @@ final class StockController extends AbstractController
         }
 
         // Remove invalid (id=0) entries
-        return array_values(array_filter($products, static fn (array $p): bool => (int) ($p['id'] ?? 0) > 0 && \count((array) ($p['variants'] ?? [])) > 0));
+        return array_values(array_filter($products, static fn(array $p): bool => (int) ($p['id'] ?? 0) > 0 && \count((array) ($p['variants'] ?? [])) > 0));
     }
 }
-
