@@ -10,6 +10,8 @@ class Colis
 {
     public const TYPE_SIMPLE = 'Colis Simple';
     public const TYPE_STOCK = 'Colis du stock';
+    public const PAYMENT_COD = 'COD';
+    public const PAYMENT_CRBT = 'CRBT';
     public const ETAT_CREE = 'Créé';
     public const ETAT_EN_PREPARATION = 'En préparation';
     public const ETAT_EXPEDIE = 'Expédié';
@@ -86,11 +88,18 @@ class Colis
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
+    #[ORM\Column(length: 20, options: ['default' => 'CRBT'])]
+    private string $paymentType = self::PAYMENT_CRBT;
+
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 2, nullable: true)]
+    private ?string $deliveryFee = null;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
         $this->etat = self::ETAT_CREE;
         $this->statut = self::STATUT_EN_ATTENTE;
+        $this->paymentType = self::PAYMENT_CRBT;
     }
 
     public function getId(): ?int
@@ -365,6 +374,89 @@ class Colis
         $this->statut = $statut;
 
         return $this;
+    }
+
+    public function getEtatLabel(): string
+    {
+        return self::normalizeEtatLabel($this->etat);
+    }
+
+    public function getEtatBadgeClass(): string
+    {
+        return self::resolveEtatBadgeClass(self::normalizeEtatLabel($this->etat));
+    }
+
+    public function isRetourne(): bool
+    {
+        return self::normalizeEtatLabel($this->etat) === self::ETAT_RETOUR;
+    }
+
+    public function getPaymentType(): string
+    {
+        return $this->paymentType;
+    }
+
+    public function setPaymentType(string $paymentType): static
+    {
+        $normalized = strtoupper(trim($paymentType));
+        $this->paymentType = \in_array($normalized, self::getPaymentTypesPossibles(), true)
+            ? $normalized
+            : self::PAYMENT_CRBT;
+
+        return $this;
+    }
+
+    public function getDeliveryFee(): ?string
+    {
+        return $this->deliveryFee;
+    }
+
+    public function setDeliveryFee(?string $deliveryFee): static
+    {
+        $this->deliveryFee = $deliveryFee;
+
+        return $this;
+    }
+
+    public function isCodPayment(): bool
+    {
+        return \in_array(strtoupper($this->paymentType), self::getPaymentTypesPossibles(), true);
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function getPaymentTypesPossibles(): array
+    {
+        return [
+            self::PAYMENT_COD,
+            self::PAYMENT_CRBT,
+        ];
+    }
+
+    public static function normalizeEtatLabel(?string $etat): string
+    {
+        $etat = trim((string) ($etat ?? self::ETAT_CREE));
+
+        return match ($etat) {
+            'Cree' => self::ETAT_CREE,
+            'En preparation' => self::ETAT_EN_PREPARATION,
+            'Expedie' => self::ETAT_EXPEDIE,
+            'Livre' => self::ETAT_LIVRE,
+            'Retour' => self::ETAT_RETOUR,
+            default => $etat !== '' ? $etat : self::ETAT_CREE,
+        };
+    }
+
+    public static function resolveEtatBadgeClass(string $etatLabel): string
+    {
+        return match ($etatLabel) {
+            self::ETAT_RETOUR => 'kt-badge-destructive',
+            self::ETAT_EN_PREPARATION => 'kt-badge-info',
+            self::ETAT_EXPEDIE => 'kt-badge-primary',
+            self::ETAT_LIVRE => 'kt-badge-success',
+            default => 'kt-badge-warning',
+        };
     }
 
     /**

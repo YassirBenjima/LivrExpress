@@ -1,0 +1,170 @@
+{% extends 'base_dashboard.html.twig' %}
+
+{% block title %}Nouvelle demande de retour - LivrExpress{% endblock %}
+
+{% block body %}
+<main class="grow pt-5 profile-content-shift" id="content" role="content">
+  <div class="kt-container-fixed">
+    <div class="flex flex-wrap items-center lg:items-end justify-between gap-5 pb-7.5">
+      <div class="flex flex-col justify-center gap-2">
+        <h1 class="text-xl font-medium leading-none text-mono">
+          Nouvelle demande de retour
+        </h1>
+        <div class="flex items-center gap-2 text-sm font-normal text-secondary-foreground">
+          Sélectionnez les colis à retourner
+        </div>
+      </div>
+      <div class="flex items-center gap-2.5">
+        <a class="kt-btn kt-btn-outline" href="{{ path('app_retour_demande_index') }}">
+          Retour à la liste
+        </a>
+        <button class="kt-btn kt-btn-primary" form="retour-demande-form" type="submit" data-bulk-action-button="true" disabled>
+          Soumettre la demande
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="kt-container-fixed">
+    <div class="kt-card border border-border/60 mb-5">
+      <div class="kt-card-content p-4">
+        <div class="flex flex-col gap-4">
+          <div class="flex items-center justify-between flex-wrap gap-3">
+            <div class="flex items-center gap-3">
+              <div class="text-sm font-semibold text-foreground">Colis sélectionnés</div>
+              <span class="kt-badge kt-badge-info kt-badge-outline rounded-[30px]">
+                <span class="kt-badge-dot size-1.5"></span>
+                <span id="selectedColisCount">0</span>&nbsp;sélectionné(s)
+              </span>
+            </div>
+            <div class="text-2sm text-secondary-foreground">
+              Réception colis : <span class="font-medium text-foreground">{{ reception_type }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="kt-container-fixed">
+    <form method="post" action="{{ path('app_retour_demande_new') }}" id="retour-demande-form">
+      <input type="hidden" name="_token" value="{{ csrf_token('retour_demande_new') }}">
+      <input type="hidden" name="reception_type" value="{{ reception_type }}">
+
+      <div class="grid grid-cols-1 gap-5 lg:gap-7.5 mb-5">
+        <div class="kt-card min-w-full">
+          <div class="kt-card-header">
+            <h3 class="kt-card-title">Note &amp; Remarque</h3>
+          </div>
+          <div class="kt-card-content">
+            <label class="kt-input w-full">
+              <input class="w-full bg-transparent outline-none" name="note" placeholder="Ajouter une note ou remarque (optionnel)" type="text"/>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid gap-5 lg:gap-7.5">
+        <div class="kt-card kt-card-grid min-w-full">
+          <div class="kt-card-header flex-wrap gap-2">
+            <h3 class="kt-card-title text-sm">
+              Affichage de {{ available_colis|length }} colis disponible(s)
+            </h3>
+            <div class="flex flex-wrap gap-2 lg:gap-5">
+              <div class="flex">
+                <label class="kt-input">
+                  <i class="ki-filled ki-magnifier"></i>
+                  <input
+                    data-kt-datatable-search="#retour_demande_colis_table"
+                    name="q"
+                    placeholder="Code de suivi, destinataire, ville..."
+                    type="text"
+                    value="{{ search_query|default('') }}"
+                    form="retour-demande-search-form"
+                  />
+                </label>
+              </div>
+              <button class="kt-btn kt-btn-outline kt-btn-primary" type="submit" form="retour-demande-search-form">
+                <i class="ki-filled ki-setting-4"></i>
+                Filtrer
+              </button>
+              <a class="kt-btn kt-btn-outline" href="{{ path('app_retour_demande_new') }}">
+                Réinitialiser
+              </a>
+            </div>
+          </div>
+
+          <div class="kt-card-content">
+            <div data-kt-datatable="true" data-kt-datatable-state-save="false" id="retour_demande_colis_table">
+              <div class="kt-scrollable-x-auto">
+                <table class="kt-table table-auto kt-table-border" data-kt-datatable-table="true">
+                  <thead>
+                    <tr>
+                      <th class="w-[50px]">
+                        <input class="kt-checkbox kt-checkbox-sm" data-kt-datatable-check="true" id="selectAllColis" type="checkbox"/>
+                      </th>
+                      <th class="min-w-[150px]">
+                        <span class="kt-table-col"><span class="kt-table-col-label">Code de suivi</span></span>
+                      </th>
+                      <th class="min-w-[180px]">
+                        <span class="kt-table-col"><span class="kt-table-col-label">Nature du produit</span></span>
+                      </th>
+                      <th class="min-w-[140px]">
+                        <span class="kt-table-col"><span class="kt-table-col-label">Destinataire</span></span>
+                      </th>
+                      <th class="min-w-[120px]">
+                        <span class="kt-table-col"><span class="kt-table-col-label">Ville</span></span>
+                      </th>
+                      <th class="min-w-[120px]">
+                        <span class="kt-table-col"><span class="kt-table-col-label">État</span></span>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for colis in available_colis %}
+                      <tr>
+                        <td>
+                          <input
+                            class="kt-checkbox kt-checkbox-sm colis-checkbox"
+                            data-kt-datatable-row-check="true"
+                            type="checkbox"
+                            name="colis_ids[]"
+                            value="{{ colis.id }}"
+                          />
+                        </td>
+                        <td class="text-foreground font-medium">{{ colis.trackingCode }}</td>
+                        <td class="text-foreground font-normal">{{ colis.productNature }}</td>
+                        <td class="text-foreground font-normal">{{ colis.recipient ?: '-' }}</td>
+                        <td class="text-foreground font-normal">{{ colis.city }}</td>
+                        <td>
+                          <span class="kt-badge {{ colis.etatBadgeClass }} kt-badge-outline rounded-[30px]">
+                            <span class="kt-badge-dot size-1.5"></span>
+                            {{ colis.etatLabel }}
+                          </span>
+                        </td>
+                      </tr>
+                    {% else %}
+                      <tr>
+                        <td colspan="6" class="text-secondary-foreground text-center py-8">
+                          Aucun colis disponible.
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+
+    <form method="get" action="{{ path('app_retour_demande_new') }}" id="retour-demande-search-form"></form>
+  </div>
+</main>
+{% endblock %}
+
+{% block javascripts %}
+  {{ parent() }}
+  <script src="{{ asset('assets/js/retour-demande-new.js?v=1') }}"></script>
+{% endblock %}

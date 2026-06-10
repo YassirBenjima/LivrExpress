@@ -1,0 +1,177 @@
+{% extends 'base_dashboard.html.twig' %}
+
+{% block title %}Demande de retour - LivrExpress{% endblock %}
+
+{% block body %}
+{% set totalDemandes = demandes|length %}
+<main class="grow pt-5 dashboard-content-shift" id="content" role="content">
+  <div class="kt-container-fixed" id="contentContainer"></div>
+
+  <div class="kt-container-fixed">
+    <div class="flex flex-wrap items-center lg:items-end justify-between gap-5 pb-7.5">
+      <div class="flex flex-col justify-center gap-2">
+        <h1 class="text-xl font-medium leading-none text-mono">
+          Demande de retour
+        </h1>
+        <div class="flex items-center flex-wrap gap-1.5 font-medium">
+          <span class="text-base text-secondary-foreground">Total demandes :</span>
+          <span class="text-base text-foreground font-medium">{{ totalDemandes }}</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-2.5">
+        <a class="kt-btn kt-btn-primary" href="{{ path('app_retour_demande_new') }}">
+          Nouvelle demande
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="kt-container-fixed">
+    <div class="grid gap-5 lg:gap-7.5">
+      <div class="kt-card kt-card-grid min-w-full">
+        <div class="kt-card-header flex-wrap gap-2">
+          <h3 class="kt-card-title text-sm">
+            Affichage de {{ totalDemandes }} demande(s)
+          </h3>
+          <form class="flex flex-wrap gap-2 lg:gap-5" method="get" action="{{ path('app_retour_demande_index') }}">
+            <div class="flex">
+              <label class="kt-input">
+                <i class="ki-filled ki-magnifier"></i>
+                <input data-kt-datatable-search="#retour_demande_table" name="q" placeholder="Rechercher une demande..." type="text" value="{{ search_query|default('') }}"/>
+              </label>
+            </div>
+            <div class="flex flex-wrap gap-2.5">
+              <select class="kt-select w-36" data-kt-select="true" data-kt-select-placeholder="Statut" name="statut">
+                <option value="">Tous les statuts</option>
+                {% for statut in statuts_possibles %}
+                  <option value="{{ statut }}" {{ selected_statut|default('') == statut ? 'selected' : '' }}>
+                    {{ statut_labels[statut]|default(statut) }}
+                  </option>
+                {% endfor %}
+              </select>
+              <button class="kt-btn kt-btn-outline kt-btn-primary" type="submit">
+                <i class="ki-filled ki-setting-4"></i>
+                Filtrer
+              </button>
+              <a class="kt-btn kt-btn-outline" href="{{ path('app_retour_demande_index') }}">
+                Réinitialiser
+              </a>
+            </div>
+          </form>
+        </div>
+
+        <div class="kt-card-content">
+          <div data-kt-datatable="true" data-kt-datatable-state-save="false" id="retour_demande_table">
+            <div class="kt-scrollable-x-auto">
+              <table class="kt-table table-auto kt-table-border" data-kt-datatable-table="true">
+                <thead>
+                  <tr>
+                    <th class="min-w-[150px]">
+                      <span class="kt-table-col">
+                        <span class="kt-table-col-label">Réception colis</span>
+                        <span class="kt-table-col-sort"></span>
+                      </span>
+                    </th>
+                    <th class="min-w-[150px]">
+                      <span class="kt-table-col">
+                        <span class="kt-table-col-label">Date</span>
+                        <span class="kt-table-col-sort"></span>
+                      </span>
+                    </th>
+                    <th class="min-w-[160px]">
+                      <span class="kt-table-col">
+                        <span class="kt-table-col-label">Bon de retour</span>
+                        <span class="kt-table-col-sort"></span>
+                      </span>
+                    </th>
+                    <th class="min-w-[220px]">
+                      <span class="kt-table-col">
+                        <span class="kt-table-col-label">Colis</span>
+                        <span class="kt-table-col-sort"></span>
+                      </span>
+                    </th>
+                    <th class="min-w-[200px]">
+                      <span class="kt-table-col">
+                        <span class="kt-table-col-label">Note &amp; Remarque</span>
+                        <span class="kt-table-col-sort"></span>
+                      </span>
+                    </th>
+                    <th class="min-w-[130px]">
+                      <span class="kt-table-col">
+                        <span class="kt-table-col-label">Statut</span>
+                        <span class="kt-table-col-sort"></span>
+                      </span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for demande in demandes %}
+                    {% set statusLabel = statut_labels[demande.status]|default(demande.status) %}
+                    {% set statusBadgeClass = 'kt-badge-warning' %}
+                    {% if demande.status == 'processing' %}
+                      {% set statusBadgeClass = 'kt-badge-info' %}
+                    {% elseif demande.status == 'received' %}
+                      {% set statusBadgeClass = 'kt-badge-success' %}
+                    {% elseif demande.status == 'cancelled' %}
+                      {% set statusBadgeClass = 'kt-badge-destructive' %}
+                    {% endif %}
+                    <tr>
+                      <td class="text-foreground font-medium">
+                        {{ demande.receptionType }}
+                      </td>
+                      <td class="text-foreground font-normal">
+                        {{ demande.createdAt ? demande.createdAt|date('d/m/Y H:i') : '-' }}
+                      </td>
+                      <td class="text-foreground font-medium">
+                        {{ demande.bonReference ?: '-' }}
+                      </td>
+                      <td>
+                        <div class="flex flex-wrap gap-1.5">
+                          {% for colis in demande.colis %}
+                            <span class="kt-badge kt-badge-primary kt-badge-outline rounded-[30px]">
+                              {{ colis.trackingCode }}
+                            </span>
+                          {% else %}
+                            <span class="text-secondary-foreground">-</span>
+                          {% endfor %}
+                        </div>
+                      </td>
+                      <td class="text-foreground font-normal">
+                        {{ demande.note ?: '-' }}
+                      </td>
+                      <td>
+                        <span class="kt-badge {{ statusBadgeClass }} kt-badge-outline rounded-[30px]">
+                          <span class="kt-badge-dot size-1.5"></span>
+                          {{ statusLabel }}
+                        </span>
+                      </td>
+                    </tr>
+                  {% else %}
+                    <tr>
+                      <td colspan="6" class="text-secondary-foreground text-center py-8">
+                        Aucune demande de retour trouvée.
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+
+            <div class="kt-card-footer justify-center md:justify-between flex-col md:flex-row gap-5 text-secondary-foreground text-sm font-medium">
+              <div class="flex items-center gap-2 order-2 md:order-1">
+                Afficher
+                <select class="kt-select w-16" data-kt-datatable-size="true" data-kt-select="" name="perpage"></select>
+                par page
+              </div>
+              <div class="flex items-center gap-4 order-1 md:order-2">
+                <span data-kt-datatable-info="true"></span>
+                <div class="kt-datatable-pagination" data-kt-datatable-pagination="true"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+{% endblock %}

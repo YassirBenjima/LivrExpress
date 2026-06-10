@@ -1,0 +1,167 @@
+{% extends 'base_dashboard.html.twig' %}
+
+{% block title %}Liste CRBT - LivrExpress{% endblock %}
+
+{% block body %}
+{% set totalEntries = entries|length %}
+<main class="grow pt-5 dashboard-content-shift" id="content" role="content">
+  <div class="kt-container-fixed" id="contentContainer"></div>
+
+  <div class="kt-container-fixed">
+    <div class="flex flex-wrap items-center lg:items-end justify-between gap-5 pb-7.5">
+      <div class="flex flex-col justify-center gap-2">
+        <h1 class="text-xl font-medium leading-none text-mono">
+          Liste CRBT
+        </h1>
+        <div class="flex items-center flex-wrap gap-1.5 font-medium">
+          <span class="text-base text-secondary-foreground">Total entrées :</span>
+          <span class="text-base text-foreground font-medium">{{ totalEntries }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="kt-container-fixed mb-5">
+    <div class="grid grid-cols-3 gap-4">
+      <div class="kt-card">
+        <div class="kt-card-content p-4">
+          <div class="text-sm text-secondary-foreground mb-1">Balance disponible</div>
+          <div class="text-xl font-semibold text-success">{{ summary.disponible|number_format(2, ',', ' ') }} MAD</div>
+        </div>
+      </div>
+      <div class="kt-card">
+        <div class="kt-card-content p-4">
+          <div class="text-sm text-secondary-foreground mb-1">En attente</div>
+          <div class="text-xl font-semibold text-warning">{{ summary.en_attente|number_format(2, ',', ' ') }} MAD</div>
+        </div>
+      </div>
+      <div class="kt-card">
+        <div class="kt-card-content p-4">
+          <div class="text-sm text-secondary-foreground mb-1">Payé</div>
+          <div class="text-xl font-semibold text-primary">{{ summary.paye|number_format(2, ',', ' ') }} MAD</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="kt-container-fixed">
+    <div class="grid gap-5 lg:gap-7.5">
+      <div class="kt-card kt-card-grid min-w-full">
+        <div class="kt-card-header flex-wrap gap-2">
+          <h3 class="kt-card-title text-sm">
+            Affichage de {{ totalEntries }} entrée(s) CRBT
+          </h3>
+          <form class="flex flex-wrap gap-2 lg:gap-5" method="get" action="{{ path('app_facturation_crbt_index') }}">
+            <div class="flex">
+              <label class="kt-input">
+                <i class="ki-filled ki-magnifier"></i>
+                <input data-kt-datatable-search="#crbt_table" name="q" placeholder="Référence, code de suivi..." type="text" value="{{ search_query|default('') }}"/>
+              </label>
+            </div>
+            <div class="flex flex-wrap gap-2.5">
+              <label class="kt-input w-40">
+                <i class="ki-filled ki-calendar-2"></i>
+                <input name="date_from" type="date" value="{{ date_from|default('') }}"/>
+              </label>
+              <label class="kt-input w-40">
+                <i class="ki-filled ki-calendar-2"></i>
+                <input name="date_to" type="date" value="{{ date_to|default('') }}"/>
+              </label>
+              <select class="kt-select w-36" data-kt-select="true" data-kt-select-placeholder="Statut" name="statut">
+                <option value="">Tous les statuts</option>
+                {% for statut in statuts_possibles %}
+                  <option value="{{ statut }}" {{ selected_statut|default('') == statut ? 'selected' : '' }}>
+                    {{ statut_labels[statut]|default(statut) }}
+                  </option>
+                {% endfor %}
+              </select>
+              <button class="kt-btn kt-btn-outline kt-btn-primary" type="submit">
+                <i class="ki-filled ki-setting-4"></i>
+                Filtrer
+              </button>
+              <a class="kt-btn kt-btn-outline" href="{{ path('app_facturation_crbt_index') }}">
+                Réinitialiser
+              </a>
+            </div>
+          </form>
+        </div>
+
+        <div class="kt-card-content">
+          <div data-kt-datatable="true" data-kt-datatable-state-save="false" id="crbt_table">
+            <div class="kt-scrollable-x-auto">
+              <table class="kt-table table-auto kt-table-border" data-kt-datatable-table="true">
+                <thead>
+                  <tr>
+                    <th class="min-w-[160px]"><span class="kt-table-col"><span class="kt-table-col-label">Réf</span></span></th>
+                    <th class="min-w-[150px]"><span class="kt-table-col"><span class="kt-table-col-label">Date de création</span></span></th>
+                    <th class="min-w-[150px]"><span class="kt-table-col"><span class="kt-table-col-label">Date de Paiement</span></span></th>
+                    <th class="min-w-[120px]"><span class="kt-table-col"><span class="kt-table-col-label">Statut</span></span></th>
+                    <th class="min-w-[160px]"><span class="kt-table-col"><span class="kt-table-col-label">Colis</span></span></th>
+                    <th class="min-w-[100px]"><span class="kt-table-col"><span class="kt-table-col-label">Frais</span></span></th>
+                    <th class="min-w-[120px]"><span class="kt-table-col"><span class="kt-table-col-label">Montant Frais</span></span></th>
+                    <th class="min-w-[110px]"><span class="kt-table-col"><span class="kt-table-col-label">Balance</span></span></th>
+                    <th class="min-w-[110px]"><span class="kt-table-col"><span class="kt-table-col-label">Montant</span></span></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for entry in entries %}
+                    {% set statusLabel = statut_labels[entry.status]|default(entry.status) %}
+                    {% set statusBadgeClass = 'kt-badge-warning' %}
+                    {% if entry.status == 'disponible' %}
+                      {% set statusBadgeClass = 'kt-badge-success' %}
+                    {% elseif entry.status == 'paye' %}
+                      {% set statusBadgeClass = 'kt-badge-primary' %}
+                    {% endif %}
+                    <tr>
+                      <td class="text-foreground font-medium">{{ entry.reference }}</td>
+                      <td class="text-foreground font-normal">{{ entry.createdAt ? entry.createdAt|date('d/m/Y H:i') : '-' }}</td>
+                      <td class="text-foreground font-normal">{{ entry.paidAt ? entry.paidAt|date('d/m/Y H:i') : '-' }}</td>
+                      <td>
+                        <span class="kt-badge {{ statusBadgeClass }} kt-badge-outline rounded-[30px]">
+                          <span class="kt-badge-dot size-1.5"></span>
+                          {{ statusLabel }}
+                        </span>
+                      </td>
+                      <td>
+                        {% if entry.colis and entry.colis.trackingCode %}
+                          <span class="kt-badge kt-badge-primary kt-badge-outline rounded-[30px]">
+                            {{ entry.colis.trackingCode }}
+                          </span>
+                        {% else %}
+                          <span class="text-secondary-foreground">-</span>
+                        {% endif %}
+                      </td>
+                      <td class="text-foreground font-medium">{{ entry.frais|number_format(2, ',', ' ') }} MAD</td>
+                      <td class="text-foreground font-medium">{{ entry.montantFrais|number_format(2, ',', ' ') }} MAD</td>
+                      <td class="text-foreground font-semibold text-success">{{ entry.balance|number_format(2, ',', ' ') }} MAD</td>
+                      <td class="text-foreground font-medium">{{ entry.montant|number_format(2, ',', ' ') }} MAD</td>
+                    </tr>
+                  {% else %}
+                    <tr>
+                      <td colspan="9" class="text-secondary-foreground text-center py-8">
+                        Aucune entrée CRBT trouvée.
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+
+            <div class="kt-card-footer justify-center md:justify-between flex-col md:flex-row gap-5 text-secondary-foreground text-sm font-medium">
+              <div class="flex items-center gap-2 order-2 md:order-1">
+                Afficher
+                <select class="kt-select w-16" data-kt-datatable-size="true" data-kt-select="" name="perpage"></select>
+                par page
+              </div>
+              <div class="flex items-center gap-4 order-1 md:order-2">
+                <span data-kt-datatable-info="true"></span>
+                <div class="kt-datatable-pagination" data-kt-datatable-pagination="true"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+{% endblock %}
