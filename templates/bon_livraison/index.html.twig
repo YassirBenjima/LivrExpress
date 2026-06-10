@@ -128,33 +128,48 @@
                           {{ statusLabel }}
                         </span>
                       </td>
-                      <td>
-                        <div class="flex flex-wrap gap-1.5">
+                      <td class="text-foreground font-normal">
+                        <div class="flex flex-col gap-1">
                           {% for colis in bon.colis %}
-                            <span class="kt-badge kt-badge-success rounded-[30px]">
-                              {{ colis.trackingCode }}
-                            </span>
+                            <div class="flex flex-wrap items-center gap-2">
+                              <span class="kt-badge kt-badge-primary kt-badge-outline rounded-[30px]">
+                                {{ colis.trackingCode }}
+                              </span>
+                            </div>
                           {% else %}
                             <span class="text-secondary-foreground">-</span>
                           {% endfor %}
                         </div>
                       </td>
                       <td class="text-center">
-                        <div class="flex items-center justify-center gap-1.5">
-                          <a class="kt-btn kt-btn-sm kt-btn-outline" href="{{ path('app_bon_livraison_edit', { id: bon.id }) }}">
-                            Modifier
-                          </a>
-                          <button
-                            class="kt-btn kt-btn-sm kt-btn-destructive"
-                            type="button"
-                            data-kt-modal-toggle="#bon_livraison_delete_modal"
-                            data-bon-delete-open="true"
-                            data-delete-title="{{ bon.reference|e('html_attr') }}"
-                            data-delete-action="{{ path('app_bon_livraison_delete', { id: bon.id }) }}"
-                            data-delete-token="{{ csrf_token('delete_bon_livraison_' ~ bon.id) }}"
-                          >
-                            Supprimer
-                          </button>
+                        <div class="kt-menu flex-inline" data-kt-menu="true">
+                          <div class="kt-menu-item" data-kt-menu-item-offset="0, 10px" data-kt-menu-item-placement="bottom-end" data-kt-menu-item-placement-rtl="bottom-start" data-kt-menu-item-toggle="dropdown" data-kt-menu-item-trigger="click">
+                            <button class="kt-menu-toggle kt-btn kt-btn-sm kt-btn-icon kt-btn-ghost">
+                              <i class="ki-filled ki-dots-vertical text-lg"></i>
+                            </button>
+                            <div class="kt-menu-dropdown kt-menu-default w-full max-w-[175px]" data-kt-menu-dismiss="true">
+                              <div class="kt-menu-item">
+                                <a class="kt-menu-link" href="{{ path('app_bon_livraison_edit', { id: bon.id }) }}">
+                                  <span class="kt-menu-icon"><i class="ki-filled ki-pencil"></i></span>
+                                  <span class="kt-menu-title">Modifier</span>
+                                </a>
+                              </div>
+                              <div class="kt-menu-item">
+                                <button
+                                  class="kt-menu-link w-full text-start"
+                                  type="button"
+                                  data-kt-modal-toggle="#bon_livraison_delete_modal"
+                                  data-bon-delete-open="true"
+                                  data-delete-title="{{ bon.reference|e('html_attr') }}"
+                                  data-delete-action="{{ path('app_bon_livraison_delete', { id: bon.id }) }}"
+                                  data-delete-token="{{ csrf_token('delete_bon_livraison_' ~ bon.id) }}"
+                                >
+                                  <span class="kt-menu-icon"><i class="ki-filled ki-trash"></i></span>
+                                  <span class="kt-menu-title">Supprimer</span>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </td>
                     </tr>
