@@ -149,6 +149,18 @@
                             </button>
                             <div class="kt-menu-dropdown kt-menu-default w-full max-w-[175px]" data-kt-menu-dismiss="true">
                               <div class="kt-menu-item">
+                                <a
+                                  class="kt-menu-link"
+                                  href="{{ path('app_bon_livraison_download', { id: bon.id }) }}"
+                                  data-bon-download="true"
+                                  data-can-download="{{ bon.reference ? '1' : '0' }}"
+                                  data-filename="{{ bon.reference ? (bon.reference ~ '.pdf')|e('html_attr') : 'bon.pdf' }}"
+                                >
+                                  <span class="kt-menu-icon"><i class="ki-filled ki-file-down"></i></span>
+                                  <span class="kt-menu-title">Télécharger</span>
+                                </a>
+                              </div>
+                              <div class="kt-menu-item">
                                 <a class="kt-menu-link" href="{{ path('app_bon_livraison_edit', { id: bon.id }) }}">
                                   <span class="kt-menu-icon"><i class="ki-filled ki-pencil"></i></span>
                                   <span class="kt-menu-title">Modifier</span>
@@ -228,5 +240,5 @@
 
 {% block javascripts %}
   {{ parent() }}
-  <script src="{{ asset('assets/js/bon-livraison.js?v=1') }}"></script>
+  <script src="{{ asset('assets/js/bon-livraison.js?v=2') }}"></script>
 {% endblock %}

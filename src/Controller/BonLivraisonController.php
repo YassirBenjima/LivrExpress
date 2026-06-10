@@ -7,6 +7,7 @@ use App\Entity\Colis;
 use App\Entity\User;
 use App\Repository\BonLivraisonRepository;
 use App\Repository\ColisRepository;
+use App\Service\BonLivraisonPdfGenerator;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -64,6 +65,24 @@ final class BonLivraisonController extends AbstractController
         return $this->renderForm($request, $colisRepository, $bonLivraisonRepository, $bon);
     }
 
+    #[Route('/{id}/download', name: 'app_bon_livraison_download', methods: ['GET'])]
+    public function download(BonLivraison $bon, BonLivraisonPdfGenerator $pdfGenerator): Response
+    {
+        if (trim((string) $bon->getReference()) === '') {
+            $this->addFlash('error', 'Document non disponible');
+
+            return $this->redirectToRoute('app_bon_livraison_index');
+        }
+
+        try {
+            return $pdfGenerator->generateDownloadResponse($bon);
+        } catch (\Throwable) {
+            $this->addFlash('error', 'Document non disponible');
+
+            return $this->redirectToRoute('app_bon_livraison_index');
+        }
+    }
+
     #[Route('/{id}/delete', name: 'app_bon_livraison_delete', methods: ['POST'])]
     public function delete(Request $request, BonLivraison $bon, EntityManagerInterface $entityManager): Response
     {
@@ -89,7 +108,7 @@ final class BonLivraisonController extends AbstractController
     ): Response {
         $search = trim((string) $request->query->get('q', ''));
         $selectedColisIds = $bon !== null
-            ? array_map(static fn (Colis $c): int => (int) $c->getId(), $bon->getColis()->toArray())
+            ? array_map(static fn(Colis $c): int => (int) $c->getId(), $bon->getColis()->toArray())
             : [];
 
         $availableColis = $this->filterAvailableColis($colisRepository->findBy([], ['id' => 'DESC']), $search, $bon, $bonLivraisonRepository);
@@ -122,7 +141,7 @@ final class BonLivraisonController extends AbstractController
 
         $colisIds = array_values(array_filter(
             array_map('intval', $request->request->all('colis_ids')),
-            static fn (int $id): bool => $id > 0
+            static fn(int $id): bool => $id > 0
         ));
 
         if ($colisIds === []) {
@@ -191,7 +210,7 @@ final class BonLivraisonController extends AbstractController
         BonLivraisonRepository $bonLivraisonRepository,
     ): array {
         $assignedIds = $bonLivraisonRepository->findColisIdsAlreadyAssigned(
-            array_map(static fn (Colis $c): int => (int) $c->getId(), $allColis),
+            array_map(static fn(Colis $c): int => (int) $c->getId(), $allColis),
             $currentBon?->getId()
         );
         $assignedMap = array_fill_keys($assignedIds, true);
