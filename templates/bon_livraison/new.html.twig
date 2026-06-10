@@ -1,0 +1,198 @@
+{% extends 'base_dashboard.html.twig' %}
+
+{% block title %}{{ is_edit_mode ? 'Modifier Bon de Livraison - LivrExpress' : 'Ajouter Bon de Livraison - LivrExpress' }}{% endblock %}
+
+{% block body %}
+<main class="grow pt-5 profile-content-shift" id="content" role="content">
+  <div class="kt-container-fixed">
+    <div class="flex flex-wrap items-center lg:items-end justify-between gap-5 pb-7.5">
+      <div class="flex flex-col justify-center gap-2">
+        <h1 class="text-xl font-medium leading-none text-mono">
+          {{ is_edit_mode ? 'Modifier Bon de Livraison' : 'Ajouter Bon de Livraison' }}
+        </h1>
+        <div class="flex items-center gap-2 text-sm font-normal text-secondary-foreground">
+          {% if is_edit_mode and bon %}
+            Référence : <span class="font-medium text-foreground">{{ bon.reference }}</span>
+          {% else %}
+            Sélectionnez les colis à inclure dans le bon de livraison
+          {% endif %}
+        </div>
+      </div>
+      <div class="flex flex-col items-end gap-2.5">
+        <div class="flex items-center gap-2.5">
+          <a class="kt-btn kt-btn-outline" href="{{ path('app_bon_livraison_index') }}">
+            Retour à la liste
+          </a>
+          <button class="kt-btn kt-btn-primary" form="bon-livraison-form" id="bon-livraison-save-btn" type="submit" data-bulk-action-button="true" disabled>
+            {{ is_edit_mode ? 'Enregistrer les modifications' : 'Créer le bon de livraison' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="kt-container-fixed">
+    <div class="kt-card border border-border/60 mb-5">
+      <div class="kt-card-content p-4">
+        <div class="flex flex-col gap-4">
+          <div class="flex items-center justify-between flex-wrap gap-3">
+            <div class="flex items-center gap-3">
+              <div class="text-sm font-semibold text-foreground">Colis sélectionnés</div>
+              <span class="kt-badge kt-badge-info kt-badge-outline rounded-[30px]">
+                <span class="kt-badge-dot size-1.5"></span>
+                <span id="selectedColisCount">{{ selected_colis_ids|length }}</span>&nbsp;sélectionné(s)
+              </span>
+            </div>
+            <div class="text-2sm text-secondary-foreground">
+              Cochez un ou plusieurs colis pour les associer à ce bon de livraison.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="kt-container-fixed">
+    <form
+      method="post"
+      action="{{ is_edit_mode ? path('app_bon_livraison_edit', { id: bon.id }) : path('app_bon_livraison_new') }}"
+      id="bon-livraison-form"
+    >
+      <input type="hidden" name="_token" value="{{ csrf_token(is_edit_mode ? 'bon_livraison_edit_' ~ bon.id : 'bon_livraison_new') }}">
+
+      <div class="grid gap-5 lg:gap-7.5">
+        <div class="kt-card kt-card-grid min-w-full">
+          <div class="kt-card-header flex-wrap gap-2">
+            <h3 class="kt-card-title text-sm">
+              Affichage de {{ available_colis|length }} colis disponible(s)
+            </h3>
+            <div class="flex flex-wrap gap-2 lg:gap-5">
+              <div class="flex">
+                <label class="kt-input">
+                  <i class="ki-filled ki-magnifier"></i>
+                  <input
+                    data-kt-datatable-search="#bon_livraison_colis_table"
+                    name="q"
+                    placeholder="Code de suivi, destinataire, ville..."
+                    type="text"
+                    value="{{ search_query|default('') }}"
+                    form="bon-livraison-search-form"
+                  />
+                </label>
+              </div>
+              <button class="kt-btn kt-btn-outline kt-btn-primary" type="submit" form="bon-livraison-search-form">
+                <i class="ki-filled ki-setting-4"></i>
+                Filtrer
+              </button>
+              <a class="kt-btn kt-btn-outline" href="{{ is_edit_mode ? path('app_bon_livraison_edit', { id: bon.id }) : path('app_bon_livraison_new') }}">
+                Réinitialiser
+              </a>
+            </div>
+          </div>
+
+          <div class="kt-card-content">
+            <div data-kt-datatable="true" data-kt-datatable-state-save="false" id="bon_livraison_colis_table">
+              <div class="kt-scrollable-x-auto">
+                <table class="kt-table table-auto kt-table-border" data-kt-datatable-table="true">
+                  <thead>
+                    <tr>
+                      <th class="w-[50px]">
+                        <input class="kt-checkbox kt-checkbox-sm" data-kt-datatable-check="true" id="selectAllColis" type="checkbox"/>
+                      </th>
+                      <th class="min-w-[150px]">
+                        <span class="kt-table-col"><span class="kt-table-col-label">Code de suivi</span></span>
+                      </th>
+                      <th class="min-w-[180px]">
+                        <span class="kt-table-col"><span class="kt-table-col-label">Nature du produit</span></span>
+                      </th>
+                      <th class="min-w-[140px]">
+                        <span class="kt-table-col"><span class="kt-table-col-label">Destinataire</span></span>
+                      </th>
+                      <th class="min-w-[120px]">
+                        <span class="kt-table-col"><span class="kt-table-col-label">Ville</span></span>
+                      </th>
+                      <th class="min-w-[150px]">
+                        <span class="kt-table-col"><span class="kt-table-col-label">Date de création</span></span>
+                      </th>
+                      <th class="min-w-[120px]">
+                        <span class="kt-table-col"><span class="kt-table-col-label">Statut</span></span>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for colis in available_colis %}
+                      {% set statutLabel = (colis.statut ?: 'En attente')
+                        |replace({'Reporte': 'Reporté', 'Echec': 'Échec', 'Termine': 'Terminé'}) %}
+                      {% set statutBadgeClass = 'kt-badge-warning' %}
+                      {% if statutLabel == 'Terminé' %}
+                        {% set statutBadgeClass = 'kt-badge-success' %}
+                      {% elseif statutLabel == 'En cours' %}
+                        {% set statutBadgeClass = 'kt-badge-primary' %}
+                      {% elseif statutLabel == 'Reporté' %}
+                        {% set statutBadgeClass = 'kt-badge-info' %}
+                      {% elseif statutLabel == 'Échec' %}
+                        {% set statutBadgeClass = 'kt-badge-destructive' %}
+                      {% endif %}
+                      {% set isSelected = colis.id in selected_colis_ids %}
+                      <tr>
+                        <td>
+                          <input
+                            class="kt-checkbox kt-checkbox-sm colis-checkbox"
+                            data-kt-datatable-row-check="true"
+                            type="checkbox"
+                            name="colis_ids[]"
+                            value="{{ colis.id }}"
+                            {{ isSelected ? 'checked' : '' }}
+                          />
+                        </td>
+                        <td class="text-foreground font-medium">
+                          <span class="kt-badge kt-badge-success rounded-[30px]">{{ colis.trackingCode }}</span>
+                        </td>
+                        <td class="text-foreground font-normal">{{ colis.productNature }}</td>
+                        <td class="text-foreground font-normal">{{ colis.recipient ?: '-' }}</td>
+                        <td class="text-foreground font-normal">{{ colis.city }}</td>
+                        <td class="text-foreground font-normal">{{ colis.createdAt ? colis.createdAt|date('d/m/Y H:i') : '-' }}</td>
+                        <td>
+                          <span class="kt-badge {{ statutBadgeClass }} kt-badge-outline rounded-[30px]">
+                            <span class="kt-badge-dot size-1.5"></span>
+                            {{ statutLabel }}
+                          </span>
+                        </td>
+                      </tr>
+                    {% else %}
+                      <tr>
+                        <td colspan="7" class="text-secondary-foreground text-center py-8">
+                          Aucun colis disponible.
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="kt-card-footer justify-center md:justify-between flex-col md:flex-row gap-5 text-secondary-foreground text-sm font-medium">
+                <div class="flex items-center gap-2 order-2 md:order-1">
+                  Afficher
+                  <select class="kt-select w-16" data-kt-datatable-size="true" data-kt-select="" name="perpage"></select>
+                  par page
+                </div>
+                <div class="flex items-center gap-4 order-1 md:order-2">
+                  <span data-kt-datatable-info="true"></span>
+                  <div class="kt-datatable-pagination" data-kt-datatable-pagination="true"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+
+    <form method="get" action="{{ is_edit_mode ? path('app_bon_livraison_edit', { id: bon.id }) : path('app_bon_livraison_new') }}" id="bon-livraison-search-form"></form>
+  </div>
+</main>
+{% endblock %}
+
+{% block javascripts %}
+  {{ parent() }}
+  <script src="{{ asset('assets/js/bon-livraison-new.js?v=1') }}"></script>
+{% endblock %}

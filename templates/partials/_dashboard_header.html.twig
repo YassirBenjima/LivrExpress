@@ -15,6 +15,7 @@
 {% endif %}
 {% set currentRoute = app.request.attributes.get('_route') %}
 {% set isSuiviRoute = currentRoute starts with 'app_suivi_' %}
+{% set isBonLivraisonRoute = currentRoute starts with 'app_bon_livraison_' %}
 {% set isRetourRoute = currentRoute starts with 'app_retour_' %}
 <!-- Header -->
     <header class="kt-header fixed top-0 z-10 start-0 end-0 flex items-stretch shrink-0 bg-background" data-kt-sticky="true" data-kt-sticky-class="border-b border-border" data-kt-sticky-name="header" id="header">
@@ -219,6 +220,48 @@
                 <a class="kt-menu-link" href="{{ path('app_ramassage_planning') }}" tabindex="0">
                  <span class="kt-menu-icon"><i class="ki-filled ki-calendar text-lg"></i></span>
                  <span class="kt-menu-title grow-0">Planification</span>
+                </a>
+               </div>
+              </div>
+             </div>
+            </div>
+           </div>
+          </div>
+         </div>
+         <!--End of Megamenu Item-->
+         <!--Megamenu Item - Bon de Livraison-->
+         <div class="kt-menu-item {{ isBonLivraisonRoute ? 'here' : '' }}" data-kt-menu-item-placement="bottom-start" data-kt-menu-item-placement-rtl="bottom-end" data-kt-menu-item-toggle="accordion|lg:dropdown" data-kt-menu-item-trigger="click|lg:hover">
+          <div class="kt-menu-link text-sm {{ isBonLivraisonRoute ? 'text-mono font-semibold' : 'text-secondary-foreground font-medium' }} kt-menu-link-hover:text-primary kt-menu-item-active:text-mono kt-menu-item-show:text-primary kt-menu-item-here:text-mono">
+           <span class="kt-menu-title text-nowrap">
+            Bon de Livraison
+           </span>
+           <span class="kt-menu-arrow flex lg:hidden">
+            <span class="kt-menu-item-show:hidden text-muted-foreground">
+             <i class="ki-filled ki-plus text-xs"></i>
+            </span>
+            <span class="hidden kt-menu-item-show:inline-flex">
+             <i class="ki-filled ki-minus text-xs"></i>
+            </span>
+           </span>
+          </div>
+          <div class="kt-menu-dropdown w-full gap-0 lg:max-w-[700px]">
+           <div class="pt-4 pb-2 lg:p-7.5">
+            <div class="kt-menu kt-menu-default kt-menu-fit flex-col">
+             <h3 class="text-sm text-foreground font-semibold leading-none ps-2.5 mb-2 lg:mb-5">
+              Bon de Livraison
+             </h3>
+             <div class="grid lg:grid-cols-2 lg:gap-5">
+              <div class="flex flex-col gap-0.5">
+               <div class="kt-menu-item">
+                <a class="kt-menu-link" href="{{ path('app_bon_livraison_index') }}" tabindex="0">
+                 <span class="kt-menu-icon"><i class="ki-filled ki-document text-lg"></i></span>
+                 <span class="kt-menu-title grow-0">Liste bons de livraison</span>
+                </a>
+               </div>
+               <div class="kt-menu-item">
+                <a class="kt-menu-link" href="{{ path('app_bon_livraison_new') }}" tabindex="0">
+                 <span class="kt-menu-icon"><i class="ki-filled ki-plus-circle text-lg"></i></span>
+                 <span class="kt-menu-title grow-0">Ajouter Bon de Livraison</span>
                 </a>
                </div>
               </div>

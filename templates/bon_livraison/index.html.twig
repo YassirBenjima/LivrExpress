@@ -1,0 +1,217 @@
+{% extends 'base_dashboard.html.twig' %}
+
+{% block title %}Liste bons de livraison - LivrExpress{% endblock %}
+
+{% block body %}
+{% set totalBons = bons|length %}
+<main class="grow pt-5 dashboard-content-shift" id="content" role="content">
+  <div class="kt-container-fixed" id="contentContainer"></div>
+
+  <div class="kt-container-fixed">
+    <div class="flex flex-wrap items-center lg:items-end justify-between gap-5 pb-7.5">
+      <div class="flex flex-col justify-center gap-2">
+        <h1 class="text-xl font-medium leading-none text-mono">
+          Liste bons de livraison
+        </h1>
+        <div class="flex items-center flex-wrap gap-1.5 font-medium">
+          <span class="text-base text-secondary-foreground">Total bons :</span>
+          <span class="text-base text-foreground font-medium">{{ totalBons }}</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-2.5">
+        <a class="kt-btn kt-btn-primary" href="{{ path('app_bon_livraison_new') }}">
+          Ajouter Bon de Livraison
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="kt-container-fixed">
+    <div class="grid gap-5 lg:gap-7.5">
+      <div class="kt-card kt-card-grid min-w-full">
+        <div class="kt-card-header flex-wrap gap-2">
+          <h3 class="kt-card-title text-sm">
+            Affichage de {{ totalBons }} bon(s) de livraison
+          </h3>
+          <form class="flex flex-wrap gap-2 lg:gap-5" method="get" action="{{ path('app_bon_livraison_index') }}">
+            <div class="flex">
+              <label class="kt-input">
+                <i class="ki-filled ki-magnifier"></i>
+                <input data-kt-datatable-search="#bon_livraison_table" name="q" placeholder="Référence, code de suivi..." type="text" value="{{ search_query|default('') }}"/>
+              </label>
+            </div>
+            <div class="flex flex-wrap gap-2.5">
+              <select class="kt-select w-36" data-kt-select="true" data-kt-select-placeholder="Statut" name="statut">
+                <option value="">Tous les statuts</option>
+                {% for statut in statuts_possibles %}
+                  <option value="{{ statut }}" {{ selected_statut|default('') == statut ? 'selected' : '' }}>
+                    {{ statut_labels[statut]|default(statut) }}
+                  </option>
+                {% endfor %}
+              </select>
+              <button class="kt-btn kt-btn-outline kt-btn-primary" type="submit">
+                <i class="ki-filled ki-setting-4"></i>
+                Filtrer
+              </button>
+              <a class="kt-btn kt-btn-outline" href="{{ path('app_bon_livraison_index') }}">
+                Réinitialiser
+              </a>
+            </div>
+          </form>
+        </div>
+
+        <div class="kt-card-content">
+          <div data-kt-datatable="true" data-kt-datatable-state-save="false" id="bon_livraison_table">
+            <div class="kt-scrollable-x-auto">
+              <table class="kt-table table-auto kt-table-border" data-kt-datatable-table="true">
+                <thead>
+                  <tr>
+                    <th class="min-w-[180px]">
+                      <span class="kt-table-col">
+                        <span class="kt-table-col-label">Réf</span>
+                        <span class="kt-table-col-sort"></span>
+                      </span>
+                    </th>
+                    <th class="min-w-[160px]">
+                      <span class="kt-table-col">
+                        <span class="kt-table-col-label">Date de création</span>
+                        <span class="kt-table-col-sort"></span>
+                      </span>
+                    </th>
+                    <th class="min-w-[170px]">
+                      <span class="kt-table-col">
+                        <span class="kt-table-col-label">Date d'enregistrement</span>
+                        <span class="kt-table-col-sort"></span>
+                      </span>
+                    </th>
+                    <th class="min-w-[130px]">
+                      <span class="kt-table-col">
+                        <span class="kt-table-col-label">Statut</span>
+                        <span class="kt-table-col-sort"></span>
+                      </span>
+                    </th>
+                    <th class="min-w-[220px]">
+                      <span class="kt-table-col">
+                        <span class="kt-table-col-label">Colis</span>
+                        <span class="kt-table-col-sort"></span>
+                      </span>
+                    </th>
+                    <th class="min-w-[160px] text-center">
+                      <span class="kt-table-col">
+                        <span class="kt-table-col-label">Action</span>
+                      </span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for bon in bons %}
+                    {% set statusLabel = statut_labels[bon.status]|default(bon.status) %}
+                    {% set statusBadgeClass = 'kt-badge-warning' %}
+                    {% if bon.status == 'enregistre' %}
+                      {% set statusBadgeClass = 'kt-badge-success' %}
+                    {% elseif bon.status == 'annule' %}
+                      {% set statusBadgeClass = 'kt-badge-destructive' %}
+                    {% endif %}
+                    <tr>
+                      <td class="text-foreground font-medium">
+                        {{ bon.reference }}
+                      </td>
+                      <td class="text-foreground font-normal">
+                        {{ bon.createdAt ? bon.createdAt|date('d/m/Y H:i') : '-' }}
+                      </td>
+                      <td class="text-foreground font-normal">
+                        {{ bon.registeredAt ? bon.registeredAt|date('d/m/Y H:i') : '-' }}
+                      </td>
+                      <td>
+                        <span class="kt-badge {{ statusBadgeClass }} kt-badge-outline rounded-[30px]">
+                          <span class="kt-badge-dot size-1.5"></span>
+                          {{ statusLabel }}
+                        </span>
+                      </td>
+                      <td>
+                        <div class="flex flex-wrap gap-1.5">
+                          {% for colis in bon.colis %}
+                            <span class="kt-badge kt-badge-success rounded-[30px]">
+                              {{ colis.trackingCode }}
+                            </span>
+                          {% else %}
+                            <span class="text-secondary-foreground">-</span>
+                          {% endfor %}
+                        </div>
+                      </td>
+                      <td class="text-center">
+                        <div class="flex items-center justify-center gap-1.5">
+                          <a class="kt-btn kt-btn-sm kt-btn-outline" href="{{ path('app_bon_livraison_edit', { id: bon.id }) }}">
+                            Modifier
+                          </a>
+                          <button
+                            class="kt-btn kt-btn-sm kt-btn-destructive"
+                            type="button"
+                            data-kt-modal-toggle="#bon_livraison_delete_modal"
+                            data-bon-delete-open="true"
+                            data-delete-title="{{ bon.reference|e('html_attr') }}"
+                            data-delete-action="{{ path('app_bon_livraison_delete', { id: bon.id }) }}"
+                            data-delete-token="{{ csrf_token('delete_bon_livraison_' ~ bon.id) }}"
+                          >
+                            Supprimer
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  {% else %}
+                    <tr>
+                      <td colspan="6" class="text-secondary-foreground text-center py-8">
+                        Aucun bon de livraison trouvé.
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+
+            <div class="kt-card-footer justify-center md:justify-between flex-col md:flex-row gap-5 text-secondary-foreground text-sm font-medium">
+              <div class="flex items-center gap-2 order-2 md:order-1">
+                Afficher
+                <select class="kt-select w-16" data-kt-datatable-size="true" data-kt-select="" name="perpage"></select>
+                par page
+              </div>
+              <div class="flex items-center gap-4 order-1 md:order-2">
+                <span data-kt-datatable-info="true"></span>
+                <div class="kt-datatable-pagination" data-kt-datatable-pagination="true"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="kt-modal kt-modal-delete" data-kt-modal="true" id="bon_livraison_delete_modal">
+  <div class="kt-modal-content top-5 lg:top-[10%]">
+    <div class="kt-modal-header">
+      <h3 class="kt-modal-title">Supprimer le bon de livraison</h3>
+      <button class="kt-btn kt-btn-sm kt-btn-icon kt-btn-ghost shrink-0" data-kt-modal-dismiss="true" type="button">
+        <i class="ki-filled ki-cross"></i>
+      </button>
+    </div>
+    <div class="kt-modal-body px-5 py-5">
+      <p class="text-sm text-secondary-foreground mb-4">
+        Vous êtes sur le point de supprimer le bon <span class="font-medium text-foreground" data-bon-delete-title="true"></span>.
+      </p>
+      <form id="bon-livraison-delete-form" method="post" action="">
+        <input type="hidden" name="_token" value="" data-bon-delete-token="true">
+        <div class="flex items-center justify-end gap-2">
+          <button class="kt-btn kt-btn-outline" data-kt-modal-dismiss="true" type="button">Annuler</button>
+          <button class="kt-btn kt-btn-destructive" type="submit">Supprimer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+  {{ parent() }}
+  <script src="{{ asset('assets/js/bon-livraison.js?v=1') }}"></script>
+{% endblock %}
