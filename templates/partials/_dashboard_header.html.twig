@@ -18,6 +18,7 @@
 {% set isBonLivraisonRoute = currentRoute starts with 'app_bon_livraison_' %}
 {% set isRetourRoute = currentRoute starts with 'app_retour_' %}
 {% set isFacturationRoute = currentRoute starts with 'app_facturation_' %}
+{% set isAffiliateRoute = currentRoute == 'app_affiliate_index' %}
 <!-- Header -->
     <header class="kt-header fixed top-0 z-10 start-0 end-0 flex items-stretch shrink-0 bg-background" data-kt-sticky="true" data-kt-sticky-class="border-b border-border" data-kt-sticky-name="header" id="header">
      <!-- Container -->
@@ -395,6 +396,15 @@
             </div>
            </div>
           </div>
+         </div>
+         <!--End of Megamenu Item-->
+         <!--Megamenu Item - Affiliate-->
+         <div class="kt-menu-item {{ isAffiliateRoute ? 'here' : '' }}">
+          <a class="kt-menu-link text-nowrap text-sm {{ isAffiliateRoute ? 'text-mono font-semibold' : 'text-secondary-foreground font-medium' }} kt-menu-link-hover:text-primary kt-menu-item-active:text-mono kt-menu-item-active:font-medium" href="{{ path('app_affiliate_index') }}">
+           <span class="kt-menu-title text-nowrap">
+            Affiliate
+           </span>
+          </a>
          </div>
          <!--End of Megamenu Item-->
           <!--Megamenu Item-->
