@@ -1,0 +1,704 @@
+{% extends 'base_dashboard.html.twig' %}
+
+{% block title %}Documentation API - LivrExpress{% endblock %}
+
+{% block stylesheets %}
+  {{ parent() }}
+  <style>
+    .api-tab-content {
+      display: none;
+    }
+    .api-tab-content.active {
+      display: block;
+    }
+    .api-tab-btn.active {
+      border-bottom-color: var(--tw-color-primary, #624bff);
+      color: var(--tw-color-primary, #624bff);
+      font-weight: 600;
+    }
+    .badge-method {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 0.375rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .badge-get {
+      background-color: rgba(16, 185, 129, 0.1);
+      color: rgb(16, 185, 129);
+    }
+    .badge-post {
+      background-color: rgba(59, 130, 246, 0.1);
+      color: rgb(59, 130, 246);
+    }
+    .api-code-block {
+      background-color: #1e1e2f;
+      color: #f8f8f2;
+      font-family: monospace;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      overflow-x: auto;
+    }
+  </style>
+{% endblock %}
+
+{% block body %}
+<main class="grow pt-5 dashboard-content-shift" id="content" role="content">
+  <!-- Header -->
+  <div class="kt-container-fixed mb-6">
+    <div class="flex flex-wrap items-center lg:items-end justify-between gap-5 pb-5 border-b border-border">
+      <div class="flex flex-col justify-center gap-2">
+        <h1 class="text-xl font-medium leading-none text-mono">Documentation API</h1>
+        <span class="text-sm text-secondary-foreground">Intégrez les services de LivrExpress directement dans vos outils et applications.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs Navigation -->
+  <div class="kt-container-fixed mb-5">
+    <div class="flex items-center overflow-x-auto whitespace-nowrap gap-6 border-b border-border" id="api_tabs">
+      <button class="api-tab-btn active border-b-2 border-transparent py-3 px-1 text-sm font-medium text-secondary-foreground hover:text-primary flex items-center gap-2" data-tab="key">
+        <i class="ki-filled ki-code text-base"></i>
+        Clé API
+      </button>
+      <button class="api-tab-btn border-b-2 border-transparent py-3 px-1 text-sm font-medium text-secondary-foreground hover:text-primary flex items-center gap-2" data-tab="colis">
+        <i class="ki-filled ki-delivery-3 text-base"></i>
+        Colis
+      </button>
+      <button class="api-tab-btn border-b-2 border-transparent py-3 px-1 text-sm font-medium text-secondary-foreground hover:text-primary flex items-center gap-2" data-tab="villes">
+        <i class="ki-filled ki-map text-base"></i>
+        Les Villes
+      </button>
+      <button class="api-tab-btn border-b-2 border-transparent py-3 px-1 text-sm font-medium text-secondary-foreground hover:text-primary flex items-center gap-2" data-tab="ramassage">
+        <i class="ki-filled ki-delivery text-base"></i>
+        Ramassage
+      </button>
+      <button class="api-tab-btn border-b-2 border-transparent py-3 px-1 text-sm font-medium text-secondary-foreground hover:text-primary flex items-center gap-2" data-tab="stock">
+        <i class="ki-filled ki-archive text-base"></i>
+        Stock
+      </button>
+      <button class="api-tab-btn border-b-2 border-transparent py-3 px-1 text-sm font-medium text-secondary-foreground hover:text-primary flex items-center gap-2" data-tab="retour">
+        <i class="ki-filled ki-arrow-left text-base"></i>
+        Retour
+      </button>
+    </div>
+  </div>
+
+  <!-- General Info Banner (X-API-Key and Health Check) -->
+  <div class="kt-container-fixed mb-5">
+    <div class="kt-card bg-primary-light/5 border border-primary/20">
+      <div class="kt-card-content p-5 flex flex-col gap-3 text-center md:text-left">
+        <p class="text-sm text-foreground leading-relaxed">
+          Toutes les requêtes à l'API LivrExpress nécessitent une authentification à l'aide d'un en-tête HTTP personnalisé nommé <span class="bg-danger/10 text-danger text-xs font-bold px-1.5 py-0.5 rounded">X-API-Key</span>. Vous devez inclure votre clé API unique dans cet en-tête pour accéder aux points de terminaison de l'API.
+        </p>
+        <p class="text-sm text-secondary-foreground">
+          Vous pouvez toujours vérifier l'état de l'API LivrExpress à l'aide du point de terminaison suivant : <code class="bg-danger/10 text-danger text-xs px-1.5 py-0.5 rounded font-mono font-bold">{{ app.request.host }}{% if app.request.port and app.request.port != 80 and app.request.port != 443 %}:{{ app.request.port }}{% endif %}/api/health</code>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB CONTENT: CLÉ API -->
+  <div class="kt-container-fixed api-tab-content active" id="tab_key">
+    <div class="flex flex-col gap-5">
+      <!-- Obtention de votre clé API -->
+      <div class="kt-card">
+        <div class="kt-card-header">
+          <h3 class="kt-card-title text-sm font-semibold">Obtention de votre clé API</h3>
+        </div>
+        <div class="kt-card-content p-5 flex flex-col gap-4">
+          <p class="text-sm text-secondary-foreground">Vous pouvez générer une nouvelle clé API ci-dessous.</p>
+          
+          <div class="border border-border rounded-xl overflow-hidden">
+            <table class="table-auto w-full text-sm">
+              <thead>
+                <tr class="bg-muted/40 text-secondary-foreground text-left text-xs uppercase font-medium">
+                  <th class="p-4 w-2/3">Clé API</th>
+                  <th class="p-4 text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="border-t border-border">
+                  <td class="p-4">
+                    {% if api_key %}
+                      <span class="bg-danger/10 text-danger font-mono text-sm px-3 py-1.5 rounded inline-block break-all" id="api_key_value">{{ api_key }}</span>
+                    {% else %}
+                      <span class="text-secondary-foreground italic text-sm">Aucune clé API active. Veuillez en générer une.</span>
+                    {% endif %}
+                  </td>
+                  <td class="p-4 text-center flex items-center justify-center gap-2">
+                    {% if api_key %}
+                      <button class="kt-btn kt-btn-outline kt-btn-primary kt-btn-sm" onclick="copyToClipboard('{{ api_key }}', this)" type="button">
+                        <i class="ki-filled ki-copy"></i> Copier
+                      </button>
+                    {% endif %}
+                    <form action="{{ path('app_api_docs_generate') }}" method="POST" class="inline">
+                      <button class="kt-btn kt-btn-primary kt-btn-sm" type="submit">
+                        <i class="ki-filled ki-arrows-loop"></i> générer une nouvelle clé API
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Utilisation de votre clé API -->
+      <div class="kt-card">
+        <div class="kt-card-header">
+          <h3 class="kt-card-title text-sm font-semibold">Utilisation de votre clé API</h3>
+        </div>
+        <div class="kt-card-content p-5 flex flex-col gap-4">
+          <p class="text-sm text-secondary-foreground leading-relaxed">
+            Pour inclure votre clé API dans vos requêtes API, vous devez définir l'en-tête HTTP 'X-API-Key' avec la valeur de votre clé API. Par exemple, si votre clé API est fournie, vous pouvez utiliser l'en-tête suivant dans votre requête :
+          </p>
+          <div class="api-code-block font-mono">X-API-Key: {{ api_key ?? 'votre_clé_API_unique_ici' }}</div>
+        </div>
+      </div>
+
+      <!-- Importance de l'authentification -->
+      <div class="kt-card">
+        <div class="kt-card-header">
+          <h3 class="kt-card-title text-sm font-semibold">Importance de l'authentification</h3>
+        </div>
+        <div class="kt-card-content p-5 flex flex-col gap-4">
+          <p class="text-sm text-secondary-foreground leading-relaxed">
+            L'authentification est essentielle pour garantir la sécurité et l'intégrité de vos données. En exigeant une clé API pour chaque requête, l'API LivrExpress s'assure que seuls les utilisateurs autorisés peuvent accéder à ses fonctionnalités.
+          </p>
+        </div>
+      </div>
+
+      <!-- Conseils pour la sécurité -->
+      <div class="kt-card">
+        <div class="kt-card-header">
+          <h3 class="kt-card-title text-sm font-semibold">Conseils pour la sécurité de votre clé API</h3>
+        </div>
+        <div class="kt-card-content p-5 flex flex-col gap-4">
+          <ul class="list-disc list-inside text-sm text-secondary-foreground flex flex-col gap-2">
+            <li>Ne partagez jamais votre clé API avec personne d'autre.</li>
+            <li>Conservez votre clé API en lieu sûr et confidentiel.</li>
+            <li>Ne stockez pas votre clé API dans le code source de vos applications.</li>
+            <li>Si vous pensez que votre clé API a été compromise, changez la immédiatement.</li>
+          </ul>
+          <p class="text-sm text-secondary-foreground font-medium mt-2">
+            En suivant ces conseils, vous pouvez vous assurer que votre clé API est utilisée en toute sécurité et que vos données sont protégées.
+          </p>
+        </div>
+      </div>
+
+      <!-- Réponse en cas de succès -->
+      <div class="kt-card">
+        <div class="kt-card-header">
+          <h3 class="kt-card-title text-sm font-semibold">Réponse en cas de succès</h3>
+        </div>
+        <div class="kt-card-content p-5 flex flex-col gap-4">
+          <pre class="api-code-block">{
+  "AUTH": {
+    "RESULT": "SUCCESS",
+    "MESSAGE": "Customer Authenticated, Welcome to LivrExpress API"
+  }
+}</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB CONTENT: COLIS -->
+  <div class="kt-container-fixed api-tab-content" id="tab_colis">
+    <div class="flex flex-col gap-5">
+      <div class="kt-card">
+        <div class="kt-card-header">
+          <h3 class="kt-card-title text-sm font-semibold">Ajouter Nouveau colis</h3>
+        </div>
+        <div class="kt-card-content p-5 flex flex-col gap-4">
+          <p class="text-sm text-secondary-foreground">
+            Cette documentation décrit l'API permettant d'ajouter un nouveau colis à votre compte LivrExpress.
+          </p>
+
+          <h4 class="text-sm font-bold text-foreground mt-2">Méthode</h4>
+          <div>
+            <span class="badge-method badge-post">POST</span>
+          </div>
+
+          <h4 class="text-sm font-bold text-foreground mt-2">URL</h4>
+          <div class="api-code-block">{{ app.request.schemeAndHttpHost }}/api/customer/Parcels/AddParcel</div>
+
+          <h4 class="text-sm font-bold text-foreground mt-2">Paramètres</h4>
+          <div class="border border-border rounded-xl overflow-x-auto">
+            <table class="table-auto w-full text-sm text-left">
+              <thead>
+                <tr class="bg-muted/40 text-secondary-foreground text-xs uppercase font-medium border-b border-border">
+                  <th class="p-4">Paramètre</th>
+                  <th class="p-4">Type</th>
+                  <th class="p-4">Description</th>
+                  <th class="p-4">Obligatoire</th>
+                  <th class="p-4">Valeur par défaut</th>
+                  <th class="p-4">Max Caractères</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-border">
+                <tr>
+                  <td class="p-4 font-mono font-bold">ORDER_NUM</td>
+                  <td class="p-4 text-secondary-foreground">string</td>
+                  <td class="p-4 text-secondary-foreground">Numéro de commande associé au colis</td>
+                  <td class="p-4 text-danger font-bold">Oui</td>
+                  <td class="p-4 text-secondary-foreground">-</td>
+                  <td class="p-4 text-secondary-foreground">20</td>
+                </tr>
+                <tr>
+                  <td class="p-4 font-mono font-bold">RECEIVER</td>
+                  <td class="p-4 text-secondary-foreground">string</td>
+                  <td class="p-4 text-secondary-foreground">Nom du destinataire du colis</td>
+                  <td class="p-4 text-danger font-bold">Oui</td>
+                  <td class="p-4 text-secondary-foreground">-</td>
+                  <td class="p-4 text-secondary-foreground">50</td>
+                </tr>
+                <tr>
+                  <td class="p-4 font-mono font-bold">PHONE</td>
+                  <td class="p-4 text-secondary-foreground">string</td>
+                  <td class="p-4 text-secondary-foreground">Téléphone du destinataire du colis</td>
+                  <td class="p-4 text-danger font-bold">Oui</td>
+                  <td class="p-4 text-secondary-foreground">-</td>
+                  <td class="p-4 text-secondary-foreground">14</td>
+                </tr>
+                <tr>
+                  <td class="p-4 font-mono font-bold">CITY</td>
+                  <td class="p-4 text-secondary-foreground">string</td>
+                  <td class="p-4 text-secondary-foreground">Ville de destination du colis (code ou nom de la ville)</td>
+                  <td class="p-4 text-danger font-bold">Oui</td>
+                  <td class="p-4 text-secondary-foreground">-</td>
+                  <td class="p-4 text-secondary-foreground">50</td>
+                </tr>
+                <tr>
+                  <td class="p-4 font-mono font-bold">ADDRESS</td>
+                  <td class="p-4 text-secondary-foreground">string</td>
+                  <td class="p-4 text-secondary-foreground">Adresse de destination du colis</td>
+                  <td class="p-4 text-danger font-bold">Oui</td>
+                  <td class="p-4 text-secondary-foreground">-</td>
+                  <td class="p-4 text-secondary-foreground">100</td>
+                </tr>
+                <tr>
+                  <td class="p-4 font-mono font-bold">COMMENT</td>
+                  <td class="p-4 text-secondary-foreground">string</td>
+                  <td class="p-4 text-secondary-foreground">Commentaire facultatif relatif au colis</td>
+                  <td class="p-4 text-secondary-foreground">Non</td>
+                  <td class="p-4 text-secondary-foreground">Vide</td>
+                  <td class="p-4 text-secondary-foreground">100</td>
+                </tr>
+                <tr>
+                  <td class="p-4 font-mono font-bold">PRODUCT_NATURE</td>
+                  <td class="p-4 text-secondary-foreground">string</td>
+                  <td class="p-4 text-secondary-foreground">Nature du produit contenu dans le colis</td>
+                  <td class="p-4 text-secondary-foreground">Non</td>
+                  <td class="p-4 text-secondary-foreground">Vide</td>
+                  <td class="p-4 text-secondary-foreground">100</td>
+                </tr>
+                <tr>
+                  <td class="p-4 font-mono font-bold">COD</td>
+                  <td class="p-4 text-secondary-foreground">number</td>
+                  <td class="p-4 text-secondary-foreground">Montant du contre-remboursement (facultatif)</td>
+                  <td class="p-4 text-secondary-foreground">Non</td>
+                  <td class="p-4 text-secondary-foreground">0</td>
+                  <td class="p-4 text-secondary-foreground">-</td>
+                </tr>
+                <tr>
+                  <td class="p-4 font-mono font-bold">CAN_OPEN</td>
+                  <td class="p-4 text-secondary-foreground">boolean</td>
+                  <td class="p-4 text-secondary-foreground">Indique si le colis peut être ouvert avant livraison</td>
+                  <td class="p-4 text-secondary-foreground">Non</td>
+                  <td class="p-4 text-secondary-foreground">1</td>
+                  <td class="p-4 text-secondary-foreground">-</td>
+                </tr>
+                <tr>
+                  <td class="p-4 font-mono font-bold">STOCK</td>
+                  <td class="p-4 text-secondary-foreground">string</td>
+                  <td class="p-4 text-secondary-foreground">Références et quantités de produits en stock à inclure (format "référence=quantité" séparés par des virgules)</td>
+                  <td class="p-4 text-secondary-foreground">Non</td>
+                  <td class="p-4 text-secondary-foreground">Vide</td>
+                  <td class="p-4 text-secondary-foreground">-</td>
+                </tr>
+                <tr>
+                  <td class="p-4 font-mono font-bold">FRAGILE</td>
+                  <td class="p-4 text-secondary-foreground">boolean</td>
+                  <td class="p-4 text-secondary-foreground">Indique si le colis est fragile</td>
+                  <td class="p-4 text-secondary-foreground">Non</td>
+                  <td class="p-4 text-secondary-foreground">0</td>
+                  <td class="p-4 text-secondary-foreground">-</td>
+                </tr>
+                <tr>
+                  <td class="p-4 font-mono font-bold">CARTON</td>
+                  <td class="p-4 text-secondary-foreground">string</td>
+                  <td class="p-4 text-secondary-foreground">Taille du carton souhaité pour l'emballage du colis</td>
+                  <td class="p-4 text-secondary-foreground">Non</td>
+                  <td class="p-4 text-secondary-foreground">Vide</td>
+                  <td class="p-4 text-secondary-foreground">-</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h4 class="text-sm font-bold text-foreground mt-2">Réponse</h4>
+          <p class="text-sm text-secondary-foreground">
+            La réponse de l'API sera au format JSON. Le format de la réponse dépend du succès ou de l'échec de l'opération d'ajout de colis.
+          </p>
+
+          <h4 class="text-sm font-bold text-foreground mt-2">Réponse en cas de succès</h4>
+          <pre class="api-code-block">{
+  "ADD-PARCEL": {
+    "RESULT": "SUCCESS",
+    "MESSAGE": "Parcel Added successfully",
+    "TRACKING": "EXP-123456789-MA"
+  }
+}</pre>
+
+          <h4 class="text-sm font-bold text-foreground mt-2">Réponse en cas d'erreur</h4>
+          <pre class="api-code-block">{
+  "ADD-PARCEL": {
+    "RESULT": "ERROR",
+    "MESSAGE": "City not found"
+  }
+}</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB CONTENT: LES VILLES -->
+  <div class="kt-container-fixed api-tab-content" id="tab_villes">
+    <div class="flex flex-col gap-5">
+      <div class="kt-card">
+        <div class="kt-card-header">
+          <h3 class="kt-card-title text-sm font-semibold">Récupérer la liste des villes</h3>
+        </div>
+        <div class="kt-card-content p-5 flex flex-col gap-4">
+          <p class="text-sm text-secondary-foreground">
+            Cette documentation décrit l'API permettant de récupérer la liste des villes desservies par LivrExpress.
+          </p>
+
+          <h4 class="text-sm font-bold text-foreground mt-2">Méthode</h4>
+          <div>
+            <span class="badge-method badge-get">GET</span>
+          </div>
+
+          <h4 class="text-sm font-bold text-foreground mt-2">URL</h4>
+          <div class="api-code-block">{{ app.request.schemeAndHttpHost }}/api/customer/Cities</div>
+
+          <h4 class="text-sm font-bold text-foreground mt-2">Paramètres</h4>
+          <p class="text-sm text-secondary-foreground italic">Aucun paramètre n'est requis</p>
+
+          <h4 class="text-sm font-bold text-foreground mt-2">Réponse</h4>
+          <p class="text-sm text-secondary-foreground">
+            La réponse de l'API est au format JSON. L'exemple ci-dessous décrit la structure de chaque ville dans la réponse.
+          </p>
+
+          <h4 class="text-sm font-bold text-foreground mt-2">Réponse en cas de succès</h4>
+          <pre class="api-code-block">[
+  "17": {
+    "CODE": "NDR",
+    "NAME": "Nador",
+    "D_FEES": "45",
+    "D_FEES_SAME_CITY": "25"
+  },
+  "04": {
+    "CODE": "CAS",
+    "NAME": "Casablanca",
+    "D_FEES": "30",
+    "D_FEES_SAME_CITY": "20"
+  },
+  ... (autres villes)
+]</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB CONTENT: RAMASSAGE -->
+  <div class="kt-container-fixed api-tab-content" id="tab_ramassage">
+    <div class="flex flex-col gap-5">
+      <div class="kt-card">
+        <div class="kt-card-header">
+          <h3 class="kt-card-title text-sm font-semibold">Ajouter une nouvelle demande de ramassage</h3>
+        </div>
+        <div class="kt-card-content p-5 flex flex-col gap-4">
+          <p class="text-sm text-secondary-foreground">
+            Cette documentation décrit l'API permettant d'ajouter une nouvelle demande de ramassage à votre compte LivrExpress.
+          </p>
+
+          <h4 class="text-sm font-bold text-foreground mt-2">Méthode</h4>
+          <div>
+            <span class="badge-method badge-post">POST</span>
+          </div>
+
+          <h4 class="text-sm font-bold text-foreground mt-2">URL</h4>
+          <div class="api-code-block">{{ app.request.schemeAndHttpHost }}/api/customer/Pickups/CreateRequest</div>
+
+          <h4 class="text-sm font-bold text-foreground mt-2">Paramètres</h4>
+          <div class="border border-border rounded-xl overflow-x-auto">
+            <table class="table-auto w-full text-sm text-left">
+              <thead>
+                <tr class="bg-muted/40 text-secondary-foreground text-xs uppercase font-medium border-b border-border">
+                  <th class="p-4">Paramètre</th>
+                  <th class="p-4">Type</th>
+                  <th class="p-4">Description</th>
+                  <th class="p-4">Obligatoire</th>
+                  <th class="p-4">Valeur par défaut</th>
+                  <th class="p-4">Max Caractères</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-border">
+                <tr>
+                  <td class="p-4 font-mono font-bold">PHONE</td>
+                  <td class="p-4 text-secondary-foreground">string</td>
+                  <td class="p-4 text-secondary-foreground">Téléphone</td>
+                  <td class="p-4 text-danger font-bold">Oui</td>
+                  <td class="p-4 text-secondary-foreground">-</td>
+                  <td class="p-4 text-secondary-foreground">14</td>
+                </tr>
+                <tr>
+                  <td class="p-4 font-mono font-bold">CITY</td>
+                  <td class="p-4 text-secondary-foreground">string</td>
+                  <td class="p-4 text-secondary-foreground">Ville de ramassage (code ou nom de la ville)</td>
+                  <td class="p-4 text-danger font-bold">Oui</td>
+                  <td class="p-4 text-secondary-foreground">-</td>
+                  <td class="p-4 text-secondary-foreground">50</td>
+                </tr>
+                <tr>
+                  <td class="p-4 font-mono font-bold">ADDRESS</td>
+                  <td class="p-4 text-secondary-foreground">string</td>
+                  <td class="p-4 text-secondary-foreground">Adresse de ramassage</td>
+                  <td class="p-4 text-danger font-bold">Oui</td>
+                  <td class="p-4 text-secondary-foreground">-</td>
+                  <td class="p-4 text-secondary-foreground">100</td>
+                </tr>
+                <tr>
+                  <td class="p-4 font-mono font-bold">COMMENT</td>
+                  <td class="p-4 text-secondary-foreground">string</td>
+                  <td class="p-4 text-secondary-foreground">Commentaire facultatif</td>
+                  <td class="p-4 text-secondary-foreground">Non</td>
+                  <td class="p-4 text-secondary-foreground">Vide</td>
+                  <td class="p-4 text-secondary-foreground">100</td>
+                </tr>
+                <tr>
+                  <td class="p-4 font-mono font-bold">STICKERS</td>
+                  <td class="p-4 text-secondary-foreground">boolean</td>
+                  <td class="p-4 text-secondary-foreground">Définissez si vous avez des stickers ou non</td>
+                  <td class="p-4 text-secondary-foreground">Non</td>
+                  <td class="p-4 text-secondary-foreground">False</td>
+                  <td class="p-4 text-secondary-foreground">-</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h4 class="text-sm font-bold text-foreground mt-2">Réponse</h4>
+          <p class="text-sm text-secondary-foreground">
+            La réponse de l'API sera au format JSON. Le format de la réponse dépend du succès ou de l'échec de l'opération de création.
+          </p>
+
+          <h4 class="text-sm font-bold text-foreground mt-2">Réponse en cas de succès</h4>
+          <pre class="api-code-block">{
+  "ADD-PICKUP": {
+    "RESULT": "SUCCESS",
+    "MESSAGE": "New Pickup request created successfully"
+  }
+}</pre>
+
+          <h4 class="text-sm font-bold text-foreground mt-2">Réponse en cas d'erreur</h4>
+          <pre class="api-code-block">{
+  "ADD-PICKUP": {
+    "RESULT": "ERROR",
+    "MESSAGE": "Message d'erreur"
+  }
+}</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB CONTENT: STOCK -->
+  <div class="kt-container-fixed api-tab-content" id="tab_stock">
+    <div class="flex flex-col gap-5">
+      <div class="kt-card">
+        <div class="kt-card-header">
+          <h3 class="kt-card-title text-sm font-semibold">Vos produits en stock</h3>
+        </div>
+        <div class="kt-card-content p-5 flex flex-col gap-4">
+          <p class="text-sm text-secondary-foreground">
+            Cette documentation décrit l'API permettant de récupérer la liste de vos produits en stock.
+          </p>
+
+          <h4 class="text-sm font-bold text-foreground mt-2">Méthode</h4>
+          <div>
+            <span class="badge-method badge-get">GET</span>
+          </div>
+
+          <h4 class="text-sm font-bold text-foreground mt-2">URL</h4>
+          <div class="api-code-block">{{ app.request.schemeAndHttpHost }}/api/customer/Stock</div>
+
+          <h4 class="text-sm font-bold text-foreground mt-2">Paramètres</h4>
+          <p class="text-sm text-secondary-foreground italic">Aucun paramètre n'est requis</p>
+
+          <h4 class="text-sm font-bold text-foreground mt-2">Réponse</h4>
+          <p class="text-sm text-secondary-foreground">
+            La réponse de l'API est au format JSON. L'exemple ci-dessous décrit la structure de chaque produit et variant dans la réponse.
+          </p>
+
+          <h4 class="text-sm font-bold text-foreground mt-2">Réponse en cas de succès</h4>
+          <pre class="api-code-block">{
+  "30986": [
+    {
+      "REF": "KA2NP",
+      "QUANTITY": "44",
+      "WAITING_QUANTITY": "0"
+    },
+    {
+      "REF": "103LC",
+      "QUANTITY": "9",
+      "WAITING_QUANTITY": "0"
+    }
+  ],
+  "30957": [
+    {
+      "REF": "104FZ",
+      "QUANTITY": "0",
+      "WAITING_QUANTITY": "50"
+    }
+  ],
+  "30980": [
+    {
+      "REF": "RSD6N",
+      "QUANTITY": "20",
+      "WAITING_QUANTITY": "150"
+    }
+  ],
+  ... (autres produits)
+}</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB CONTENT: RETOUR -->
+  <div class="kt-container-fixed api-tab-content" id="tab_retour">
+    <div class="flex flex-col gap-5">
+      <div class="kt-card">
+        <div class="kt-card-header">
+          <h3 class="kt-card-title text-sm font-semibold">Demandes de retour</h3>
+        </div>
+        <div class="kt-card-content p-5 flex flex-col gap-4">
+          <p class="text-sm text-secondary-foreground">
+            Cette documentation décrit l'API permettant de soumettre des demandes de retour de colis.
+          </p>
+
+          <h4 class="text-sm font-bold text-foreground mt-2">Méthode</h4>
+          <div>
+            <span class="badge-method badge-post">POST</span>
+          </div>
+
+          <h4 class="text-sm font-bold text-foreground mt-2">URL</h4>
+          <div class="api-code-block">{{ app.request.schemeAndHttpHost }}/api/customer/Returns/CreateRequest</div>
+
+          <h4 class="text-sm font-bold text-foreground mt-2">Paramètres</h4>
+          <div class="border border-border rounded-xl overflow-x-auto">
+            <table class="table-auto w-full text-sm text-left">
+              <thead>
+                <tr class="bg-muted/40 text-secondary-foreground text-xs uppercase font-medium border-b border-border">
+                  <th class="p-4">Paramètre</th>
+                  <th class="p-4">Type</th>
+                  <th class="p-4">Description</th>
+                  <th class="p-4">Obligatoire</th>
+                  <th class="p-4">Valeur par défaut</th>
+                  <th class="p-4">Max Caractères</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-border">
+                <tr>
+                  <td class="p-4 font-mono font-bold">TRACKING</td>
+                  <td class="p-4 text-secondary-foreground">string</td>
+                  <td class="p-4 text-secondary-foreground">Code de suivi du colis original</td>
+                  <td class="p-4 text-danger font-bold">Oui</td>
+                  <td class="p-4 text-secondary-foreground">-</td>
+                  <td class="p-4 text-secondary-foreground">50</td>
+                </tr>
+                <tr>
+                  <td class="p-4 font-mono font-bold">REASON</td>
+                  <td class="p-4 text-secondary-foreground">string</td>
+                  <td class="p-4 text-secondary-foreground">Raison du retour (facultatif)</td>
+                  <td class="p-4 text-secondary-foreground font-normal">Non</td>
+                  <td class="p-4 text-secondary-foreground">Vide</td>
+                  <td class="p-4 text-secondary-foreground">255</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h4 class="text-sm font-bold text-foreground mt-2">Réponse</h4>
+          <p class="text-sm text-secondary-foreground">
+            La réponse de l'API sera au format JSON.
+          </p>
+
+          <h4 class="text-sm font-bold text-foreground mt-2">Réponse en cas de succès</h4>
+          <pre class="api-code-block">{
+  "CREATE-RETURN": {
+    "RESULT": "SUCCESS",
+    "MESSAGE": "Return request registered successfully"
+  }
+}</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+{% endblock %}
+
+{% block javascripts %}
+  {{ parent() }}
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const tabs = document.querySelectorAll('.api-tab-btn');
+      const contents = document.querySelectorAll('.api-tab-content');
+
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          // Remove active class from all tabs
+          tabs.forEach(t => {
+            t.classList.remove('active');
+            t.classList.add('text-secondary-foreground');
+            t.classList.remove('text-primary');
+          });
+          
+          // Add active class to clicked tab
+          tab.classList.add('active');
+          tab.classList.remove('text-secondary-foreground');
+          tab.classList.add('text-primary');
+
+          // Hide all tab contents
+          contents.forEach(content => {
+            content.classList.remove('active');
+          });
+
+          // Show targeted tab content
+          const target = tab.getAttribute('data-tab');
+          document.getElementById('tab_' + target).classList.add('active');
+        });
+      });
+    });
+
+    function copyToClipboard(text, btn) {
+      navigator.clipboard.writeText(text).then(() => {
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="ki-filled ki-check"></i> Copié !';
+        btn.disabled = true;
+        setTimeout(() => {
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+        }, 2000);
+      });
+    }
+  </script>
+{% endblock %}
