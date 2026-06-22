@@ -47,7 +47,9 @@
 	}
           </style>
           <div class="kt-card flex-col justify-between gap-6 h-full bg-cover rtl:bg-[left_top_-1.7rem] bg-[right_top_-1.7rem] bg-no-repeat channel-stats-bg">
-           <img alt="" class="w-7 mt-4 ms-5" src="{{ asset('assets/') }}media/brand-logos/linkedin-2.svg"/>
+           <div class="mt-4 ms-5 text-primary">
+            <i class="ki-filled ki-package text-3xl"></i>
+           </div>
            <div class="flex flex-col gap-1 pb-4 px-5">
             <span class="text-3xl font-semibold text-mono">
              {{ totalColis }}
@@ -58,7 +60,9 @@
            </div>
           </div>
           <div class="kt-card flex-col justify-between gap-6 h-full bg-cover rtl:bg-[left_top_-1.7rem] bg-[right_top_-1.7rem] bg-no-repeat channel-stats-bg">
-           <img alt="" class="w-7 mt-4 ms-5" src="{{ asset('assets/') }}media/brand-logos/youtube-2.svg"/>
+           <div class="mt-4 ms-5 text-success">
+            <i class="ki-filled ki-verify text-3xl"></i>
+           </div>
            <div class="flex flex-col gap-1 pb-4 px-5">
             <span class="text-3xl font-semibold text-mono text-success">
              {{ colisLivres }}
@@ -69,7 +73,9 @@
            </div>
           </div>
           <div class="kt-card flex-col justify-between gap-6 h-full bg-cover rtl:bg-[left_top_-1.7rem] bg-[right_top_-1.7rem] bg-no-repeat channel-stats-bg">
-           <img alt="" class="w-7 mt-4 ms-5" src="{{ asset('assets/') }}media/brand-logos/instagram-03.svg"/>
+           <div class="mt-4 ms-5 text-info">
+            <i class="ki-filled ki-delivery-3 text-3xl"></i>
+           </div>
            <div class="flex flex-col gap-1 pb-4 px-5">
             <span class="text-3xl font-semibold text-mono text-info">
              {{ colisExpedies + colisEnPreparation }}
@@ -80,8 +86,9 @@
            </div>
           </div>
           <div class="kt-card flex-col justify-between gap-6 h-full bg-cover rtl:bg-[left_top_-1.7rem] bg-[right_top_-1.7rem] bg-no-repeat channel-stats-bg">
-           <img alt="" class="dark:hidden w-7 mt-4 ms-5" src="{{ asset('assets/') }}media/brand-logos/tiktok.svg"/>
-           <img alt="" class="hidden dark:block w-7 mt-4 ms-5" src="{{ asset('assets/') }}media/brand-logos/tiktok-dark.svg"/>
+           <div class="mt-4 ms-5 text-destructive">
+            <i class="ki-filled ki-delivery-time text-3xl"></i>
+           </div>
            <div class="flex flex-col gap-1 pb-4 px-5">
             <span class="text-3xl font-semibold text-mono text-destructive">
              {{ colisRetournes }}
@@ -505,7 +512,9 @@
 {% block javascripts %}
 {{ parent() }}
 <script>
-  document.addEventListener("DOMContentLoaded", function() {
+  function initChart() {
+    var container = document.querySelector("#real_earnings_chart");
+    if (!container) return;
     var volumeOptions = {
         series: [{
             name: 'Colis enregistrés',
@@ -518,27 +527,34 @@
         },
         dataLabels: { enabled: false },
         legend: { show: false },
-        stroke: { curve: 'smooth', show: true, width: 3, colors: ["var(--color-primary)"] },
+        stroke: { curve: 'smooth', show: true, width: 3, colors: ["#3e97ff"] },
+        colors: ["#3e97ff"],
         xaxis: {
             categories: {{ chartLabels|json_encode }},
             axisBorder: { show: false },
             axisTicks: { show: false },
-            labels: { style: { colors: "var(--color-muted-foreground)", fontSize: "12px" } }
+            labels: { style: { colors: "#7c8286", fontSize: "12px" } }
         },
         yaxis: {
             min: 0,
             tickAmount: 5,
             axisTicks: { show: false },
             labels: {
-                style: { colors: "var(--color-muted-foreground)", fontSize: "12px" },
+                style: { colors: "#7c8286", fontSize: "12px" },
                 formatter: function(val) { return parseInt(val); }
             }
         },
         fill: { gradient: { enabled: true, opacityFrom: 0.25, opacityTo: 0 } },
-        grid: { borderColor: "var(--color-border)", strokeDashArray: 5, clipMarkers: false }
+        grid: { borderColor: "rgba(0, 0, 0, 0.05)", strokeDashArray: 5, clipMarkers: false }
     };
-    var volumeChart = new ApexCharts(document.querySelector("#real_earnings_chart"), volumeOptions);
+    var volumeChart = new ApexCharts(container, volumeOptions);
     volumeChart.render();
-  });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initChart);
+  } else {
+    initChart();
+  }
 </script>
 {% endblock %}

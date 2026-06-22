@@ -47,34 +47,35 @@ class DashboardController extends AbstractController
         $recentColis = $colisRepo->findBy([], ['createdAt' => 'DESC'], 5);
         $recentBons = $bonLivraisonRepo->findBy([], ['createdAt' => 'DESC'], 5);
 
-        // Get volume statistics for the last 7 days
-        $sevenDaysAgo = (new \DateTimeImmutable('-7 days'))->setTime(0, 0, 0);
+        // Get volume statistics for the last 7 active days in the database
         $volumeStats = $colisRepo->createQueryBuilder('c')
             ->select("SUBSTRING(c.createdAt, 1, 10) as dateStr, COUNT(c.id) as cnt")
-            ->where('c.createdAt >= :startDate')
-            ->setParameter('startDate', $sevenDaysAgo)
             ->groupBy('dateStr')
-            ->orderBy('dateStr', 'ASC')
+            ->orderBy('dateStr', 'DESC')
+            ->setMaxResults(7)
             ->getQuery()
             ->getResult();
 
+        $volumeStats = array_reverse($volumeStats);
+
         $chartLabels = [];
         $chartData = [];
-        for ($i = 6; $i >= 0; $i--) {
-            $dt = (new \DateTimeImmutable("-$i days"));
-            $date = $dt->format('Y-m-d');
-            $dateLabel = $dt->format('d M');
-            $chartLabels[] = $dateLabel;
-            
-            $found = false;
+        
+        if (!empty($volumeStats)) {
             foreach ($volumeStats as $stat) {
-                if ($stat['dateStr'] === $date) {
-                    $chartData[] = (int) $stat['cnt'];
-                    $found = true;
-                    break;
+                $date = \DateTime::createFromFormat('Y-m-d', $stat['dateStr']);
+                if ($date) {
+                    $chartLabels[] = $date->format('d M');
+                } else {
+                    $chartLabels[] = $stat['dateStr'];
                 }
+                $chartData[] = (int) $stat['cnt'];
             }
-            if (!$found) {
+        } else {
+            // Fallback if database has no colis at all
+            for ($i = 6; $i >= 0; $i--) {
+                $dt = (new \DateTimeImmutable("-$i days"));
+                $chartLabels[] = $dt->format('d M');
                 $chartData[] = 0;
             }
         }
