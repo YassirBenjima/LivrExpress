@@ -227,41 +227,12 @@
            </thead>
            <tbody>
             {% for colis in colis_list %}
-             <tr>
-              {% set etatLabel = (colis.etat ?: 'Créé')
-                |replace({
-                  'Cree': 'Créé',
-                  'En preparation': 'En préparation',
-                  'Expedie': 'Expédié',
-                  'Livre': 'Livré',
-                  'Retour': 'Retourné'
-                }) %}
-              {% set etatBadgeClass = 'kt-badge-warning' %}
-              {% if etatLabel == 'Retourné' %}
-               {% set etatBadgeClass = 'kt-badge-destructive' %}
-              {% elseif etatLabel == 'En préparation' %}
-               {% set etatBadgeClass = 'kt-badge-info' %}
-              {% elseif etatLabel == 'Expédié' %}
-               {% set etatBadgeClass = 'kt-badge-primary' %}
-              {% elseif etatLabel == 'Livré' %}
-               {% set etatBadgeClass = 'kt-badge-success' %}
-              {% endif %}
-              {% set statutLabel = (colis.statut ?: 'En attente')
-                |replace({
-                  'Reporte': 'Reporté',
-                  'Echec': 'Échec',
-                  'Termine': 'Terminé'
-                }) %}
-              {% set statutBadgeClass = 'kt-badge-warning' %}
-              {% if statutLabel == 'Terminé' %}
-               {% set statutBadgeClass = 'kt-badge-success' %}
-              {% elseif statutLabel == 'En cours' %}
-               {% set statutBadgeClass = 'kt-badge-primary' %}
-              {% elseif statutLabel == 'Reporté' %}
-               {% set statutBadgeClass = 'kt-badge-info' %}
-              {% elseif statutLabel == 'Échec' %}
-               {% set statutBadgeClass = 'kt-badge-destructive' %}
-              {% endif %}
+              <tr>
+               {% set etatLabel = colis.etatLabel %}
+               {% set etatBadgeClass = colis.etatBadgeClass %}
+               {% set statutLabel = colis.statutLabel %}
+               {% set statutBadgeClass = colis.statutBadgeClass %}
+              
               <td>
                   <input class="kt-checkbox kt-checkbox-sm pickup-row-checkbox" data-kt-datatable-row-check="true" type="checkbox" value="{{ colis.id }}"/>
               </td>

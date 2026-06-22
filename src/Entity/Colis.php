@@ -451,10 +451,44 @@ class Colis
     public static function resolveEtatBadgeClass(string $etatLabel): string
     {
         return match ($etatLabel) {
-            self::ETAT_RETOUR => 'kt-badge-destructive',
-            self::ETAT_EN_PREPARATION => 'kt-badge-info',
-            self::ETAT_EXPEDIE => 'kt-badge-primary',
+            self::ETAT_CREE => 'kt-badge-primary',
+            self::ETAT_EN_PREPARATION => 'kt-badge-warning',
+            self::ETAT_EXPEDIE => 'kt-badge-info',
             self::ETAT_LIVRE => 'kt-badge-success',
+            self::ETAT_RETOUR => 'kt-badge-destructive',
+            default => 'kt-badge-warning',
+        };
+    }
+
+    public function getStatutLabel(): string
+    {
+        return self::normalizeStatutLabel($this->statut);
+    }
+
+    public function getStatutBadgeClass(): string
+    {
+        return self::resolveStatutBadgeClass(self::normalizeStatutLabel($this->statut));
+    }
+
+    public static function normalizeStatutLabel(?string $statut): string
+    {
+        $statut = trim((string) ($statut ?? self::STATUT_EN_ATTENTE));
+
+        return match ($statut) {
+            'Reporte' => self::STATUT_REPORTE,
+            'Echec' => self::STATUT_ECHEC,
+            'Termine' => self::STATUT_TERMINE,
+            default => $statut !== '' ? $statut : self::STATUT_EN_ATTENTE,
+        };
+    }
+
+    public static function resolveStatutBadgeClass(string $statutLabel): string
+    {
+        return match ($statutLabel) {
+            self::STATUT_TERMINE => 'kt-badge-success',
+            self::STATUT_EN_COURS => 'kt-badge-primary',
+            self::STATUT_REPORTE => 'kt-badge-info',
+            self::STATUT_ECHEC => 'kt-badge-destructive',
             default => 'kt-badge-warning',
         };
     }
