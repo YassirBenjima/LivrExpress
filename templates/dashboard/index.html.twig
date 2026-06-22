@@ -512,70 +512,80 @@
 {% block javascripts %}
 {{ parent() }}
 <script>
-  document.addEventListener("DOMContentLoaded", function() {
-    var container = document.querySelector("#real_earnings_chart");
-    if (!container) return;
-    
-    var volumeOptions = {
-        series: [{
-            name: 'Colis enregistrés',
-            data: {{ chartData|json_encode }}
-        }],
-        chart: {
-            type: 'area',
-            height: 250,
-            toolbar: { show: false },
-            zoom: { enabled: false },
-            fontFamily: 'Inter, system-ui, sans-serif'
-        },
-        colors: ['#3e97ff'],
-        dataLabels: { enabled: false },
-        stroke: { curve: 'smooth', width: 3 },
-        fill: {
-            type: 'gradient',
-            gradient: {
-                shadeIntensity: 1,
-                opacityFrom: 0.45,
-                opacityTo: 0.05,
-                stops: [0, 100]
-            }
-        },
-        xaxis: {
-            categories: {{ chartLabels|json_encode }},
-            axisBorder: { show: false },
-            axisTicks: { show: false },
-            labels: {
-                style: {
-                    colors: '#7c8286',
-                    fontSize: '12px'
-                }
-            }
-        },
-        yaxis: {
-            min: 0,
-            tickAmount: 5,
-            axisTicks: { show: false },
-            labels: {
-                style: {
-                    colors: '#7c8286',
-                    fontSize: '12px'
-                },
-                formatter: function(val) {
-                    return parseInt(val);
-                }
-            }
-        },
-        grid: {
-            borderColor: 'rgba(0,0,0,0.05)',
-            strokeDashArray: 4
-        },
-        tooltip: {
-            theme: 'light'
-        }
-    };
-    
-    var volumeChart = new ApexCharts(container, volumeOptions);
-    volumeChart.render();
-  });
+  (function() {
+    function initChart() {
+      var container = document.querySelector("#real_earnings_chart");
+      if (!container) return;
+      if (container.hasAttribute('data-chart-rendered')) return;
+      container.setAttribute('data-chart-rendered', 'true');
+      
+      var volumeOptions = {
+          series: [{
+              name: 'Colis enregistrés',
+              data: {{ chartData|json_encode }}
+          }],
+          chart: {
+              type: 'area',
+              height: 250,
+              toolbar: { show: false },
+              zoom: { enabled: false },
+              fontFamily: 'Inter, system-ui, sans-serif'
+          },
+          colors: ['#3e97ff'],
+          dataLabels: { enabled: false },
+          stroke: { curve: 'smooth', width: 3 },
+          fill: {
+              type: 'gradient',
+              gradient: {
+                  shadeIntensity: 1,
+                  opacityFrom: 0.45,
+                  opacityTo: 0.05,
+                  stops: [0, 100]
+              }
+          },
+          xaxis: {
+              categories: {{ chartLabels|json_encode }},
+              axisBorder: { show: false },
+              axisTicks: { show: false },
+              labels: {
+                  style: {
+                      colors: '#7c8286',
+                      fontSize: '12px'
+                  }
+              }
+          },
+          yaxis: {
+              min: 0,
+              tickAmount: 5,
+              axisTicks: { show: false },
+              labels: {
+                  style: {
+                      colors: '#7c8286',
+                      fontSize: '12px'
+                  },
+                  formatter: function(val) {
+                      return parseInt(val);
+                  }
+              }
+          },
+          grid: {
+              borderColor: 'rgba(0,0,0,0.05)',
+              strokeDashArray: 4
+          },
+          tooltip: {
+              theme: 'light'
+          }
+      };
+      
+      var volumeChart = new ApexCharts(container, volumeOptions);
+      volumeChart.render();
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initChart);
+    } else {
+      initChart();
+    }
+  })();
 </script>
 {% endblock %}
