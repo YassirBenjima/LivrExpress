@@ -312,7 +312,7 @@
            </div>
           </div>
           <div class="kt-card-content flex flex-col justify-end items-stretch grow px-3 py-1">
-           <div id="real_earnings_chart">
+           <div id="real_earnings_chart" style="min-height: 250px; width: 100%;">
            </div>
           </div>
          </div>
@@ -512,49 +512,70 @@
 {% block javascripts %}
 {{ parent() }}
 <script>
-  function initChart() {
+  document.addEventListener("DOMContentLoaded", function() {
     var container = document.querySelector("#real_earnings_chart");
     if (!container) return;
+    
     var volumeOptions = {
         series: [{
             name: 'Colis enregistrés',
             data: {{ chartData|json_encode }}
         }],
         chart: {
-            height: 250,
             type: 'area',
-            toolbar: { show: false }
+            height: 250,
+            toolbar: { show: false },
+            zoom: { enabled: false },
+            fontFamily: 'Inter, system-ui, sans-serif'
         },
+        colors: ['#3e97ff'],
         dataLabels: { enabled: false },
-        legend: { show: false },
-        stroke: { curve: 'smooth', show: true, width: 3, colors: ["#3e97ff"] },
-        colors: ["#3e97ff"],
+        stroke: { curve: 'smooth', width: 3 },
+        fill: {
+            type: 'gradient',
+            gradient: {
+                shadeIntensity: 1,
+                opacityFrom: 0.45,
+                opacityTo: 0.05,
+                stops: [0, 100]
+            }
+        },
         xaxis: {
             categories: {{ chartLabels|json_encode }},
             axisBorder: { show: false },
             axisTicks: { show: false },
-            labels: { style: { colors: "#7c8286", fontSize: "12px" } }
+            labels: {
+                style: {
+                    colors: '#7c8286',
+                    fontSize: '12px'
+                }
+            }
         },
         yaxis: {
             min: 0,
             tickAmount: 5,
             axisTicks: { show: false },
             labels: {
-                style: { colors: "#7c8286", fontSize: "12px" },
-                formatter: function(val) { return parseInt(val); }
+                style: {
+                    colors: '#7c8286',
+                    fontSize: '12px'
+                },
+                formatter: function(val) {
+                    return parseInt(val);
+                }
             }
         },
-        fill: { gradient: { enabled: true, opacityFrom: 0.25, opacityTo: 0 } },
-        grid: { borderColor: "rgba(0, 0, 0, 0.05)", strokeDashArray: 5, clipMarkers: false }
+        grid: {
+            borderColor: 'rgba(0,0,0,0.05)',
+            strokeDashArray: 4
+        },
+        tooltip: {
+            theme: 'light'
+        }
     };
+    
     var volumeChart = new ApexCharts(container, volumeOptions);
     volumeChart.render();
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initChart);
-  } else {
-    initChart();
-  }
+  });
 </script>
 {% endblock %}
