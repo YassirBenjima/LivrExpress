@@ -110,22 +110,14 @@ final class ColisApiController extends AbstractController
     #[Route('/api/colis/pickup', name: 'api_colis_pickup', methods: ['GET'])]
     public function getPickupColis(ColisRepository $colisRepository): JsonResponse
     {
-        $colisList = $colisRepository->findBy([], ['id' => 'DESC']);
+        $colisList = $colisRepository->findBy([
+            'statut' => Colis::STATUT_EN_ATTENTE,
+            'type' => Colis::TYPE_SIMPLE
+        ], ['id' => 'DESC']);
         $data = [];
 
         foreach ($colisList as $colis) {
             $statut = $colis->getStatut() ?? Colis::STATUT_EN_ATTENTE;
-            
-            // "Colis pour ramassage": only waiting packages.
-            if ($statut !== Colis::STATUT_EN_ATTENTE) {
-                continue;
-            }
-
-            // Business rule: Colis pickup page shows only "Colis Simple".
-            if ($colis->getType() !== Colis::TYPE_SIMPLE) {
-                continue;
-            }
-
             $etat = $colis->getEtat() ?? Colis::ETAT_CREE;
 
             $data[] = [
