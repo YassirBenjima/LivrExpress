@@ -18,6 +18,9 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+use App\Service\StockProductMediaManager;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
+
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
 final class StockApiController extends AbstractController
 {
@@ -75,25 +78,124 @@ final class StockApiController extends AbstractController
     }
 
     #[Route('/api/stock/products', name: 'api_stock_products_create', methods: ['POST'])]
-    public function createProduct(Request $request, EntityManagerInterface $em, StockProductVariantRepository $variantRepo): JsonResponse
-    {
-        $name     = trim((string) $request->request->get('name', ''));
-        $category = trim((string) $request->request->get('category', ''));
-        $note     = trim((string) $request->request->get('note', ''));
-        $qty      = (int) $request->request->get('quantity', 0);
-        $barcode  = trim((string) $request->request->get('barcode', ''));
+    public function createProduct(
+        Request $request,
+        EntityManagerInterface $em,
+        StockProductVariantRepository $variantRepo,
+        StockProductMediaManager $mediaManager,
+    ): JsonResponse {
+        $name            = trim((string) $request->request->get('name', ''));
+        $category        = trim((string) $request->request->get('category', ''));
+        $variantsEnabled = (bool) $request->request->get('variants_enabled');
+        $note            = trim((string) $request->request->get('note', ''));
 
         if ($name === '') {
             return $this->json(['message' => 'Le nom du produit est obligatoire.'], JsonResponse::HTTP_BAD_REQUEST);
         }
 
-        $product = new StockProduct($name, $category ?: '1');
-        $product->setNote($note !== '' ? $note : null);
-        if ($barcode !== '') $product->setBarcode($barcode);
-        $product->setQuantity($qty);
+        $allowedCategories = array_map('strval', range(1, 11));
+        if ($category === '' || !\in_array($category, $allowedCategories, true)) {
+            return $this->json(['message' => 'Veuillez choisir une catégorie valide.'], JsonResponse::HTTP_BAD_REQUEST);
+        }
+
+        $product = new StockProduct($name, $category);
+        if ($note !== '') {
+            $product->setNote($note);
+        }
+
+        if ($variantsEnabled) {
+            /** @var array<int, array{barcode?: mixed, name?: mixed, quantity?: mixed}> $variants */
+            $variants = $request->request->all('variants');
+
+            $hasAtLeastOne = false;
+            foreach ($variants as $row) {
+                $vName = trim((string) ($row['name'] ?? ''));
+                $vBarcode = trim((string) ($row['barcode'] ?? ''));
+                $vQtyRaw = (string) ($row['quantity'] ?? '');
+                $vQty = $vQtyRaw !== '' ? (int) $vQtyRaw : null;
+
+                if ($vName === '' && $vBarcode === '' && ($vQty === null || $vQty === 0)) {
+                    continue;
+                }
+
+                $hasAtLeastOne = true;
+                if ($vName === '') {
+                    return $this->json(['message' => 'Chaque variante doit avoir un nom.'], JsonResponse::HTTP_BAD_REQUEST);
+                }
+                if ($vQty === null || $vQty < 0) {
+                    return $this->json(['message' => 'La quantité de chaque variante est obligatoire et doit être valide.'], JsonResponse::HTTP_BAD_REQUEST);
+                }
+
+                $variant = new StockProductVariant($vName, $vQty);
+                $variant->setBarcode($vBarcode !== '' ? $vBarcode : null);
+                if ($variant->getBarcode() === null) {
+                    $variant->setBarcode($this->generateUniqueBarcode($em, $variantRepo));
+                }
+                $product->addVariant($variant);
+            }
+
+            if (!$hasAtLeastOne) {
+                return $this->json(['message' => 'Ajoutez au moins une variante ou désactivez le mode variantes.'], JsonResponse::HTTP_BAD_REQUEST);
+            }
+
+            if ($product->getBarcode() === null) {
+                $product->setBarcode($this->generateUniqueBarcode($em, $variantRepo));
+            }
+        } else {
+            $barcode = trim((string) $request->request->get('barcode', ''));
+            if ($barcode !== '') {
+                $product->setBarcode($barcode);
+            }
+            if ($product->getBarcode() === null) {
+                $product->setBarcode($this->generateUniqueBarcode($em, $variantRepo));
+            }
+
+            $qtyRaw = trim((string) $request->request->get('quantity', ''));
+            if ($qtyRaw === '' || !ctype_digit($qtyRaw)) {
+                return $this->json(['message' => 'La quantité est obligatoire.'], JsonResponse::HTTP_BAD_REQUEST);
+            }
+            $product->setQuantity((int) $qtyRaw);
+        }
+
+        $photo = $request->files->get('photo');
+        if ($photo instanceof UploadedFile) {
+            if (!$photo->isValid()) {
+                return $this->json(['message' => 'Le fichier image est invalide.'], JsonResponse::HTTP_BAD_REQUEST);
+            }
+
+            $mime = (string) $photo->getMimeType();
+            if (!\in_array($mime, ['image/jpeg', 'image/png'], true)) {
+                return $this->json(['message' => 'Format image non supporté. Utilisez JPG ou PNG.'], JsonResponse::HTTP_BAD_REQUEST);
+            }
+        }
 
         $em->persist($product);
-        $em->flush();
+
+        $newPhotoPath = null;
+        $newQrPath = null;
+        try {
+            if ($photo instanceof UploadedFile) {
+                $newPhotoPath = $mediaManager->uploadProductPhoto($photo);
+                $product->setPhotoPath($newPhotoPath);
+            }
+
+            $barcodeForQr = $product->getBarcode();
+            if ($barcodeForQr !== null) {
+                $newQrPath = $mediaManager->generateProductQrPng($barcodeForQr);
+                $product->setQrCodePath($newQrPath);
+            }
+
+            $em->flush();
+        } catch (\Throwable $e) {
+            if ($newPhotoPath !== null) {
+                $mediaManager->deletePublicFileSafely($newPhotoPath);
+            }
+            if ($newQrPath !== null) {
+                $mediaManager->deletePublicFileSafely($newQrPath);
+            }
+
+            return $this->json(['message' => 'Erreur lors de l’enregistrement du produit.'], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+        }
 
         return $this->json(['message' => 'Produit créé avec succès.', 'id' => $product->getId()]);
     }
@@ -229,5 +331,40 @@ final class StockApiController extends AbstractController
         } while ($repo->findOneBy(['reference' => $ref]) !== null);
 
         return $ref;
+    }
+
+    private function generateUniqueBarcode(
+        EntityManagerInterface $entityManager,
+        StockProductVariantRepository $stockProductVariantRepository,
+    ): string {
+        $alphabet = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+        $maxAttempts = 25;
+
+        for ($i = 0; $i < $maxAttempts; $i++) {
+            $code = '';
+            $alphaLen = strlen($alphabet);
+            for ($j = 0; $j < 8; $j++) {
+                $code .= $alphabet[random_int(0, $alphaLen - 1)];
+            }
+
+            $existsInVariants = $stockProductVariantRepository->count(['barcode' => $code]) > 0;
+            if ($existsInVariants) {
+                continue;
+            }
+            $existsInProducts = (int) $entityManager->createQueryBuilder()
+                ->select('COUNT(p.id)')
+                ->from(StockProduct::class, 'p')
+                ->where('p.barcode = :code')
+                ->setParameter('code', $code)
+                ->getQuery()
+                ->getSingleScalarResult() > 0;
+            if ($existsInProducts) {
+                continue;
+            }
+
+            return $code;
+        }
+
+        return strtoupper(bin2hex(random_bytes(4)));
     }
 }
