@@ -33,6 +33,7 @@ class SettingsController extends AbstractController
         return $this->json([
             'parcel_settings' => $settings->getParcelSettings(),
             'packaging_settings' => $settings->getPackagingSettings(),
+            'package_option' => $user->getPackageOption(),
         ]);
     }
 
