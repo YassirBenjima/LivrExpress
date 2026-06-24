@@ -184,4 +184,114 @@ final class ColisApiController extends AbstractController
 
         return $this->json(['message' => 'Aucun colis valide à traiter.'], JsonResponse::HTTP_BAD_REQUEST);
     }
+
+    #[Route('/api/colis/import', name: 'api_colis_import', methods: ['POST'])]
+    public function import(Request $request, EntityManagerInterface $entityManager): JsonResponse
+    {
+        /** @var \Symfony\Component\HttpFoundation\File\UploadedFile|null $file */
+        $file = $request->files->get('file');
+
+        if (!$file) {
+            return $this->json([
+                'message' => 'Aucun fichier reçu.',
+            ], JsonResponse::HTTP_BAD_REQUEST);
+        }
+
+        $xlsx = \Shuchkin\SimpleXLSX::parse($file->getRealPath());
+        if (!$xlsx) {
+            return $this->json([
+                'message' => 'Erreur lors de la lecture du fichier Excel : ' . \Shuchkin\SimpleXLSX::parseError(),
+            ], JsonResponse::HTTP_BAD_REQUEST);
+        }
+
+        $rows = $xlsx->rows();
+        if (\count($rows) < 2) {
+            return $this->json([
+                'message' => 'Le fichier est vide ou ne contient que des en-têtes.',
+            ], JsonResponse::HTTP_BAD_REQUEST);
+        }
+
+        $headers = array_shift($rows);
+        if (!\is_array($headers)) {
+            return $this->json([
+                'message' => 'Le fichier est invalide (en-têtes manquants).',
+            ], JsonResponse::HTTP_BAD_REQUEST);
+        }
+        
+        $importedCount = 0;
+        $errors = [];
+
+        foreach ($rows as $index => $row) {
+            if (!\is_array($row)) {
+                $errors[] = sprintf("Ligne %d : Format invalide.", $index + 2);
+                continue;
+            }
+            if (empty(array_filter($row))) {
+                continue;
+            }
+            $data = array_combine($headers, $row);
+            if (!\is_array($data)) {
+                $errors[] = sprintf("Ligne %d : Format invalide.", $index + 2);
+                continue;
+            }
+
+            // Minimal validation
+            if (empty($data['N° Commande']) || empty($data['Ville']) || empty($data['Prix (DH)'])) {
+                $errors[] = sprintf("Ligne %d : Champs obligatoires manquants (N° Commande, Ville, Prix).", $index + 2);
+                continue;
+            }
+
+            $colis = new Colis();
+            $colis->setOrderNumber((string) $data['N° Commande']);
+            $colis->setRecipient($data['Destinataire'] ?? null);
+            $colis->setPhoneNumber((string) ($data['Téléphone'] ?? ''));
+            $colis->setCity($data['Ville']);
+            $colis->setNeighborhood($data['Quartier'] ?? '');
+            $colis->setAddress($data['Adresse'] ?? '');
+            $colis->setPrice((string) $data['Prix (DH)']);
+            $colis->setProductNature($data['Nature de Produit'] ?? 'Marchandise');
+
+            // Map Type
+            $typeInput = strtolower($data['Type'] ?? '');
+            if (str_contains($typeInput, 'stock')) {
+                $colis->setType(Colis::TYPE_STOCK);
+            } else {
+                $colis->setType(Colis::TYPE_SIMPLE);
+            }
+
+            $colis->setComment($data['Commentaire'] ?? null);
+            $colis->setPackageOption($data['Option Colis'] ?? 'Ne pas ouvrir le colis');
+
+            try {
+                $entityManager->persist($colis);
+                $importedCount++;
+            } catch (\Exception $e) {
+                $errors[] = sprintf("Ligne %d : Erreur lors de l'enregistrement (%s).", $index + 2, $e->getMessage());
+            }
+        }
+
+        if ($importedCount > 0) {
+            try {
+                $entityManager->flush();
+            } catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $e) {
+                return $this->json([
+                    'message' => 'Erreur : Certains numéros de commande existent déjà dans la base de données.',
+                ], JsonResponse::HTTP_BAD_REQUEST);
+            } catch (\Exception $e) {
+                return $this->json([
+                    'message' => 'Une erreur est survenue lors de la sauvegarde : ' . $e->getMessage(),
+                ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+            }
+        }
+
+        if ($importedCount > 0) {
+            return $this->json([
+                'message' => sprintf('Import terminé : %d colis importé(s) avec succès.', $importedCount),
+            ]);
+        }
+
+        return $this->json([
+            'message' => 'Aucun colis n\'a pu être importé. Erreurs : ' . implode(', ', $errors),
+        ], JsonResponse::HTTP_BAD_REQUEST);
+    }
 }
